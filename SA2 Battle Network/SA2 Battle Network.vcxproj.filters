@@ -13,24 +13,129 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\netcode">
+      <UniqueIdentifier>{9947278e-4898-4186-ac7a-d61d93485d2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\netcode">
+      <UniqueIdentifier>{dfb43c4b-40c0-41a6-a94c-27ae602be028}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="MemoryManagement.h">
+      <Filter>Header Files\netcode</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="MemoryStruct.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerObject.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="QuickSock.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="QuickTypes.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="ReliableID.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="ReliablePacketHandler.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionBlacklist.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressList.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonEnums.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="InputStruct.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="LazyMemory.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryHandler.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="Initialize.h">
+      <Filter>Header Files\netcode</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitString.h">
+      <Filter>Header Files\netcode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SA2 Battle Network.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuickSock.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="ReliableID.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="ReliablePacketHandler.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionBlacklist.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="InputStruct.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryHandler.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManagement.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHandler.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerObject.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="Initialize.cpp">
+      <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="SplitString.cpp">
+      <Filter>Source Files\netcode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
