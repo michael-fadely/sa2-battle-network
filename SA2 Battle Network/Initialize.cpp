@@ -13,7 +13,6 @@
 #include "Common.h"
 #include "Networking.h"
 #include "Application.h"
-#include "SplitString.h"
 
 #include "Initialize.h"
 
@@ -44,8 +43,9 @@ bool ReadConfig()
 	}
 	else
 	{
-		getline(config, line);
-		SplitString(args, line, ' ');
+		for (string s; getline(config, s, ' ');)
+			args.push_back(s);
+
 		return (args.size() > 1);
 	}
 }

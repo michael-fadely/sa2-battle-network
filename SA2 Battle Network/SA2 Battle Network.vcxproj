@@ -99,7 +99,6 @@
     <ClInclude Include="QuickTypes.h" />
     <ClInclude Include="ReliableID.h" />
     <ClInclude Include="ReliablePacketHandler.h" />
-    <ClInclude Include="SplitString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActionBlacklist.cpp" />
@@ -125,7 +124,6 @@
     <ClCompile Include="ReliableID.cpp" />
     <ClCompile Include="ReliablePacketHandler.cpp" />
     <ClCompile Include="SA2 Battle Network.cpp" />
-    <ClCompile Include="SplitString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mod.ini" />

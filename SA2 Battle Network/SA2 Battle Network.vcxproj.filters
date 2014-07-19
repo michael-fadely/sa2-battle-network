@@ -81,9 +81,6 @@
     <ClInclude Include="Initialize.h">
       <Filter>Header Files\netcode</Filter>
     </ClInclude>
-    <ClInclude Include="SplitString.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -132,9 +129,6 @@
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
     <ClCompile Include="Initialize.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="SplitString.cpp">
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
   </ItemGroup>
