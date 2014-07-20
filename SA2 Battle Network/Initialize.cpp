@@ -68,7 +68,7 @@ void MainThread()
 	Application::ExitCode ExitCode;
 
 	SetConsoleTitleA(Application::Program::version.c_str());
-	hprint("Thanks for trying Sonic Adventure 2: Battle Network Alpha!\n", (milliseconds)25);
+	//hprint("Thanks for trying Sonic Adventure 2: Battle Network Alpha!\n", (milliseconds)25);
 	SleepFor((milliseconds)250);
 
 	if (ReadConfig())

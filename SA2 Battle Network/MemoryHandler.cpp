@@ -761,7 +761,7 @@ void MemoryHandler::Read()
 					return;
 
 				case SubMenu2P::S_BATTLEOPT:
-					ReadMemory(ADDR_BATTOPT,	&remote.menu.battleOpt[0], sizeof(int));
+					ReadMemory(ADDR_BATTOPT,	&remote.menu.battleOpt[0], sizeof(char) * 4);
 					ReadMemory(ADDR_BATTOPT_SEL, &remote.menu.BattleOptSelection, sizeof(char));
 					ReadMemory(ADDR_BATTOPT_BAK, &remote.menu.BattleOptBack, sizeof(char));
 					return;
