@@ -790,12 +790,10 @@ inline void MemoryHandler::writeP2Memory()
 {
 	if (remote.system.GameState >= GameState::INGAME)
 		player2->write(&recvPlayer);
-	else
-		return;
 }
-inline void MemoryHandler::writeRings() { WriteMemory(ADDR_P2RINGS, &local.game.rings[1], sizeof(short)); }
-inline void MemoryHandler::writeSpecials() { WriteMemory(ADDR_P2SPECIALS, &local.game.p2specials[0], (sizeof(char) * 3)); }
-inline void MemoryHandler::writeTimeStop() { WriteMemory(ADDR_TIMESTOP, &local.game.TimeStop, sizeof(char)); }
+inline void MemoryHandler::writeRings() { RingCount[1] = local.game.rings[1]; }
+inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.p2specials, sizeof(char) * 3); }
+inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStop; }
 
 void MemoryHandler::updateAbstractPlayer(AbstractPlayer* recvr, PlayerObject* player)
 {
@@ -803,6 +801,7 @@ void MemoryHandler::updateAbstractPlayer(AbstractPlayer* recvr, PlayerObject* pl
 	player2->MechHP		= recvPlayer.MechHP;
 	player2->Powerups	= recvPlayer.Powerups;
 	player2->Upgrades	= recvPlayer.Upgrades;
+
 
 	memcpy(recvr, &player->Action, sizeof(AbstractPlayer));
 }
@@ -1107,6 +1106,7 @@ void MemoryHandler::PreReceive()
 {
 	player2->read();
 	updateAbstractPlayer(&recvPlayer, player2);
+	
 	p2Input->read();
 
 	writeRings();

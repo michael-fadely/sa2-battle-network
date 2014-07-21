@@ -33,25 +33,17 @@ const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
 Program::Program(bool server, clientAddress& address, Settings& settings, uint timeout)
 {
-	//version << "SA2:BN Version: " << versionNum.str();
-	//cout << "<> Initializing..." << endl;
-
-	//cout << "<>\tVaraibles...";
-	isServer		= server;
+	isServer = server;
 	ConnectionStart = 0;
 
 	Address.address = address.address;
 	Address.port = address.port;
-	//cout << " DONE!" << endl;
 
-	//cout << "<>\tSettings...";
+	// Oh man. This is so terrible.
 	memcpy(&this->settings, &settings, sizeof(Settings));
-	//cout << " DONE!" << endl;
 
-	//cout << "<>\tSocket...";
 	QSocket::initSockets();
 	Socket = new QSocket(1024);
-	//cout << " DONE!" << endl;
 
 	Networking = new PacketHandler(this, timeout);
 
@@ -60,12 +52,8 @@ Program::Program(bool server, clientAddress& address, Settings& settings, uint t
 
 Program::~Program()
 {
-	//cout << "<> De-initializing..." << endl;
-
-	//cout << "<>\tSocket...";
 	delete Socket;
 	QSocket::deinitSockets();
-	//cout << " DONE!" << endl;
 
 	delete Networking;
 
@@ -92,12 +80,6 @@ ExitCode Program::Connect()
 	isConnected = false;
 	while (!isConnected)
 	{
-		if (!isProcessRunning())
-		{
-			isConnected = false;
-			return ExitCode::GameTerminated;
-		}
-
 		Socket->readAvail();
 
 		if (Socket->msgAvail())
@@ -119,7 +101,7 @@ ExitCode Program::Connect()
 						Address.address = QSocket::IntToStringIP(Socket->msgIP());
 						Address.port = Socket->msgPort();
 					}
-					
+
 					break;
 				}
 				else
@@ -142,7 +124,7 @@ ExitCode Program::Connect()
 	}
 
 	system("cls");
-	
+
 	if (isConnected)
 	{
 		if (isServer)
@@ -160,47 +142,44 @@ ExitCode Program::Connect()
 
 void Program::ApplySettings()
 {
-	//cout << "\tApplying settings..." << endl;
-	if (isProcessRunning())
+	MemManage::nopP2Input(true);
+
+	if (settings.noSpecials)
+		MemManage::nop2PSpecials();
+	if (settings.isLocal)
+		MemManage::swapInput(true);
+	if (settings.KeepWindowActive)
+		MemManage::keepActive();
+
+	if (!isServer)
 	{
-		MemManage::nopP2Input(true);
-
-		if (settings.noSpecials)
-			MemManage::nop2PSpecials();
-		if (settings.isLocal)
-			MemManage::swapInput(true);
-		if (settings.KeepWindowActive)
-			MemManage::keepActive();
-
-		if (!isServer)
-		{
-			MemManage::swapSpawn(true);
-			MemManage::swapCharsel(true);
-		}
-		else
-		{
-			MemManage::swapSpawn(false);
-			MemManage::swapCharsel(false);
-		}
+		MemManage::swapSpawn(true);
+		MemManage::swapCharsel(true);
 	}
-	//cout << "\tDone!" << endl;
-	return;
-}
-
-bool Program::isProcessRunning()
-{
-	DWORD exitcode = 0;
-	GetExitCodeProcess(sa2bn::Globals::ProcessID, &exitcode);
-
-	if (exitcode == STILL_ACTIVE)
-		return true;
 	else
 	{
-		CloseHandle(sa2bn::Globals::ProcessID);
-		exitCode = ExitCode::GameTerminated;
-		return false;
+		MemManage::swapSpawn(false);
+		MemManage::swapCharsel(false);
 	}
 }
+
+/*
+// Deprecated
+bool Program::isProcessRunning()
+{
+DWORD exitcode = 0;
+GetExitCodeProcess(sa2bn::Globals::ProcessID, &exitcode);
+
+if (exitcode == STILL_ACTIVE)
+return true;
+else
+{
+CloseHandle(sa2bn::Globals::ProcessID);
+exitCode = ExitCode::GameTerminated;
+return false;
+}
+}
+*/
 
 ExitCode Program::RunLoop()
 {
@@ -216,11 +195,6 @@ ExitCode Program::RunLoop()
 
 		while (isConnected)
 		{
-			if (!isProcessRunning())
-			{
-				Disconnect(false);
-				break;
-			}
 			frame = MemManage::getFrameCount();
 
 			// Receiver
@@ -228,7 +202,7 @@ ExitCode Program::RunLoop()
 
 			// Sender
 			sendElapsed = Networking->Send();
-	
+
 			if (Duration(titleTimer) >= 250)
 			{
 				framecount = MemManage::getElapsedFrames(frame);
@@ -257,29 +231,26 @@ void Program::Disconnect(bool received, ExitCode code)
 	if (received)
 	{
 		isConnected = false;
-		if (isProcessRunning())
+		cout << "<> Reverting swaps..." << endl;
+
+		MemManage::nopP2Input(false);
+
+		if (settings.noSpecials)
+			MemManage::nop2PSpecials();
+		if (settings.isLocal)
+			MemManage::swapInput(false);
+		if (settings.KeepWindowActive)
+			MemManage::keepActive();
+
+		if (!isServer)
 		{
-			cout << "<> Reverting swaps..." << endl;
-
-			MemManage::nopP2Input(false);
-
-			if (settings.noSpecials)
-				MemManage::nop2PSpecials();
-			if (settings.isLocal)
-				MemManage::swapInput(false);
-			if (settings.KeepWindowActive)
-				MemManage::keepActive();
-
-			if (!isServer)
-			{
-				MemManage::swapSpawn(false);
-				MemManage::swapCharsel(false);
-			}
-			else
-			{
-				MemManage::swapSpawn(true);
-				MemManage::swapCharsel(true);
-			}
+			MemManage::swapSpawn(false);
+			MemManage::swapCharsel(false);
+		}
+		else
+		{
+			MemManage::swapSpawn(true);
+			MemManage::swapCharsel(true);
 		}
 
 		exitCode = code;

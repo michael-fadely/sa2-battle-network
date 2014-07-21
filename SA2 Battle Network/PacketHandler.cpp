@@ -22,8 +22,8 @@ PacketHandler::PacketHandler(Application::Program* program, uint timeout)
 	Program = program;
 
 	// Steal its socket and address struct
-	Socket	= program->Socket;
-	Address	= &program->Address;
+	Socket = program->Socket;
+	Address = &program->Address;
 
 	kaTimeout = timeout;
 
@@ -38,7 +38,7 @@ PacketHandler::PacketHandler(Application::Program* program, uint timeout)
 PacketHandler::~PacketHandler()
 {
 	//cout << "Killing packet handler..." << endl;
-	
+
 	Program = nullptr;
 	Socket = nullptr;
 	Address = nullptr;
@@ -49,7 +49,7 @@ PacketHandler::~PacketHandler()
 int PacketHandler::SendMsg(bool isReliable)
 {
 	int sentSize = 0;
-	
+
 	if (isReliable)
 	{
 		//reliableTimer = millisecs();
@@ -64,13 +64,13 @@ int PacketHandler::SendMsg(bool isReliable)
 uint PacketHandler::WriteReliable(bool isRandom)
 {
 	uint id = 0;
-	
+
 	Socket->writeByte(RELIABLE_SEND);
-	
+
 	if (isRandom)
 	{
 		srand(millisecs());
-		id = (uint)((uint)(rand()) % (uint)(pow(2,10)));
+		id = (uint)((uint)(rand()) % (uint)(pow(2, 10)));
 	}
 	else
 	{
@@ -120,17 +120,15 @@ uint PacketHandler::Send()
 bool PacketHandler::ReliableHandler()
 {
 	uchar firstByte = (uchar)Socket->readByte();
-	uint reliableID = 0;
+	uint reliableID = Socket->readInt();
 
-	// Reliable message from the client which requires confirmation
-	if (firstByte == RELIABLE_SEND)
+	switch (firstByte)
 	{
-		//cout << ">< Received a reliable SEND-message. Responding..." << endl;
-		reliableID = Socket->readInt();
+	default:
+		return false;
 
-		//if (LastID == UINT_MAX || LastID == UINT_MAX-1)
-		//	LastID = 0;
-
+	case RELIABLE_SEND:	// Reliable message from the client which requires arrival confirmation
+		/*
 		if ((int)reliableID < 0)
 		{
 			system("color 47");
@@ -138,6 +136,7 @@ bool PacketHandler::ReliableHandler()
 			SleepFor((milliseconds)8);
 			system("color 07");
 		}
+		*/
 
 		Socket->writeByte(RELIABLE_RECV);
 		Socket->writeInt(reliableID);
@@ -153,31 +152,17 @@ bool PacketHandler::ReliableHandler()
 			LastID = reliableID;
 			ridList.addID(reliableID);
 			return false;
-				
-			//if (reliableID < LastID)
-			//{
-			//	cout << "<> Received old ID " << reliableID << " which is older than the previous, " << LastID << endl;
-			//	return true;
-			//}
-			//else
-			//{
-			//	LastID = reliableID;
-			//	return false;
-			//}
 		}
-	}
-	// Confirmation from the destination client that it has received the message
-	else if (firstByte == RELIABLE_RECV)
-	{
-		reliableID = (uint)Socket->readInt();
+
+	case RELIABLE_RECV:	// Arrival confirmation from the client that it has received the message
 		if (!netQueue.isEmpty())
 			netQueue.del(reliableID);
 
-		//LastID = reliableID;
 		return false;
 	}
-	else
-		return false;
+
+	// Unexpected error
+	return false;
 }
 
 uint PacketHandler::Receive()
@@ -206,7 +191,6 @@ uint PacketHandler::Receive()
 			switch (msgTypes[i])
 			{
 			case MSG_KEEPALIVE:
-				//cout << ">>\t\tReceived keepalive" << endl;
 				recvKeepalive = millisecs();
 				break;
 
@@ -216,26 +200,26 @@ uint PacketHandler::Receive()
 				break;
 
 			case MSG_SCREWYOU:
-				{
-					system("color c");
-					cout << ">>\a RECEIVED SCREWYOU MESSAGE!" << endl;
-					
-					uint msgLength = Socket->inMsgLength();
-					char* buffer = new char[msgLength + sizeof(char)];
-					buffer[msgLength] = '\0';
+			{
+				system("color c");
+				cout << ">>\a RECEIVED SCREWYOU MESSAGE!" << endl;
 
-					memcpy(buffer, Socket->inMsgBuffer(), msgLength);
+				uint msgLength = Socket->inMsgLength();
+				char* buffer = new char[msgLength + sizeof(char)];
+				buffer[msgLength] = '\0';
 
-					cout << "->\t";
-					for (uint b = 0; b < msgLength; b++)
-						cout << " 0x" << hex << (ushort)buffer[b];
-					cout << dec << endl;
+				memcpy(buffer, Socket->inMsgBuffer(), msgLength);
 
-					delete[] buffer;
-					
-					system("color 7");
-					break;
-				}
+				cout << "->\t";
+				for (uint b = 0; b < msgLength; b++)
+					cout << " 0x" << hex << (ushort)buffer[b];
+				cout << dec << endl;
+
+				delete[] buffer;
+
+				system("color 7");
+				break;
+			}
 			}
 
 			CheckKeepalive();
@@ -259,7 +243,7 @@ uint PacketHandler::Receive()
 
 		recvTimer = millisecs();
 	}
-	
+
 	CheckKeepalive();
 	return Duration(elapsed);
 }

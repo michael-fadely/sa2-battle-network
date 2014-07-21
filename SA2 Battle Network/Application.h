@@ -41,7 +41,7 @@ namespace Application
 		~Program();
 
 		// Methods
-		bool isProcessRunning();
+		//bool isProcessRunning();
 
 		ExitCode Connect();
 		void Disconnect(bool received, ExitCode code = ExitCode::ClientDisconnect);

@@ -21,13 +21,11 @@ void MemManage::changeGameState(uchar stateNum, MemStruct* structure)
 	structure->system.GameState = stateNum;
 }
 
-inline uint MemManage::getElapsedFrames(uint lastFrameCount) { return (getFrameCount() - lastFrameCount); }
+inline uint MemManage::getElapsedFrames(uint lastFrameCount) { return (FrameCount - lastFrameCount); }
 
 inline uint MemManage::getFrameCount()
 {
-	uint count = 0;
-	ReadMemory(ADDR_FRAMECOUNT, &count, sizeof(int));
-	return count;
+	return FrameCount;
 }
 
 bool MemManage::waitFrameRecursive(uint currentFrameCount, uint frameCount)

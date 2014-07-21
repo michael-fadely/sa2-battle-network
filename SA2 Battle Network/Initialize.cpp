@@ -23,14 +23,6 @@ using namespace std;
 using namespace chrono;
 
 vector<string> args;
-
-void __cdecl Init_t(const char *path)
-{
-	thread mainThread(MainThread);
-	mainThread.detach();
-	return;
-}
-
 bool ReadConfig()
 {
 	string line;
@@ -50,6 +42,13 @@ bool ReadConfig()
 	}
 }
 
+void __cdecl Init_t(const char *path)
+{
+	thread mainThread(MainThread);
+	mainThread.detach();
+	return;
+}
+
 void MainThread()
 {
 	clientAddress addrStruct; addrStruct.port = 0;
@@ -67,40 +66,39 @@ void MainThread()
 
 	Application::ExitCode ExitCode;
 
-	SetConsoleTitleA(Application::Program::version.c_str());
+	//SetConsoleTitleA(Application::Program::version.c_str());
 	//hprint("Thanks for trying Sonic Adventure 2: Battle Network Alpha!\n", (milliseconds)25);
-	SleepFor((milliseconds)250);
+	//SleepFor((milliseconds)250);
 
+#pragma region "Command line" arguments
 	if (ReadConfig())
 	{
 		uint argc = args.size();
 		for (uint i = 0; i < argc; i++)
 		{
-			string arg = args[i];
-
 			// Connection
-			if ((arg == "--host" || arg == "-h") && (i + 1) < argc)
+			if ((args[i] == "--host" || args[i] == "-h") && (i + 1) < argc)
 			{
 				isServer = true;
 				//netMode = "server";
 				addrStruct.port = atoi(args[++i].c_str());
 			}
-			else if ((arg == "--connect" || arg == "-c") && (i + 2) < argc)
+			else if ((args[i] == "--connect" || args[i] == "-c") && (i + 2) < argc)
 			{
 				isServer = false;
 				//netMode = "client";
 				addrStruct.address = args[++i];
 				addrStruct.port = atoi(args[++i].c_str());
 			}
-			else if ((arg == "--timeout" || arg == "-t") && (i + 1) < argc)
+			else if ((args[i] == "--timeout" || args[i] == "-t") && (i + 1) < argc)
 				timeout = atoi(args[++i].c_str());
 
 			// Configuration
-			else if (arg == "--no-specials")
+			else if (args[i] == "--no-specials")
 				Settings.noSpecials = true;
-			else if (arg == "--local" || arg == "-l")
+			else if (args[i] == "--local" || args[i] == "-l")
 				Settings.isLocal = true;
-			else if (arg == "--keep-active")
+			else if (args[i] == "--keep-active")
 				Settings.KeepWindowActive = true;
 		}
 	}
@@ -108,7 +106,6 @@ void MainThread()
 	{
 		return;
 	}
-
 	/*
 	if (netMode.empty())
 	{
@@ -141,6 +138,7 @@ void MainThread()
 	if (!netMode.empty() && !addrStruct.address.empty() && addrStruct.port != 0)
 	break;
 	*/
+#pragma endregion
 
 	if (timeout < 1000)
 		timeout = 1000;
