@@ -11,12 +11,12 @@ struct MemStruct
 		uchar PlayerPaused;
 		// The current 2Player mode.
 		// 0 is single player, 1 is three battles, 2 is one battle.
-		uchar multiMode;
+		uchar TwoPlayerMode;
 		// Split screen mode.
 		// The number indicates the number of screens rendered.
-		uchar splitscreen;
+		uchar SplitscreenMode;
 		// The current pause menu selection
-		uchar PauseMenuSelection;
+		uchar PauseSelection;
 	} system;
 
 	// Menu varaibles are for ingame menus of any description
@@ -24,26 +24,27 @@ struct MemStruct
 	{
 		// The current parent menu and its sub menu
 		uint main, sub;
-		uchar p2start;
-		uchar playerReady[2];
+		uchar P2Start;
+		uchar PlayerReady[2];
 
-		uint StageSel2P[2];
-		uchar BattleModeSel;
-		uchar charSelection[2];
+		uint StageSelection2P[2];
+		uchar BattleSelection;
+		uchar CharacterSelection[2];
 
-		char selectedChar[2];
+		char CharacterSelected[2];
 
-		char altChar[6], atMenu[2];
+		char AltCharacterSonic, AltCharacterShadow;
+		char AltCharacterTails, AltCharacterEggman;
+		char AltCharacterKnuckles, AltCharacterRouge;
 
-		// Battle Options button selected on
-		// stage select
-		char BattleOptButton;
+		// Battle Options button selected on stage select
+		char BattleOptionsButton;
 		// Battle Options array
-		char battleOpt[4];
+		char BattleOptions[4];
 		// Battle Options menu selection
-		char BattleOptSelection;
+		char BattleOptionsSelection;
 		// Battle Options back button is selected
-		char BattleOptBack;
+		char BattleOptionsBackSelected;
 	} menu;
 
 	// Gameplay variables for things only seen within the stage
@@ -51,16 +52,16 @@ struct MemStruct
 	{
 		// Ingame time.
 		// First index is minutes, followed by seconds and centiseconds.
-		char Time[3];
+		char TimerMinutes, TimerSeconds, TimerFrames;
 		// Ring count.
 		// First index is Player 1, second index is Player 2.
-		ushort rings[2];
+		ushort RingCount[2];
 		// Current stage.
-		uchar stage;
+		uchar CurrentLevel;
 
-		char p1specials[3];
-		char p2specials[3];
+		char P1SpecialAttacks[3];
+		char P2SpecialAttacks[3];
 
-		char TimeStop;
+		char TimeStopMode;
 	} game;
 };

@@ -80,8 +80,8 @@ DataPointer(short, CharacterSelectTimer, ADDR_CHOSENTIMER);
 DataArray(int, PlayerReady, ADDR_P1READY, 2);
 DataArray(int, CharacterSelection, ADDR_P1CHARSEL, 2);
 DataArray(char, CharacterSelected, ADDR_P1CHARCHOSEN, 2);
-DataPointer(char, BattleSelect, ADDR_2PMENUSEL);
-DataArray(int, StageSelect2P, ADDR_STAGESELV, 2);
+DataPointer(char, BattleSelection, ADDR_2PMENUSEL);
+DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
 #pragma region Defines - Battle Options
@@ -93,8 +93,8 @@ DataArray(int, StageSelect2P, ADDR_STAGESELV, 2);
 
 #pragma region Pointers - Battle Options
 DataArray(char,		BattleOptions,				ADDR_BATTOPT, 4);
-DataPointer(char,	BattleOptionSelection,		ADDR_BATTOPT_SEL);
-DataPointer(char,	BattleOptionBackSelected,	ADDR_BATTOPT_BAK);
+DataPointer(char,	BattleOptionsSelection,		ADDR_BATTOPT_SEL);
+DataPointer(char,	BattleOptionsBackSelected,	ADDR_BATTOPT_BAK);
 DataPointer(char,	BattleOptionsButton,		ADDR_BATTOPT_BTN);
 #pragma endregion
 
