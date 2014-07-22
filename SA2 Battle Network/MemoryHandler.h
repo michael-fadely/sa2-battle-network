@@ -42,12 +42,9 @@ class MemoryHandler
 		// Sets lastFrame to thisFrame
 		inline void SetFrame() { lastFrame = thisFrame; }
 		// Returns true if thisFrame is the same as lastFrame
-		inline const bool CheckFrame() 
+		inline const bool CheckFrame()
 		{
-			if (thisFrame == lastFrame)
-				return true;
-			else
-				return false;
+			return (thisFrame == lastFrame);
 		}
 
 		inline void setStartTime(uint time) { StartTime = time; }
@@ -101,6 +98,10 @@ class MemoryHandler
 		uint StartTime;
 		bool isServer;
 
+		// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
+		// are at the 2P Battle Menu. I'm really not sure if I should do this some other way.
+		bool cAt2PMenu[2];
+		bool lAt2PMenu[2];
 
 		// Toggles
 		bool firstMenuEntry;

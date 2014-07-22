@@ -35,12 +35,12 @@ DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
 #pragma endregion
 
 #pragma region Pointers
-DataPointer(char, PlayerPaused,		ADDR_PLYPAUSED);
-DataPointer(char, PauseSelection,	ADDR_PAUSESEL);
-DataPointer(char, GameState,		ADDR_GAMESTATE);
-DataPointer(char, SplitscreenMode,	ADDR_SPLITSCREEN);
+DataPointer(char, PlayerPaused, ADDR_PLYPAUSED);
+DataPointer(unsigned char, PauseSelection, ADDR_PAUSESEL);
+DataPointer(char, GameState, ADDR_GAMESTATE);
+DataPointer(char, SplitscreenMode, ADDR_SPLITSCREEN);
 DataPointer(unsigned int, FrameCount, ADDR_FRAMECOUNT);
-DataPointer(char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
+DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #pragma endregion
 
 #pragma endregion
@@ -78,9 +78,9 @@ DataArray(unsigned int, CurrentMenu, ADDR_MENU, 2);
 DataPointer(char, P2Start, ADDR_P2START);
 DataPointer(short, CharacterSelectTimer, ADDR_CHOSENTIMER);
 DataArray(int, PlayerReady, ADDR_P1READY, 2);
-DataArray(int, CharacterSelection, ADDR_P1CHARSEL, 2);
+DataArray(unsigned int, CharacterSelection, ADDR_P1CHARSEL, 2);
 DataArray(char, CharacterSelected, ADDR_P1CHARCHOSEN, 2);
-DataPointer(char, BattleSelection, ADDR_2PMENUSEL);
+DataPointer(unsigned char, BattleSelection, ADDR_2PMENUSEL);
 DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
@@ -92,10 +92,10 @@ DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
 #pragma region Pointers - Battle Options
-DataArray(char,		BattleOptions,				ADDR_BATTOPT, 4);
-DataPointer(char,	BattleOptionsSelection,		ADDR_BATTOPT_SEL);
-DataPointer(char,	BattleOptionsBackSelected,	ADDR_BATTOPT_BAK);
-DataPointer(char,	BattleOptionsButton,		ADDR_BATTOPT_BTN);
+DataArray(char, BattleOptions, ADDR_BATTOPT, 4);
+DataPointer(unsigned char, BattleOptionsSelection, ADDR_BATTOPT_SEL);
+DataPointer(char, BattleOptionsBackSelected, ADDR_BATTOPT_BAK);
+DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #pragma endregion
 
 #pragma region Defines - Alt Character Selection
@@ -108,12 +108,12 @@ DataPointer(char,	BattleOptionsButton,		ADDR_BATTOPT_BTN);
 #pragma endregion
 
 #pragma region Pointers - Alt Character Selection
-DataPointer(char, AltCharacterSonic,	ADDR_ALTSONIC);
-DataPointer(char, AltCharacterShadow,	ADDR_ALTSHADOW);
-DataPointer(char, AltCharacterTails,	ADDR_ALTTAILS);
-DataPointer(char, AltCharacterEggman,	ADDR_ALTEGGMAN);
-DataPointer(char, AltCharacterKnuckles,	ADDR_ALTKNUX);
-DataPointer(char, AltCharacterRouge,	ADDR_ALTROUGE);
+DataPointer(char, AltCharacterSonic, ADDR_ALTSONIC);
+DataPointer(char, AltCharacterShadow, ADDR_ALTSHADOW);
+DataPointer(char, AltCharacterTails, ADDR_ALTTAILS);
+DataPointer(char, AltCharacterEggman, ADDR_ALTEGGMAN);
+DataPointer(char, AltCharacterKnuckles, ADDR_ALTKNUX);
+DataPointer(char, AltCharacterRouge, ADDR_ALTROUGE);
 #pragma endregion
 
 #pragma endregion

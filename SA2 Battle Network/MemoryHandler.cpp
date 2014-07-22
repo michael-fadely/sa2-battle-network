@@ -520,9 +520,9 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 
 
 			// ...and we haven't pressed start
-			else if (local.menu.atMenu[0] = (CurrentMenu[1] == SubMenu2P::S_START && P2Start == 0))
+			else if (cAt2PMenu[0] = (CurrentMenu[1] == SubMenu2P::S_START && P2Start == 0))
 			{
-				if (local.menu.atMenu[0] && local.menu.atMenu[1] && !wroteP2Start)
+				if (cAt2PMenu[0] && cAt2PMenu[1] && !wroteP2Start)
 				{
 					P2Start = 2;
 					wroteP2Start = true;
@@ -628,19 +628,19 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 		else
 		{
 			wroteP2Start = false;
-			if (local.menu.atMenu[0])
-				local.menu.atMenu[0] = false;
+			if (cAt2PMenu[0])
+				cAt2PMenu[0] = false;
 		}
 
-		if (local.menu.atMenu[0] != remote.menu.atMenu[0])
+		if (cAt2PMenu[0] != lAt2PMenu[0])
 		{
 			cout << "<< Sending \"On 2P Menu\" state" << endl;
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 			Socket->writeByte(MSG_M_ATMENU);
-			Socket->writeByte(local.menu.atMenu[0]);
+			Socket->writeByte(cAt2PMenu[0]);
 			packetHandler->SendMsg(true);
 
-			remote.menu.atMenu[0] = local.menu.atMenu[0];
+			lAt2PMenu[0] = cAt2PMenu[0];
 		}
 
 		local.menu.sub = CurrentMenu[1];
@@ -754,14 +754,14 @@ void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
 			return;
 
 		case MSG_S_TIME:
-			TimerMinutes = local.game.TimerMinutes = Socket->readByte();
-			TimerSeconds = local.game.TimerSeconds = Socket->readByte();
-			TimerFrames = local.game.TimerFrames = Socket->readByte();
+			TimerMinutes = local.game.TimerMinutes = Socket->readChar();
+			TimerSeconds = local.game.TimerSeconds = Socket->readChar();
+			TimerFrames = local.game.TimerFrames = Socket->readChar();
 			return;
 
 		case MSG_S_GAMESTATE:
 		{
-			uchar recvGameState = (char)Socket->readByte();
+			uchar recvGameState = Socket->readChar();
 
 			if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
 				MemManage::changeGameState(recvGameState, &local);
@@ -770,17 +770,17 @@ void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
 		}
 
 		case MSG_S_PAUSESEL:
-			PauseSelection = local.system.PauseSelection = (uchar)Socket->readByte();
+			PauseSelection = local.system.PauseSelection = (uchar)Socket->readChar();
 			return;
 
 		case MSG_S_TIMESTOP:
-			local.game.TimeStopMode = (char)Socket->readByte();
+			local.game.TimeStopMode = Socket->readChar();
 			writeTimeStop();
 			return;
 
 		case MSG_2PSPECIALS:
 			for (int i = 0; i < 3; i++)
-				local.game.P2SpecialAttacks[i] = (char)Socket->readByte();
+				local.game.P2SpecialAttacks[i] = Socket->readChar();
 
 			writeSpecials();
 			return;
@@ -880,61 +880,61 @@ void MemoryHandler::ReceiveMenu(QSocket* Socket, uchar type)
 			return;
 
 		case MSG_M_ATMENU:
-			local.menu.atMenu[1] = Socket->readOct();
-			if (local.menu.atMenu[1])
+			cAt2PMenu[1] = (Socket->readOct() == 1);
+			if (cAt2PMenu[1])
 				cout << ">> Player 2 is ready on the 2P menu!" << endl;
 			else
 				cout << ">> Player 2 is no longer on the 2P menu." << endl;
 			return;
 
 		case MSG_2PREADY:
-			PlayerReady[1] = local.menu.PlayerReady[1] = (uchar)Socket->readByte();
+			PlayerReady[1] = local.menu.PlayerReady[1] = Socket->readChar();
 
 			cout << ">> Player 2 ready state changed." << endl;
 			return;
 
 		case MSG_M_CHARSEL:
-			CharacterSelection[1] = local.menu.CharacterSelection[1] = (uchar)Socket->readByte();
+			CharacterSelection[1] = local.menu.CharacterSelection[1] = Socket->readChar();
 
 			return;
 
 		case MSG_M_CHARCHOSEN:
-			CharacterSelected[1] = local.menu.CharacterSelected[1] = Socket->readByte();
+			CharacterSelected[1] = local.menu.CharacterSelected[1] = Socket->readChar();
 			return;
 
 		case MSG_M_ALTCHAR:
-			AltCharacterSonic = local.menu.AltCharacterSonic = Socket->readByte();
-			AltCharacterShadow = local.menu.AltCharacterShadow = Socket->readByte();
+			AltCharacterSonic = local.menu.AltCharacterSonic = Socket->readChar();
+			AltCharacterShadow = local.menu.AltCharacterShadow = Socket->readChar();
 
-			AltCharacterTails = local.menu.AltCharacterTails = Socket->readByte();
-			AltCharacterEggman = local.menu.AltCharacterEggman = Socket->readByte();
+			AltCharacterTails = local.menu.AltCharacterTails = Socket->readChar();
+			AltCharacterEggman = local.menu.AltCharacterEggman = Socket->readChar();
 
-			AltCharacterKnuckles = local.menu.AltCharacterKnuckles = Socket->readByte();
-			AltCharacterRouge = local.menu.AltCharacterRouge = Socket->readByte();
+			AltCharacterKnuckles = local.menu.AltCharacterKnuckles = Socket->readChar();
+			AltCharacterRouge = local.menu.AltCharacterRouge = Socket->readChar();
 
 			return;
 
 		case MSG_S_BATTLEOPT:
 			for (int i = 0; i < 4; i++)
-				BattleOptions[i] = (char)Socket->readByte();
+				BattleOptions[i] = Socket->readChar();
 
 			return;
 
 		case MSG_M_BATTLEOPTSEL:
-			BattleOptionsSelection = local.menu.BattleOptionsSelection = (char)Socket->readByte();
-			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected = (char)Socket->readByte();
+			BattleOptionsSelection = local.menu.BattleOptionsSelection = Socket->readChar();
+			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected = Socket->readChar();
 
 			return;
 
 		case MSG_M_STAGESEL:
 			StageSelection2P[0] = local.menu.StageSelection2P[0] = Socket->readInt();
 			StageSelection2P[1] = local.menu.StageSelection2P[1] = Socket->readInt();
-			BattleOptionsButton = local.menu.BattleOptionsButton = (char)Socket->readByte();
+			BattleOptionsButton = local.menu.BattleOptionsButton = Socket->readChar();
 
 			return;
 
 		case MSG_M_BATTLEMODESEL:
-			BattleSelection = local.menu.BattleSelection = (char)Socket->readByte();
+			BattleSelection = local.menu.BattleSelection = Socket->readChar();
 
 			return;
 		}
