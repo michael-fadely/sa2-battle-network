@@ -105,7 +105,7 @@ uint PacketHandler::Send()
 	{
 		// Refresh system variables before continuing
 		// otherwise this is all useless =P
-		AbstractMemory->Read();
+		//AbstractMemory->Read();
 
 		AbstractMemory->SendSystem(Socket);
 		AbstractMemory->SendPlayer(Socket);

@@ -3,7 +3,6 @@
 
 #pragma region Gameplay
 
-#pragma region Defines
 #define ADDR_PLAYER1		0x01DEA6E0	// MainCharacter[0]
 #define ADDR_PLAYER2		0x01DEA6E4	// MainCharacter[1]
 
@@ -13,11 +12,8 @@
 #define ADDR_P1SPECIALS		0x0174AFED	// P1SpecialAttacks
 #define ADDR_P2SPECIALS		0x0174AFF0	// P2SpecialAttacks
 #define ADDR_TIMESTOP		0x0174AFF7
-#pragma endregion
 
-#pragma region Pointers
 DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
-#pragma endregion
 
 #pragma endregion
 
@@ -39,11 +35,12 @@ DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
 #pragma endregion
 
 #pragma region Pointers
-DataPointer(char, PlayerPaused, ADDR_PLYPAUSED);
-DataPointer(char, PauseSelection, ADDR_PAUSESEL);
-DataPointer(char, GameState, ADDR_GAMESTATE);
-DataPointer(char, SplitscreenMode, ADDR_SPLITSCREEN);
+DataPointer(char, PlayerPaused,		ADDR_PLYPAUSED);
+DataPointer(char, PauseSelection,	ADDR_PAUSESEL);
+DataPointer(char, GameState,		ADDR_GAMESTATE);
+DataPointer(char, SplitscreenMode,	ADDR_SPLITSCREEN);
 DataPointer(unsigned int, FrameCount, ADDR_FRAMECOUNT);
+DataPointer(char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #pragma endregion
 
 #pragma endregion
@@ -95,10 +92,10 @@ DataArray(int, StageSelect2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
 #pragma region Pointers - Battle Options
-DataArray(char, BattleOptions, ADDR_BATTOPT, 4);
-DataPointer(char, BattleOptionSelection, ADDR_BATTOPT_SEL);
-DataPointer(char, BattleOptionBackSelected, ADDR_BATTOPT_BAK);
-DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
+DataArray(char,		BattleOptions,				ADDR_BATTOPT, 4);
+DataPointer(char,	BattleOptionSelection,		ADDR_BATTOPT_SEL);
+DataPointer(char,	BattleOptionBackSelected,	ADDR_BATTOPT_BAK);
+DataPointer(char,	BattleOptionsButton,		ADDR_BATTOPT_BTN);
 #pragma endregion
 
 #pragma region Defines - Alt Character Selection
@@ -108,6 +105,15 @@ DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #define ADDR_ALTEGGMAN		0x01D1B901
 #define ADDR_ALTKNUX		0x01D1B915
 #define ADDR_ALTROUGE		0x01D1B929
+#pragma endregion
+
+#pragma region Pointers - Alt Character Selection
+DataPointer(char, AltCharacterSonic,	ADDR_ALTSONIC);
+DataPointer(char, AltCharacterShadow,	ADDR_ALTSHADOW);
+DataPointer(char, AltCharacterTails,	ADDR_ALTTAILS);
+DataPointer(char, AltCharacterEggman,	ADDR_ALTEGGMAN);
+DataPointer(char, AltCharacterKnuckles,	ADDR_ALTKNUX);
+DataPointer(char, AltCharacterRouge,	ADDR_ALTROUGE);
 #pragma endregion
 
 #pragma endregion

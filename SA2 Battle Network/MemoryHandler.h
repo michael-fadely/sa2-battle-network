@@ -15,8 +15,6 @@ class MemoryHandler
 		~MemoryHandler();
 
 		// Methods
-		// Update remote variables
-		void Read();
 
 		// Read and send System variables
 		void SendSystem(QSocket* Socket);
@@ -88,7 +86,7 @@ class MemoryHandler
 		// A Memory Structure that is "remote"
 		// i.e it is constantly being updated with
 		// content read from the game memory.
-		MemStruct remote;
+		//MemStruct remote;
 
 		// A Memory Structure that is "local"
 		// i.e used for comparison for determining

@@ -31,7 +31,7 @@ struct MemStruct
 		uchar BattleModeSel;
 		uchar charSelection[2];
 
-		bool selectedChar[2];
+		char selectedChar[2];
 
 		char altChar[6], atMenu[2];
 
