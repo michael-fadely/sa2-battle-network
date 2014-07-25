@@ -3,11 +3,11 @@
 
 #include "Common.h"
 
-unsigned int millisecs()
+const unsigned int millisecs()
 {
 	return GetTickCount();
 }
-unsigned int Duration(unsigned int timer)
+const unsigned int Duration(unsigned int timer)
 {
 	return (unsigned int)(GetTickCount() - timer);
 }

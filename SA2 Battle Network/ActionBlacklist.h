@@ -1,3 +1,3 @@
 #pragma once
 
-bool isHoldAction(unsigned char action);
+const bool isHoldAction(const unsigned char action);

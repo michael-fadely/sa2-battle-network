@@ -11,7 +11,7 @@
 
 using namespace std;
 
-InputStruct::InputStruct(uint baseAddress)
+InputStruct::InputStruct(const uint baseAddress)
 {
 	if (!MemManage::InputInitalized())
 	{
@@ -21,10 +21,8 @@ InputStruct::InputStruct(uint baseAddress)
 
 	ReadMemory(baseAddress, &this->baseAddress, sizeof(int));
 
-	buttons.Clear = 0x0000;
-
-	memset(&buttons,	0x00, sizeof(inputButtons));
-	memset(&analog,		0x00, sizeof(inputAnalog));
+	buttons = {};
+	analog = {};
 
 	cout << "[InputStruct::InputStruct] Initialized input struct with address " << hex << this->baseAddress << dec << endl;
 	return;
@@ -39,13 +37,13 @@ void InputStruct::read()
 	ReadMemory((baseAddress+Offset::AnalogY), &analog.y, sizeof(short));
 }
 
-void InputStruct::write(abstractInput* recvr)
+void InputStruct::write(AbstractInput* recvr)
 {
 	writeButtons(recvr);
 	writeAnalog(recvr, 1);
 }
 
-void InputStruct::writeButtons(abstractInput* recvr)
+void InputStruct::writeButtons(AbstractInput* recvr)
 {
 	buttons.Held = recvr->buttons.Held;
 	buttons.NotHeld = ~buttons.Held;
@@ -57,7 +55,7 @@ void InputStruct::writeButtons(abstractInput* recvr)
 }
 
 
-void InputStruct::writeAnalog(abstractInput* recvr, uint gamestate)
+void InputStruct::writeAnalog(AbstractInput* recvr, uint gamestate)
 {
 	analog.x = recvr->analog.x;
 	analog.y = recvr->analog.y;

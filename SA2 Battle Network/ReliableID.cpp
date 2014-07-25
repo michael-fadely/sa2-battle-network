@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void reliableID::update(uint time)
+void reliableID::update(const uint time)
 {
 	if (Duration(lastUpdate) >= time)
 	{
@@ -19,7 +19,7 @@ void reliableID::update(uint time)
 		return;
 }
 
-void reliableID::addID(uint id)
+void reliableID::addID(const uint id)
 {
 	rID add;
 	add.id = 0;
@@ -31,7 +31,7 @@ void reliableID::addID(uint id)
 	cout << ">> Added received ID " << id << endl;
 }
 
-bool reliableID::checkID(uint id)
+const bool reliableID::checkID(const uint id)
 {
 	if (!idList.empty())
 	{

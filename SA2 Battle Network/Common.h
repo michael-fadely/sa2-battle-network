@@ -7,7 +7,7 @@
 
 // Useful inline stuff:
 // Returns millisecs (lazy description is lazy)
-unsigned int millisecs();
+const unsigned int millisecs();
 
 // Returns the amount of time passed since TIMER
-unsigned int Duration(unsigned int timer);
+const unsigned int Duration(const unsigned int timer);

@@ -14,9 +14,9 @@ class reliableID
 		std::list<rID> idList;
 
 	public:
-		void update(unsigned int time);
-		void addID(unsigned int id);
-		bool checkID(unsigned int id);
+		void update(const unsigned int time);
+		void addID(const unsigned int id);
+		const bool checkID(const unsigned int id);
 		void prune();
 
 		unsigned int lastUpdate;

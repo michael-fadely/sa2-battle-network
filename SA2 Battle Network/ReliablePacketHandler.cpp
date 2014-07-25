@@ -12,7 +12,7 @@ using namespace std;
 // Packet class
 // ------------
 
-reliablePacket::reliablePacket(QSocket* Socket, uint lifespan=10000)
+reliablePacket::reliablePacket(QSocket* Socket, const uint lifespan = 10000)
 {
 	uid = 0;
 	this->lifespan = 0;
@@ -46,7 +46,7 @@ reliablePacket::~reliablePacket()
 // Queue class
 // ------------
 
-bool reliableQueue::add(QSocket* Socket)
+const bool reliableQueue::add(QSocket* Socket)
 {
 	if (Socket == nullptr) return false;
 
@@ -71,7 +71,7 @@ bool reliableQueue::add(QSocket* Socket)
 	return false;
 }
 
-bool reliableQueue::del(uint uid)
+const bool reliableQueue::del(const uint uid)
 {
 	// Local variable(s):
 	bool response(false);
@@ -101,7 +101,7 @@ bool reliableQueue::del(uint uid)
 	return response;
 }
 
-bool reliableQueue::isDead()
+const bool reliableQueue::isDead()
 {
 	if (!isEmpty() && Duration(deque.front()->timeAdded) >= deque.front()->lifespan)
 	{

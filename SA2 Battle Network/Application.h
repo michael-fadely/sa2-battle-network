@@ -37,19 +37,19 @@ namespace Application
 
 	public:
 		// De/Constructor
-		Program(bool server, clientAddress& address, Settings& settings, unsigned int timeout);
+		Program(const bool server, const clientAddress& address, const Settings& settings, const unsigned int timeout);
 		~Program();
 
 		// Methods
 		//bool isProcessRunning();
 
 		ExitCode Connect();
-		void Disconnect(bool received, ExitCode code = ExitCode::ClientDisconnect);
+		void Disconnect(const bool received, const ExitCode code = ExitCode::ClientDisconnect);
 
 		void ApplySettings();
-		ExitCode RunLoop();
+		const ExitCode RunLoop();
 
-		bool OnEnd();
+		const bool OnEnd();
 
 		// Members
 		bool isServer;

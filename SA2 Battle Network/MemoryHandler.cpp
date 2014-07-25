@@ -32,25 +32,30 @@ MemoryHandler::MemoryHandler(PacketHandler* packetHandler, bool isserver)
 	this->packetHandler = packetHandler;
 	this->isServer = isserver;
 
+	cAt2PMenu[0] = false;
+	cAt2PMenu[1] = false;
+	lAt2PMenu[0] = false;
+	lAt2PMenu[1] = false;
+
 	firstMenuEntry = false;
 	wroteP2Start = false;
 	splitToggled = false;
 	Teleported = false;
 	writePlayer = false;
 
+	player1 = nullptr;
+	player2 = nullptr;
+	p1Input = nullptr;
+	p2Input = nullptr;
+
 	InitPlayers();
 	InitInput();
 
-	cout << "[MemoryHandler] Initializing Memory Structures" << endl;
-
-	memset(&local, 0x00, sizeof(MemStruct));
-	//memset(&remote, 0x00, sizeof(MemStruct));
-
-	memset(&recvPlayer, 0x00, sizeof(AbstractPlayer));
-	memset(&recvInput, 0x00, sizeof(abstractInput));
-
-	memset(&sendPlayer, 0x00, sizeof(AbstractPlayer));
-	memset(&sendInput, 0x00, sizeof(abstractInput));
+	local = {};
+	recvPlayer = {};
+	sendPlayer = {};
+	recvInput = {};
+	sendInput = {};
 
 	thisFrame = 0;
 	lastFrame = 0;
@@ -916,7 +921,7 @@ void MemoryHandler::ReceiveMenu(QSocket* Socket, uchar type)
 
 		case MSG_S_BATTLEOPT:
 			for (int i = 0; i < 4; i++)
-				BattleOptions[i] = Socket->readChar();
+				BattleOptions[i] = local.menu.BattleOptions[i] = Socket->readChar();
 
 			return;
 

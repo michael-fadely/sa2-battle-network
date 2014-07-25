@@ -18,7 +18,7 @@ public:
 	unsigned int lifespan;
 	unsigned int timeAdded;
 	
-	reliablePacket(QSocket* Socket, unsigned int span);
+	reliablePacket(QSocket* Socket, const unsigned int span);
 	~reliablePacket();
 };
 
@@ -30,23 +30,23 @@ private:
 	std::deque<reliablePacket*> deque;
 
 	// Check the front of the reliable message deque (oldest) for the UID specified.
-	inline bool checkFrontID(unsigned int uid)
+	inline const bool checkFrontID(unsigned int uid)
 	{
 		return (deque.front()->uid == uid);
 	}
 
 	// Check the back of the reliable message deque (newest) for the UID specified.
-	inline bool checkBackID(unsigned int uid)
+	inline const bool checkBackID(unsigned int uid)
 	{
 		return (deque.back()->uid == uid);
 	}
 
 public:
 	// Add an entry to the reliable message deque
-	bool add(QSocket* socket);
+	const bool add(QSocket* socket);
 
 	// Delete an entry from the reliable message deque
-	bool del(unsigned int uid);
+	const bool del(const unsigned int uid);
 
 	// Check if the deque is empty.
 	inline bool isEmpty()
@@ -54,7 +54,7 @@ public:
 		return deque.empty();
 	}
 
-	inline bool find(reliablePacket* input)
+	inline const bool find(reliablePacket* input)
 	{
 		// Check for errors:
 		if (input == nullptr) return false;
@@ -75,7 +75,7 @@ public:
 		return response;
 	}
 
-	inline bool find(unsigned int uid)
+	inline const bool find(const unsigned int uid)
 	{
 		// Check for errors:
 		if (isEmpty()) return false;
@@ -96,7 +96,7 @@ public:
 	}
 	
 	// Returns true if the packet has exceeded its lifespan
-	bool isDead();
+	const bool isDead();
 
 	// Writes the next message in the deque to the socket buffer
 	void writeTopMsg(QSocket* socket);

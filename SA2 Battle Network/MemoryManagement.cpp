@@ -21,14 +21,14 @@ void MemManage::changeGameState(uchar stateNum, MemStruct* structure)
 	structure->system.GameState = stateNum;
 }
 
-inline uint MemManage::getElapsedFrames(uint lastFrameCount) { return (FrameCount - lastFrameCount); }
+inline const uint MemManage::getElapsedFrames(const uint lastFrameCount) { return (FrameCount - lastFrameCount); }
 
-inline uint MemManage::getFrameCount()
+inline const uint MemManage::getFrameCount()
 {
 	return FrameCount;
 }
 
-bool MemManage::waitFrameRecursive(uint currentFrameCount, uint frameCount)
+const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint frameCount)
 {
 	uint result = getElapsedFrames(currentFrameCount);
 	
@@ -38,7 +38,7 @@ bool MemManage::waitFrameRecursive(uint currentFrameCount, uint frameCount)
 	return (result >= frameCount);
 }
 
-void MemManage::waitFrame(uint frameCount, uint lastFrame)
+void MemManage::waitFrame(const uint frameCount, const uint lastFrame)
 {
 	uint frames	= 0;
 	uint last = 0;
@@ -60,7 +60,7 @@ void MemManage::waitFrame(uint frameCount, uint lastFrame)
 	return;
 }
 
-void MemManage::nop(uint baseAddress, uint size)
+void MemManage::nop(const uint baseAddress, const uint size)
 {
 	char* nop = new char[size];
 	memset(nop, 0x90, size);
@@ -82,7 +82,7 @@ void MemManage::nop2PSpecials()
 	nop(0x00749917, 2);
 }
 
-void MemManage::nopP2Input(bool doNop)
+void MemManage::nopP2Input(const bool doNop)
 {
 	if (doNop)
 	{
@@ -108,13 +108,13 @@ void MemManage::nopP2Input(bool doNop)
 	return;
 }
 
-void MemManage::swapSpawn(bool swapstart)
+void MemManage::swapSpawn(const bool swapstart)
 {
 	char swap = (swapstart) ? 0x94 : 0x95;
 	WriteMemory(0x43D9B1, &swap, sizeof(char));
 }
 
-void MemManage::swapCharsel(bool swapcharsel)
+void MemManage::swapCharsel(const bool swapcharsel)
 {
 	uchar E4, E0;
 	E4 = 0xE4;
@@ -137,7 +137,7 @@ void MemManage::swapCharsel(bool swapcharsel)
 
 }
 
-void MemManage::swapInput(bool doNop)
+void MemManage::swapInput(const bool doNop)
 {
 	cout << "<> Swapping input devices..." << endl;
 	
@@ -176,7 +176,7 @@ void MemManage::swapInput(bool doNop)
 }
 
 // Returns true if both input structures have been initalized.
-bool MemManage::InputInitalized()
+const bool MemManage::InputInitalized()
 {
 	uint p1 = 0;
 	uint p2 = 0;

@@ -23,14 +23,13 @@ using namespace std;
 using namespace chrono;
 
 vector<string> args;
-bool ReadConfig()
+const bool ReadConfig()
 {
-	string line;
 	ifstream config("sa2bn.txt");
 
 	if (!config.is_open())
 	{
-		cout << "[SA2BN] Unable to open configuration file (sa2bn.txt) for reading." << endl;
+		cout << "\a[SA2BN] Unable to open configuration file (sa2bn.txt) for reading." << endl;
 		return false;
 	}
 	else
@@ -106,44 +105,10 @@ void MainThread()
 	{
 		return;
 	}
-	/*
-	if (netMode.empty())
-	{
-	cout << "Server or Client?: ";
-	cin >> netMode;
-	}
-
-	if (netMode == "client")
-	{
-	if (addrStruct.address.empty())
-	{
-	cout << "Please specify an IP address: ";
-	cin >> addrStruct.address;
-	}
-
-	isServer = false;
-	}
-	else if (netMode == "server")
-	{
-	addrStruct.address = "server";
-	isServer = true;
-	}
-
-	if (addrStruct.port == 0)
-	{
-	cout << "Please specify a port: ";
-	cin >> addrStruct.port;
-	}
-
-	if (!netMode.empty() && !addrStruct.address.empty() && addrStruct.port != 0)
-	break;
-	*/
 #pragma endregion
 
 	if (timeout < 1000)
 		timeout = 1000;
-
-	system("cls");
 
 	// LET THE GAMES BEGIN!
 	while (true)
@@ -151,7 +116,6 @@ void MainThread()
 		// Find the SA2 process
 		//cout << "Looking for SA2 window...\nPlease launch SA2 to start shenanigans.\n";
 		sa2bn::Globals::ProcessID = GetCurrentProcess();
-		system("cls");
 
 		Program = new Application::Program(isServer, addrStruct, Settings, timeout);
 

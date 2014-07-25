@@ -4,7 +4,7 @@
 class GameObject
 {
 public:
-	GameObject(int baseAddress);
+	GameObject(const int baseAddress);
 
 	// Re-evaluate initialized state.
 	// Returns true if the object has been initialized,

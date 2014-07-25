@@ -46,10 +46,8 @@ PacketHandler::~PacketHandler()
 	delete AbstractMemory;
 }
 
-int PacketHandler::SendMsg(bool isReliable)
+const int PacketHandler::SendMsg(const bool isReliable)
 {
-	int sentSize = 0;
-
 	if (isReliable)
 	{
 		//reliableTimer = millisecs();
@@ -57,11 +55,10 @@ int PacketHandler::SendMsg(bool isReliable)
 		netQueue.add(Socket);
 	}
 
-	sentSize = Socket->sendMsg(QSocket::StringToIntIP(Address->address), Address->port);
-	return sentSize;
+	return Socket->sendMsg(QSocket::StringToIntIP(Address->address), Address->port);
 }
 
-uint PacketHandler::WriteReliable(bool isRandom)
+const uint PacketHandler::WriteReliable(const bool isRandom)
 {
 	uint id = 0;
 
@@ -85,7 +82,7 @@ uint PacketHandler::WriteReliable(bool isRandom)
 	return id;
 }
 
-uint PacketHandler::Send()
+const uint PacketHandler::Send()
 {
 	uint elapsed = millisecs();
 
@@ -117,7 +114,7 @@ uint PacketHandler::Send()
 	return Duration(elapsed);
 }
 
-bool PacketHandler::ReliableHandler()
+const bool PacketHandler::ReliableHandler()
 {
 	uchar firstByte = (uchar)Socket->readByte();
 	uint reliableID = Socket->readInt();
@@ -165,7 +162,7 @@ bool PacketHandler::ReliableHandler()
 	return false;
 }
 
-uint PacketHandler::Receive()
+const uint PacketHandler::Receive()
 {
 	AbstractMemory->GetFrame();
 
@@ -260,7 +257,7 @@ void PacketHandler::CheckKeepalive()
 	}
 }
 
-void PacketHandler::setStartTime(uint time)
+void PacketHandler::setStartTime(const uint time)
 {
 	recvKeepalive = time;
 	kaTimer = time;

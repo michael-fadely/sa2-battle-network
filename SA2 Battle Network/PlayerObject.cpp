@@ -12,12 +12,10 @@
 using namespace std;
 
 // Constructor/Destructor
-PlayerObject::PlayerObject(uint address) : GameObject(address)
+PlayerObject::PlayerObject(uint address) : GameObject(address), AbstractPlayer({})
 {
 	lastPointer = 0;
 	pointerEval();
-
-	memset(&this->Action, 0x00, sizeof(AbstractPlayer));
 }
 
 // Functions

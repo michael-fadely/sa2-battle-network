@@ -1,7 +1,7 @@
 #include "LazyMemory.h"
 #include "GameObject.h"
 
-GameObject::GameObject(int baseAddress)
+GameObject::GameObject(const int baseAddress)
 {
 	this->baseAddress = baseAddress;
 	this->ptrAddress = 0;

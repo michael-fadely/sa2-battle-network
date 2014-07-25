@@ -78,16 +78,14 @@ class MemoryHandler
 		InputStruct* p2Input;
 
 		AbstractPlayer	recvPlayer, sendPlayer;
-		abstractInput	recvInput, sendInput;
+		AbstractInput	recvInput, sendInput;
 		
-		// A Memory Structure that is "remote"
-		// i.e it is constantly being updated with
-		// content read from the game memory.
+		// A Memory Structure that is "remote".
+		// Updated every frame with data read from game memory.
 		//MemStruct remote;
 
-		// A Memory Structure that is "local"
-		// i.e used for comparison for determining
-		// what and what not to send.
+		// A Memory Structure that is "local".
+		// Used for comparison to determine what to send.
 		MemStruct local;
 
 		// Timers etc

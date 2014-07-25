@@ -31,7 +31,7 @@ const std::string Version::str()
 Version Program::versionNum = { 2, 7 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
-Program::Program(bool server, clientAddress& address, Settings& settings, uint timeout)
+Program::Program(const bool server, const clientAddress& address, const Settings& settings, const uint timeout)
 {
 	isServer = server;
 	ConnectionStart = 0;
@@ -163,25 +163,7 @@ void Program::ApplySettings()
 	}
 }
 
-/*
-// Deprecated
-bool Program::isProcessRunning()
-{
-DWORD exitcode = 0;
-GetExitCodeProcess(sa2bn::Globals::ProcessID, &exitcode);
-
-if (exitcode == STILL_ACTIVE)
-return true;
-else
-{
-CloseHandle(sa2bn::Globals::ProcessID);
-exitCode = ExitCode::GameTerminated;
-return false;
-}
-}
-*/
-
-ExitCode Program::RunLoop()
+const ExitCode Program::RunLoop()
 {
 	if (isConnected)
 	{
@@ -294,7 +276,7 @@ void Program::Disconnect(bool received, ExitCode code)
 	}
 }
 
-bool Program::OnEnd()
+const bool Program::OnEnd()
 {
 	stringstream winMessage, winTitle;
 	winMessage << "";

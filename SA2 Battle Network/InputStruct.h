@@ -1,24 +1,4 @@
 #pragma once
-/*
-//	This is a thing I should do
-struct Buttons
-{
-	unsigned int B		: 1;
-	unsigned int A		: 1;
-	unsigned int Start	: 1;
-	unsigned int Up		: 1;
-	unsigned int Down	: 1;
-	unsigned int Left	: 1;
-	unsigned int Right	: 1;
-	unsigned int Z		: 1;
-	unsigned int Y		: 1;
-	unsigned int X		: 1;
-	unsigned int		: 5;	// Padding
-	unsigned int R		: 1;
-	unsigned int L		: 1;
-	unsigned int		: 15;	// Padding
-};
-*/
 
 struct inputButtons
 {
@@ -35,7 +15,7 @@ struct inputAnalog
 	short y;
 };
 
-struct abstractInput
+struct AbstractInput
 {
 	inputButtons buttons;
 	inputAnalog analog;
@@ -49,19 +29,19 @@ public:
 	inputAnalog analog;
 
 	// Constructor/Destructor
-	InputStruct(unsigned int baseAddress);
+	InputStruct(const unsigned int baseAddress);
 	//~InputStruct();
 
 	// Reads input data from game memory and stores in the object.
 	void read();
 
 	// Writes input data to game memory
-	void write(abstractInput* recvr);
+	void write(AbstractInput* recvr);
 
 	// Write Button Buffer to game memory
-	void writeButtons(abstractInput* recvr);
-	// Write analog Buffer to game memory
-	void writeAnalog(abstractInput* recvr, unsigned int gamestate);
+	void writeButtons(AbstractInput* recvr);
+	// Write Analog Buffer to game memory
+	void writeAnalog(AbstractInput* recvr, unsigned int gamestate);
 
 	// Button Press Simulator
 	// Uses Held Buttons to simulate button presses.

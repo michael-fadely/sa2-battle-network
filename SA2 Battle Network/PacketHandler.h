@@ -23,16 +23,16 @@ public:
 	PacketHandler(Application::Program* program, unsigned int timeout);
 	~PacketHandler();
 
-	unsigned int Send();
-	unsigned int Receive();
+	const unsigned int Send();
+	const unsigned int Receive();
 
-	int SendMsg(bool isReliable=false);
-	unsigned int WriteReliable(bool isRandom=false);
+	const int SendMsg(const bool isReliable=false);
+	const unsigned int WriteReliable(const bool isRandom=false);
 
 	inline void setSendKeepalive() { sendKeepalive = millisecs(); }
 	inline const unsigned int getSendKeepalive() { return sendKeepalive; }
 
-	void setStartTime(unsigned int time);
+	void setStartTime(const unsigned int time);
 
 private:
 	// Members
@@ -73,7 +73,7 @@ private:
 
 	// Checks the packet for reliable flag(s) and responds
 	// or returns true if the ID has already been received.
-	bool ReliableHandler();
+	const bool ReliableHandler();
 	// Checks if the connection has timed out.
 	void CheckKeepalive();
 };
