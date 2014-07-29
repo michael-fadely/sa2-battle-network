@@ -169,7 +169,7 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 
 			packetHandler->SendMsg();
 			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-			packetHandler->setSendKeepalive();
+			packetHandler->setSentKeepalive();
 		}
 
 		if (local.game.TimeStopMode != TimeStopMode)
@@ -184,34 +184,35 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 			{
 			default:
 			case 0:
-				cout << 0 << "]" << endl;
+				cout << 0;
 				Socket->writeByte(0);
 				break;
 
 			case 1:
-				cout << 2 << "]" << endl;
+				cout << 2;
 				Socket->writeByte(2);
 				break;
 
 			case 2:
-				cout << 1 << "]" << endl;
+				cout << 1;
 				Socket->writeByte(1);
 				break;
 			}
-
+			
+			cout << "]" << endl;
 			packetHandler->SendMsg(true);
 			local.game.TimeStopMode = TimeStopMode;
 		}
 	}
 	if (GameState != GameState::INGAME || TimeStopMode > 0 || !isServer)
 	{
-		if (Duration(packetHandler->getSendKeepalive()) >= 1000)
+		if (Duration(packetHandler->getSentKeepalive()) >= 1000)
 		{
 			Socket->writeByte(MSG_NULL); Socket->writeByte(1);
 			Socket->writeByte(MSG_KEEPALIVE);
 
 			packetHandler->SendMsg();
-			packetHandler->setSendKeepalive();
+			packetHandler->setSentKeepalive();
 		}
 	}
 }

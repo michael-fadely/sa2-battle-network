@@ -29,8 +29,8 @@ public:
 	const int SendMsg(const bool isReliable=false);
 	const unsigned int WriteReliable(const bool isRandom=false);
 
-	inline void setSendKeepalive() { sendKeepalive = millisecs(); }
-	inline const unsigned int getSendKeepalive() { return sendKeepalive; }
+	inline void setSentKeepalive() { sentKeepalive = millisecs(); }
+	inline const unsigned int getSentKeepalive() { return sentKeepalive; }
 
 	void setStartTime(const unsigned int time);
 
@@ -55,7 +55,7 @@ private:
 	// Time the last keepalive message was received.
 	unsigned int recvKeepalive;
 	// The time the last keepalive message was sent.
-	unsigned int sendKeepalive;
+	unsigned int sentKeepalive;
 	// Time since the last keepalive check
 	unsigned int kaTimer;
 	// The timeout for the keepalive system.

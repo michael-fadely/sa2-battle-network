@@ -33,6 +33,7 @@ PacketHandler::PacketHandler(Application::Program* program, uint timeout)
 	// followed by simple variable initialization
 	IncID = 0;
 	LastID = 0;
+	sentKeepalive = 0;
 }
 
 PacketHandler::~PacketHandler()

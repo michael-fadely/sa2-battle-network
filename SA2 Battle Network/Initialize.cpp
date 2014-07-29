@@ -50,19 +50,13 @@ void __cdecl Init_t(const char *path)
 
 void MainThread()
 {
-	clientAddress addrStruct; addrStruct.port = 0;
+	clientAddress addrStruct = {};
 	//string netMode;
 	bool isServer = false;
 	uint timeout = 15000;
 
 	Application::Program* Program;
-
-	Application::Settings Settings;
-	Settings.isLocal = false;
-	Settings.KeepWindowActive = false;
-	Settings.noSpecials = false;
-
-
+	Application::Settings Settings = {};
 	Application::ExitCode ExitCode;
 
 	//SetConsoleTitleA(Application::Program::version.c_str());
