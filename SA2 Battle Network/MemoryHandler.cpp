@@ -158,7 +158,6 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 
 		if (local.game.TimerSeconds != TimerSeconds && isServer)
 		{
-			//cout << "<< Sending time [" << (ushort)local.game.TimerMinutes << ":" << (ushort)local.game.TimerSeconds << "]" << endl;
 			Socket->writeByte(MSG_NULL); Socket->writeByte(2);
 			Socket->writeByte(MSG_S_TIME);
 			Socket->writeByte(MSG_KEEPALIVE);
@@ -179,7 +178,6 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 			Socket->writeByte(MSG_S_TIMESTOP);
 
 			// Swap the value since player 1 is relative to the client
-
 			switch (TimeStopMode)
 			{
 			default:
@@ -227,7 +225,6 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 
 		if (sendInput.buttons.Held != p1Input->buttons.Held && GameState != GameState::MEMCARD)
 		{
-			//cout << "<< Sending buttons!" << endl;
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 
 			Socket->writeByte(MSG_I_BUTTONS);
@@ -247,7 +244,6 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 				{
 					if (p1Input->analog.x == 0 && p1Input->analog.y == 0)
 					{
-						//cout << "<< Analog 0'd out; sending reliably." << endl;
 						packetHandler->WriteReliable(); Socket->writeByte(1);
 						Socket->writeByte(MSG_I_ANALOG);
 						Socket->writeShort(p1Input->analog.x);
@@ -260,7 +256,6 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 					}
 					else
 					{
-						//cout << "<< Sending analog!" << endl;
 						Socket->writeByte(MSG_NULL); Socket->writeByte(1);
 						Socket->writeByte(MSG_I_ANALOG);
 						Socket->writeShort(p1Input->analog.x);
@@ -304,7 +299,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 		// Check if the stage has changed so we can re->valuate the player.
 		if (local.game.CurrentLevel != CurrentLevel)
 		{
-			cout << "<> Stage has changed to " << (ushort)CurrentLevel /*<< "; re->valuating players."*/ << endl;
+			cout << "<> Stage has changed to " << (ushort)CurrentLevel << endl;
 
 			//player1->pointerEval();
 			//player2->pointerEval();
@@ -371,10 +366,9 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 		if (sendPlayer.Action != player1->Action || sendPlayer.Status != player1->Status)
 		{
-			cout << "<< Sending action...";// << " [S " << sendPlayer.Status << " != " << player1->Status << "]";
+			cout << "<< Sending action...";
 
-			bool sendSpinTimer = ((player1->characterID() == CharacterID::SonicAmy || player1->characterID() == CharacterID::ShadowMetal)
-				/*&& (player1->characterID2() == CharacterID2::Sonic || player1->characterID2() == CharacterID2::Shadow)*/);
+			bool sendSpinTimer = (player1->characterID() == CharacterID::SonicAmy || player1->characterID() == CharacterID::ShadowMetal);
 
 			if (!isHoldAction(player1->Action))
 			{
@@ -407,13 +401,10 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 				Socket->writeByte(MSG_P_POSITION);
 				Socket->writeByte(MSG_P_ACTION);
-				//Socket->writeByte(MSG_P_ANIMATION);
 
 				for (int i = 0; i < 3; i++)
 					Socket->writeFloat(player1->Position[i]);
 				Socket->writeByte(player1->Action);
-
-				//Socket->writeShort(player1->Animation[0]);
 
 				packetHandler->SendMsg(true);
 			}
@@ -618,7 +609,6 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 				if ((memcmp(&local.menu.StageSelection2P[0], &StageSelection2P[0], (sizeof(int) * 2)) != 0 || local.menu.BattleOptionsButton != BattleOptionsButton)
 					|| firstMenuEntry)
 				{
-					//cout << "<< Sending Stage Selection" << endl;
 					packetHandler->WriteReliable(); Socket->writeByte(1);
 					Socket->writeByte(MSG_M_STAGESEL);
 					Socket->writeInt(StageSelection2P[0]); Socket->writeInt(StageSelection2P[1]);
@@ -737,7 +727,6 @@ void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
 			return;
 
 		case MSG_I_ANALOG:
-			//cout << ">> Received analog!" << endl;
 			recvInput.analog.x = Socket->readShort();
 			recvInput.analog.y = Socket->readShort();
 
