@@ -11,7 +11,7 @@
 #include "ActionBlacklist.h"
 
 #include "MemoryManagement.h"
-#include "PlayerObject.h"
+//#include "PlayerObject.h"
 #include "InputStruct.h"
 #include "MemoryStruct.h"
 
@@ -359,7 +359,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 				packetHandler->WriteReliable(); Socket->writeByte(1);
 				Socket->writeByte(MSG_P_HP);
 				Socket->writeFloat(player1->MechHP);
-
+				
 				packetHandler->SendMsg(true);
 			}
 		}

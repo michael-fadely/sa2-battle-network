@@ -161,7 +161,7 @@ private:
 		enum Offset : short
 		{
 			HomingAttackTimer	= 0x035C,
-			HomingRangeTimer	= 0x035C,
+			HomingRangeTimer	= 0x0364,
 			SpindashTimer		= 0x0368
 		};
 	};

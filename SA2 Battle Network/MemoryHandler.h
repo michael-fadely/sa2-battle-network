@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MemoryManagement.h"
-#include "PlayerObject.h"
+//#include "PlayerObject.h"
 #include "InputStruct.h"
 #include "MemoryStruct.h"
 
@@ -42,12 +42,9 @@ class MemoryHandler
 		// Sets lastFrame to thisFrame
 		inline void SetFrame() { lastFrame = thisFrame; }
 		// Returns true if thisFrame is the same as lastFrame
-		inline const bool CheckFrame()
-		{
-			return (thisFrame == lastFrame);
-		}
+		inline const bool CheckFrame() { return (thisFrame == lastFrame); }
 
-		inline void setStartTime(uint time) { StartTime = time; }
+		inline void setStartTime(const uint time) { StartTime = time; }
 
 	private:
 		// Methods

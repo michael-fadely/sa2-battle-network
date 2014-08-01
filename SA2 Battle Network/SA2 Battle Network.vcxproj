@@ -93,8 +93,11 @@
     <ClInclude Include="MemoryManagement.h" />
     <ClInclude Include="MemoryStruct.h" />
     <ClInclude Include="Networking.h" />
+    <ClInclude Include="NewPlayerObject.h" />
     <ClInclude Include="PacketHandler.h" />
-    <ClInclude Include="PlayerObject.h" />
+    <ClInclude Include="PlayerObject.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="QuickSock.h" />
     <ClInclude Include="QuickTypes.h" />
     <ClInclude Include="ReliableID.h" />
@@ -119,7 +122,9 @@
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
-    <ClCompile Include="PlayerObject.cpp" />
+    <ClCompile Include="PlayerObject.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="QuickSock.cpp" />
     <ClCompile Include="ReliableID.cpp" />
     <ClCompile Include="ReliablePacketHandler.cpp" />
