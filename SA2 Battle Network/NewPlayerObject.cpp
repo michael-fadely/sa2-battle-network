@@ -81,7 +81,7 @@ void PlayerObject::Set(ObjectMaster* player)
 {
 	if (player != LastPointer)
 	{
-		std::cout << "\aRe-initializing local player object... [" << std::hex << player << " != " << LastPointer << ']' << std::dec << std::endl;
+		std::cout << "Re-initializing local player object... [" << std::hex << player << " != " << LastPointer << ']' << std::dec << std::endl;
 		LastPointer = player;
 		Initialize();
 	}

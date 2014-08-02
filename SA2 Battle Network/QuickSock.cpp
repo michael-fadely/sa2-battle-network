@@ -1085,14 +1085,12 @@ nativePort QSocket::msgPort() const
 {
 	// Check the destination's family, and based on that, return the internal port.
 	#if !defined(QSOCK_IPVABSTRACT)
-		/*
 		switch (si_Destination.sin_family)
 		{
 			default: // case AF_INET:
-		*/
 				return (nativePort)ntohs(((sockaddr_in*)&si_Destination)->sin_port);
-		/*		break;
-		}*/
+				break;
+		}
 	#else
 		// Allocate the needed c-string(s).
 		QSOCK_CHAR serverInfo[NI_MAXSERV];
@@ -1143,6 +1141,7 @@ uqchar* QSocket::UreadBytes(uqint count)
 		}
 	} else {
 		delete[] data;
+
 		// Return nothing.
 		return NULL;
 	}
@@ -1434,8 +1433,11 @@ bool QSocket::writeLine(const unsigned QSOCK_CHAR* strIn, uqint length) { return
 
 bool QSocket::UwriteLine(const unsigned QSOCK_CHAR* strIn, uqint length)
 {
+	// Definition(s):
+	bool response = false;
+
 	// Write all of the bytes in strIn to the 'outbuffer'.
-	bool response = UwriteBytes((const uqchar*)strIn, length);
+	response = UwriteBytes((const uqchar*)strIn, length);
 	if (!response) return response;
 
 	// Setup the end of the line:

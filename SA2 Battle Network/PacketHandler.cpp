@@ -118,23 +118,15 @@ const uint PacketHandler::Send()
 const bool PacketHandler::ReliableHandler()
 {
 	uchar firstByte = (uchar)Socket->readByte();
-	uint reliableID = Socket->readInt();
+	uint reliableID = 0;
 
 	switch (firstByte)
 	{
 	default:
 		return false;
 
-	case RELIABLE_SEND:	// Reliable message from the client which requires arrival confirmation
-		/*
-		if ((int)reliableID < 0)
-		{
-			system("color 47");
-			cout << "\t\t\t Offset/Size: " << Socket->inMsgOffset() << " | " << Socket->inMsgLength() << endl;
-			SleepFor((milliseconds)8);
-			system("color 07");
-		}
-		*/
+	case RELIABLE_SEND: // Reliable message from the client which requires arrival confirmation
+		reliableID = (uint)Socket->readInt();
 
 		Socket->writeByte(RELIABLE_RECV);
 		Socket->writeInt(reliableID);
@@ -152,15 +144,13 @@ const bool PacketHandler::ReliableHandler()
 			return false;
 		}
 
-	case RELIABLE_RECV:	// Arrival confirmation from the client that it has received the message
+	case RELIABLE_RECV: // Arrival confirmation from the client that it has received the message
+		reliableID = (uint)Socket->readInt();
 		if (!netQueue.isEmpty())
 			netQueue.del(reliableID);
 
 		return false;
 	}
-
-	// Unexpected error
-	return false;
 }
 
 const uint PacketHandler::Receive()
@@ -189,14 +179,14 @@ const uint PacketHandler::Receive()
 			switch (msgTypes[i])
 			{
 			case MSG_KEEPALIVE:
-				cout << ">> Received keepalive!" << endl;
+				//cout << ">> Received keepalive!" << endl;
 				recvKeepalive = millisecs();
-				break;
+				continue;
 
 			case MSG_DISCONNECT:
 				Program->Disconnect(true);
 				i = msgNum;
-				break;
+				continue;
 
 			case MSG_SCREWYOU:
 			{
@@ -217,11 +207,11 @@ const uint PacketHandler::Receive()
 				delete[] buffer;
 
 				system("color 7");
-				break;
+				continue;
 			}
 			}
 
-			CheckKeepalive();
+			//CheckKeepalive();
 
 			AbstractMemory->ReceiveSystem(Socket, msgTypes[i]);
 			AbstractMemory->ReceiveInput(Socket, msgTypes[i]);
