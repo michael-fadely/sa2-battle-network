@@ -211,7 +211,7 @@ const uint PacketHandler::Receive()
 			}
 			}
 
-			//CheckKeepalive();
+			CheckKeepalive();
 
 			AbstractMemory->ReceiveSystem(Socket, msgTypes[i]);
 			AbstractMemory->ReceiveInput(Socket, msgTypes[i]);
