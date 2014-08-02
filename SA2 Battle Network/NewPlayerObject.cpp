@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ModLoaderExtensions.h"
 
 #include "NewPlayerObject.h"
@@ -27,31 +28,31 @@ void PlayerObject::Initialize()
 	SuperSonic	= {};
 }
 
-void PlayerObject::WritePlayer(ObjectMaster* dest, PlayerObject* source)
+void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 {
 	if (source != nullptr)
 	{
-		dest->Data1->Action = source->Data1.Action;
-		dest->Data1->Status = source->Data1.Status;
-		dest->Data1->Rotation = source->Data1.Rotation;
-		dest->Data1->Position = source->Data1.Position;
-		dest->Data1->Scale = source->Data1.Scale;
+		destination->Data1->Action = source->Data1.Action;
+		destination->Data1->Status = source->Data1.Status;
+		destination->Data1->Rotation = source->Data1.Rotation;
+		destination->Data1->Position = source->Data1.Position;
+		destination->Data1->Scale = source->Data1.Scale;
 
-		dest->Data2->CharID = source->Data2.CharID;
-		dest->Data2->CharID2 = source->Data2.CharID2;
-		dest->Data2->Powerups = source->Data2.Powerups;
-		dest->Data2->Upgrades = source->Data2.Upgrades;
-		dest->Data2->HSpeed = source->Data2.HSpeed;
-		dest->Data2->VSpeed = source->Data2.VSpeed;
-		dest->Data2->PhysData.BaseSpeed = source->Data2.PhysData.BaseSpeed;
+		destination->Data2->CharID = source->Data2.CharID;
+		destination->Data2->CharID2 = source->Data2.CharID2;
+		destination->Data2->Powerups = source->Data2.Powerups;
+		destination->Data2->Upgrades = source->Data2.Upgrades;
+		destination->Data2->HSpeed = source->Data2.HSpeed;
+		destination->Data2->VSpeed = source->Data2.VSpeed;
+		destination->Data2->PhysData.BaseSpeed = source->Data2.PhysData.BaseSpeed;
 
-		switch (dest->Data2->CharID2)
+		switch (destination->Data2->CharID2)
 		{
 		case Characters_Sonic:
 		case Characters_Shadow:
 		case Characters_Amy:
 		case Characters_MetalSonic:
-			((SonicCharObj2*)dest->Data2)->SpindashTimer = source->Sonic.SpindashTimer;
+			((SonicCharObj2*)destination->Data2)->SpindashTimer = source->Sonic.SpindashTimer;
 			break;
 
 		case Characters_Tails:
@@ -66,7 +67,7 @@ void PlayerObject::WritePlayer(ObjectMaster* dest, PlayerObject* source)
 
 		case Characters_MechTails:
 		case Characters_MechEggman:
-			dest->Data2->MechHP = source->Data2.MechHP;
+			destination->Data2->MechHP = source->Data2.MechHP;
 			break;
 
 		case Characters_SuperSonic:
@@ -80,6 +81,7 @@ void PlayerObject::Set(ObjectMaster* player)
 {
 	if (player != LastPointer)
 	{
+		std::cout << "\aRe-initializing local player object... [" << std::hex << player << " != " << LastPointer << ']' << std::dec << std::endl;
 		LastPointer = player;
 		Initialize();
 	}
@@ -131,128 +133,3 @@ void PlayerObject::Set(ObjectMaster* player)
 	}
 }
 
-/*
-PlayerObject::PlayerObject(const ObjectMaster* player)
-{
-	data1 = nullptr;
-	data2 = nullptr;
-	Initialize(player);
-}
-
-PlayerObject::~PlayerObject()
-{
-	if (data1 != nullptr)
-	{
-		delete data1;
-		data1 = nullptr;
-	}
-
-	if (data2 != nullptr)
-		Deinitialize();
-}
-
-void PlayerObject::Deinitialize()
-{
-	switch (CharacterID)
-	{
-	default:
-		delete (CharObj2*)data2;
-		break;
-
-	case Characters_Sonic:
-	case Characters_Shadow:
-	case Characters_Amy:
-	case Characters_MetalSonic:
-		delete (SonicCharObj2*)data2;
-		break;
-
-	case Characters_Tails:
-		delete (TailsCharObj2*)data2;
-		break;
-
-	case Characters_Eggman:
-		delete (EggmanCharObj2*)data2;
-		break;
-
-	case Characters_Knuckles:
-	case Characters_Rouge:
-		delete (KnucklesCharObj2*)data2;
-		break;
-
-	case Characters_MechTails:
-	case Characters_MechEggman:
-		delete (MechEggmanCharObj2*)data2;
-		break;
-
-	case Characters_SuperSonic:
-	case Characters_SuperShadow:
-		delete (SuperSonicCharObj2*)data2;
-		break;
-	}
-
-	data2 = nullptr;
-}
-
-const bool PlayerObject::Initialize(const ObjectMaster* player)
-{
-	bool result = false;
-	CharacterID = player->Data2->CharID;
-
-	if (player != nullptr)
-	{
-		data1->Action = player->Data1->Action;
-		data1->Status = player->Data1->Status;
-		data1->Rotation = player->Data1->Rotation;
-		data1->Position = player->Data1->Position;
-		data1->Scale = player->Data1->Scale;
-
-		if (data2 != nullptr)
-			Deinitialize();
-
-		switch (CharacterID)
-		{
-		default:
-			data2 = new CharObj2;
-			result = true;
-			break;
-
-		case Characters_Sonic:
-		case Characters_Shadow:
-		case Characters_Amy:
-		case Characters_MetalSonic:
-			data2 = new SonicCharObj2;
-			result = true;
-			break;
-
-		case Characters_Tails:
-			data2 = new TailsCharObj2;
-			result = true;
-			break;
-
-		case Characters_Eggman:
-			data2 = new EggmanCharObj2;
-			result = true;
-			break;
-
-		case Characters_Knuckles:
-		case Characters_Rouge:
-			data2 = new KnucklesCharObj2;
-			result = true;
-			break;
-
-		case Characters_MechTails:
-		case Characters_MechEggman:
-			data2 = new MechEggmanCharObj2;
-			result = true;
-			break;
-
-		case Characters_SuperSonic:
-		case Characters_SuperShadow:
-			data2 = new SuperSonicCharObj2;
-			result = true;
-			break;
-		}
-	}
-	return result;
-}
-*/

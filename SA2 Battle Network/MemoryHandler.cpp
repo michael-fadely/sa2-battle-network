@@ -27,6 +27,11 @@ using namespace std;
 //	Memory Handler Class
 */
 
+void printpos()
+{
+	printf("<< Sending position: x: %f y: %f z: %f\n", MainCharacter[0]->Data1->Position.x, MainCharacter[0]->Data1->Position.z, MainCharacter[0]->Data1->Position.z);
+}
+
 MemoryHandler::MemoryHandler(PacketHandler* packetHandler, bool isserver)
 {
 	this->packetHandler = packetHandler;
@@ -163,6 +168,7 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 			Socket->writeByte(MSG_NULL); Socket->writeByte(2);
 			Socket->writeByte(MSG_S_TIME);
 			Socket->writeByte(MSG_KEEPALIVE);
+			cout << "<< Sending keepalive" << endl;
 
 			Socket->writeByte(TimerMinutes);
 			Socket->writeByte(TimerSeconds);
@@ -210,6 +216,7 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 		{
 			Socket->writeByte(MSG_NULL); Socket->writeByte(1);
 			Socket->writeByte(MSG_KEEPALIVE);
+			cout << "<< Sending keepalive..." << endl;
 
 			packetHandler->SendMsg();
 			packetHandler->setSentKeepalive();
@@ -319,13 +326,14 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 		if (CheckTeleport())
 		{
 			// Send a teleport message
-
+			//printpos();
 			packetHandler->WriteReliable(); Socket->writeByte(2);
 			Socket->writeByte(MSG_P_POSITION); Socket->writeByte(MSG_P_SPEED);
 
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
+
 			
 			sendPlayer.Data1.Position = MainCharacter[0]->Data1->Position;
 
@@ -364,6 +372,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 		if (sendPlayer.Data1.Action != MainCharacter[0]->Data1->Action || sendPlayer.Data1.Status != MainCharacter[0]->Data1->Status)
 		{
+			//printpos();
 			cout << "<< Sending action...";
 
 			bool sendSpinTimer = (MainCharacter[0]->Data2->CharID2 == Characters_Sonic || MainCharacter[0]->Data2->CharID2 == Characters_Sonic);
@@ -423,17 +432,21 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 		if (memcmp(&sendPlayer.Data1.Rotation, &MainCharacter[0]->Data1->Rotation, sizeof(float) * 3) != 0 || memcmp(&sendPlayer.Data2.HSpeed, &MainCharacter[0]->Data2->HSpeed, sizeof(float) * 2) != 0)
 		{
+			//printpos();
 			Socket->writeByte(MSG_NULL); Socket->writeByte(3);
 
 			Socket->writeByte(MSG_P_ROTATION);
 			Socket->writeByte(MSG_P_POSITION);
 			Socket->writeByte(MSG_P_SPEED);
+
 			Socket->writeInt(MainCharacter[0]->Data1->Rotation.x);
 			Socket->writeInt(MainCharacter[0]->Data1->Rotation.y);
 			Socket->writeInt(MainCharacter[0]->Data1->Rotation.z);
+
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
 			Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
+
 			Socket->writeFloat(MainCharacter[0]->Data2->HSpeed);
 			Socket->writeFloat(MainCharacter[0]->Data2->VSpeed);
 			Socket->writeFloat(MainCharacter[0]->Data2->PhysData.BaseSpeed);
@@ -836,6 +849,7 @@ void MemoryHandler::ReceivePlayer(QSocket* Socket, uchar type)
 			recvPlayer.Data1.Position.x = Socket->readFloat();
 			recvPlayer.Data1.Position.z = Socket->readFloat();
 			recvPlayer.Data1.Position.y = Socket->readFloat();
+			printf(">> Received position: x: %f y: %f z: %f\n", recvPlayer.Data1.Position.x, recvPlayer.Data1.Position.y, recvPlayer.Data1.Position.z);
 			writePlayer = true;
 			break;
 

@@ -189,6 +189,7 @@ const uint PacketHandler::Receive()
 			switch (msgTypes[i])
 			{
 			case MSG_KEEPALIVE:
+				cout << ">> Received keepalive!" << endl;
 				recvKeepalive = millisecs();
 				break;
 

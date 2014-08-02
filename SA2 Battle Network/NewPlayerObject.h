@@ -9,7 +9,7 @@ public:
 	PlayerObject();
 	
 	void Set(ObjectMaster* player);
-	static void WritePlayer(ObjectMaster* dest, PlayerObject* source);
+	static void WritePlayer(ObjectMaster* destination, PlayerObject* source);
 
 	CharObj1 Data1;
 	CharObj2 Data2;
