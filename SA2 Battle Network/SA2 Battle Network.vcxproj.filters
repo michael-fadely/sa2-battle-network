@@ -84,6 +84,9 @@
     <ClInclude Include="NewPlayerObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModLoaderExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -133,6 +136,9 @@
     </ClCompile>
     <ClCompile Include="Initialize.cpp">
       <Filter>Source Files\netcode</Filter>
+    </ClCompile>
+    <ClCompile Include="NewCharacterObject.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

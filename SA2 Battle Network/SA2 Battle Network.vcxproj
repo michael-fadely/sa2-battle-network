@@ -92,6 +92,7 @@
     <ClInclude Include="MemoryHandler.h" />
     <ClInclude Include="MemoryManagement.h" />
     <ClInclude Include="MemoryStruct.h" />
+    <ClInclude Include="ModLoaderExtensions.h" />
     <ClInclude Include="Networking.h" />
     <ClInclude Include="NewPlayerObject.h" />
     <ClInclude Include="PacketHandler.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="Initialize.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
+    <ClCompile Include="NewCharacterObject.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PlayerObject.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

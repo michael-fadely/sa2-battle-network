@@ -452,7 +452,7 @@ struct CharObj2 {
 	char field_12[18];
 	Upgrades Upgrades;
 	char field_28[32];
-	int field_48;
+	float MechHP;
 	char field_4C[24];
 	float HSpeed;
 	float VSpeed;
@@ -466,15 +466,8 @@ struct CharObj2 {
 
 typedef CharObj2 CharObj2Base;
 
-/*
-struct SonicCharObj2 : CharObj2 {
-	char field_1B8[476];
-	TexList *TextureList;
-	ModelIndex *ModelList;
-	AnimationIndex *MotionList;
-};
-*/
-
+// Sonic's CharObj2
+// Shared with: Shadow, Amy, MetalSonic
 struct SonicCharObj2 : CharObj2 {
 	char field_1B8[420];
 	
@@ -492,6 +485,8 @@ struct SonicCharObj2 : CharObj2 {
 	AnimationIndex *MotionList;
 };
 
+// Knuckles's CharObj2
+// Shared with: Rouge
 struct KnucklesCharObj2 : CharObj2 {
 	char field_1B8[568];
 	TexList *TextureList;
@@ -501,6 +496,8 @@ struct KnucklesCharObj2 : CharObj2 {
 	char field_400[32];
 };
 
+// Mechless Eggman's CharObj2
+// Not Shared
 struct EggmanCharObj2 : CharObj2 {
 	char field_1B8[424];
 	TexList *TextureList;
@@ -508,6 +505,8 @@ struct EggmanCharObj2 : CharObj2 {
 	AnimationIndex *MotionList;
 };
 
+// Mech Eggman's CharObj2
+// Shared with: Tails Mech
 struct MechEggmanCharObj2 : CharObj2 {
 	char field_1B8[652];
 	TexList *CommonTextureList;
@@ -516,6 +515,8 @@ struct MechEggmanCharObj2 : CharObj2 {
 	AnimationIndex *MotionList;
 };
 
+// Mechless Tails's CharObj2
+// Not Shared
 struct TailsCharObj2 : CharObj2 {
 	char field_1B8[504];
 	TexList *TextureList;
@@ -524,6 +525,8 @@ struct TailsCharObj2 : CharObj2 {
 	char field_3BC[36];
 };
 
+// Super Sonic's CharObj2
+// Shared with: Super Shadow
 struct SuperSonicCharObj2 : CharObj2 {
 	char field_1B8[440];
 	TexList *TextureList;
