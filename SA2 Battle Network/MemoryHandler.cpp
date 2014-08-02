@@ -487,7 +487,7 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 			if (memcmp(local.menu.BattleOptions, BattleOptions, sizeof(char) * 4) != 0)
 			{
 				cout << "<< Sending battle options..." << endl;
-				memcpy(&local.menu.BattleOptions, &BattleOptions, sizeof(char) * 4);
+				memcpy(&local.menu.BattleOptions, BattleOptions, sizeof(char) * 4);
 				local.menu.BattleOptionsSelection = BattleOptionsSelection;
 				local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
 
@@ -658,10 +658,13 @@ inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopM
 void MemoryHandler::updateAbstractPlayer(PlayerObject* recvr, ObjectMaster* player)
 {
 	// Mech synchronize hack
-	MainCharacter[1]->Data2->MechHP = recvPlayer.Data2.MechHP;
-	MainCharacter[1]->Data2->Powerups = recvPlayer.Data2.Powerups;
-	MainCharacter[1]->Data2->Upgrades = recvPlayer.Data2.Upgrades;
-
+	if (GameState >= GameState::INGAME && MainCharacter[1] != nullptr)
+	{
+		if (MainCharacter[1]->Data2->CharID2 == Characters_MechEggman || MainCharacter[1]->Data2->CharID2 == Characters_MechTails)
+			MainCharacter[1]->Data2->MechHP = recvPlayer.Data2.MechHP;
+		MainCharacter[1]->Data2->Powerups = recvPlayer.Data2.Powerups;
+		MainCharacter[1]->Data2->Upgrades = recvPlayer.Data2.Upgrades;
+	}
 
 	recvr->Set(player);
 }

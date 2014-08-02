@@ -36,10 +36,10 @@ DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
 #pragma endregion
 
 #pragma region Pointers
-DataPointer(char, PlayerPaused, ADDR_PLYPAUSED);
+DataPointer(unsigned char, PlayerPaused, ADDR_PLYPAUSED);
 DataPointer(unsigned char, PauseSelection, ADDR_PAUSESEL);
-DataPointer(char, GameState, ADDR_GAMESTATE);
-DataPointer(char, SplitscreenMode, ADDR_SPLITSCREEN);
+DataPointer(unsigned char, GameState, ADDR_GAMESTATE);
+DataPointer(unsigned char, SplitscreenMode, ADDR_SPLITSCREEN);
 DataPointer(unsigned int, FrameCount, ADDR_FRAMECOUNT);
 DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #pragma endregion
@@ -76,7 +76,7 @@ DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 
 #pragma region Pointers - _2P Battle
 DataArray(unsigned int, CurrentMenu, ADDR_MENU, 2);
-DataPointer(char, P2Start, ADDR_P2START);
+DataPointer(unsigned char, P2Start, ADDR_P2START);
 DataPointer(short, CharacterSelectTimer, ADDR_CHOSENTIMER);
 DataArray(int, PlayerReady, ADDR_P1READY, 2);
 DataArray(unsigned int, CharacterSelection, ADDR_P1CHARSEL, 2);
