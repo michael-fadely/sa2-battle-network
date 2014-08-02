@@ -70,38 +70,6 @@ MemoryHandler::~MemoryHandler()
 	DeinitInput();
 }
 
-/*
-void MemoryHandler::InitPlayers()
-{
-	if (MainCharacter[0] == nullptr)
-		MainCharacter[0] = new PlayerObject(ADDR_MainCharacter[0]);
-	else
-		cout << "<> [MemoryHandler::InitPlayers] Player 1 has already been initialized." << endl;
-
-	if (MainCharacter[1] == nullptr)
-		MainCharacter[1] = new PlayerObject(ADDR_MainCharacter[1]);
-	else
-		cout << "<> [MemoryHandler::InitPlayers] Player 2 has already been initialized." << endl;
-
-	return;
-}
-void MemoryHandler::DeinitPlayers()
-{
-	if (MainCharacter[0] != nullptr)
-	{
-		delete MainCharacter[0];
-		MainCharacter[0] = nullptr;
-	}
-	if (MainCharacter[1] != nullptr)
-	{
-		delete MainCharacter[1];
-		MainCharacter[1] = nullptr;
-	}
-
-	return;
-}
-*/
-
 void MemoryHandler::InitInput()
 {
 	if (p1Input == nullptr)
@@ -307,7 +275,6 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 			// Reset the ringcounts so they don't get sent.
 			local.game.RingCount[0] = 0;
-			RingCount[0] = 0;
 			local.game.RingCount[1] = 0;
 
 			// Reset specials
@@ -317,7 +284,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			// And finally, update the stage so this doesn't loop.
 			local.game.CurrentLevel = CurrentLevel;
 		}
-		/*
+
 		if (CheckTeleport())
 		{
 			// Send a teleport message
@@ -339,7 +306,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 			packetHandler->SendMsg(true);
 		}
-		*/
+
 
 		if (memcmp(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3) != 0)
 		{
@@ -662,7 +629,7 @@ inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
 inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
 
-void MemoryHandler::updateAbstractPlayer(PlayerObject* recvr, ObjectMaster* player)
+void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
 {
 	// Mech synchronize hack
 	if (GameState >= GameState::INGAME && MainCharacter[1] != nullptr)
@@ -673,7 +640,7 @@ void MemoryHandler::updateAbstractPlayer(PlayerObject* recvr, ObjectMaster* play
 		MainCharacter[1]->Data2->Upgrades = recvPlayer.Data2.Upgrades;
 	}
 
-	recvr->Set(player);
+	destination->Set(source);
 }
 
 void MemoryHandler::ToggleSplitscreen()
@@ -710,7 +677,7 @@ bool MemoryHandler::CheckTeleport()
 			{
 				// Teleport to recvPlayer
 				cout << "<> Teleporting to other player..." << endl;;
-				//MainCharacter[0]->Teleport(&recvPlayer);
+				PlayerObject::Teleport(&recvPlayer, MainCharacter[0]);
 
 				return Teleported = true;
 			}
@@ -805,7 +772,6 @@ void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
 
 void MemoryHandler::ReceivePlayer(QSocket* Socket, uchar type)
 {
-	//cout << "[ReceivePlayer] GAMESTATE: " << (ushort)GameState << endl;
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
 		writePlayer = false;
@@ -969,7 +935,7 @@ void MemoryHandler::PreReceive()
 void MemoryHandler::PostReceive()
 {
 	updateAbstractPlayer(&recvPlayer, MainCharacter[1]);
-	writeP2Memory();
+	//writeP2Memory();
 
 	p2Input->read();
 

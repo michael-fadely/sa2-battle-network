@@ -59,7 +59,7 @@ class MemoryHandler
 		void writeSpecials();
 		void writeTimeStop();
 
-		void updateAbstractPlayer(PlayerObject* recvr, ObjectMaster* player);
+		void updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
 		void ToggleSplitscreen();
 		bool CheckTeleport();
 

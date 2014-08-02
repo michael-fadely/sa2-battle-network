@@ -10,6 +10,8 @@ public:
 	
 	void Set(ObjectMaster* player);
 	static void WritePlayer(ObjectMaster* destination, PlayerObject* source);
+	// Teleports source to destination
+	static void Teleport(PlayerObject* destination, ObjectMaster* source);
 
 	CharObj1 Data1;
 	CharObj2 Data2;
