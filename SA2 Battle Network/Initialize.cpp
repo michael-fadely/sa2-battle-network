@@ -19,35 +19,28 @@
 // Prototypes
 void hprint(std::string text, std::chrono::milliseconds sleep);
 
+// Namespaces
 using namespace std;
 using namespace chrono;
 
+// Globals
 vector<string> args;
-const bool ReadConfig()
-{
-	ifstream config("sa2bn.txt");
-
-	if (!config.is_open())
-	{
-		cout << "\a[SA2BN] Unable to open configuration file (sa2bn.txt) for reading." << endl;
-		return false;
-	}
-	else
-	{
-		for (string s; getline(config, s, ' ');)
-			args.push_back(s);
-		
-		config.close();
-		
-		return (args.size() > 1);
-	}
-}
 
 void __cdecl Init_t(const char *path)
 {
 	thread mainThread(MainThread);
 	mainThread.detach();
 	return;
+}
+
+const bool CommandLine()
+{
+	stringstream CommandLine(GetCommandLineA());
+
+	for (string s; getline(CommandLine, s, ' ');)
+		args.push_back(s);
+
+	return (args.size() > 1);
 }
 
 void MainThread()
@@ -66,7 +59,7 @@ void MainThread()
 	//SleepFor((milliseconds)250);
 
 #pragma region "Command line" arguments
-	if (ReadConfig())
+	if (CommandLine())
 	{
 		uint argc = args.size();
 		for (uint i = 0; i < argc; i++)
@@ -136,8 +129,6 @@ void MainThread()
 	return;
 }
 
-
-// Find a good place for this stuff!
 // Unnecessary haxy print
 void hprint(std::string text, std::chrono::milliseconds sleep)
 {

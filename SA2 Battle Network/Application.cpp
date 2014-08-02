@@ -67,13 +67,13 @@ ExitCode Program::Connect()
 {
 	if (isServer)
 	{
-		cout << "Hosting server on port " << Address.port << "..." << endl;
+		cout << "\aHosting server on port " << Address.port << "..." << endl;
 		Socket->host(Address.port);
 		cout << "Waiting for connections..." << endl;
 	}
 	else
 	{
-		cout << "Connecting to server at " << Address.address << " on port " << Address.port << "..." << endl;
+		cout << "\a\aConnecting to server at " << Address.address << " on port " << Address.port << "..." << endl;
 		Socket->connect(Address.address.c_str(), Address.port);
 	}
 
