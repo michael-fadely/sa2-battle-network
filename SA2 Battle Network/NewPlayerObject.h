@@ -9,11 +9,11 @@ public:
 	PlayerObject();
 	
 	void Set(ObjectMaster* player);
+	static void WritePlayer(ObjectMaster* dest, PlayerObject* source);
 
 	CharObj1 Data1;
 	CharObj2 Data2;
 
-	char CharacterID;
 	ObjectMaster* LastPointer;
 
 	// Sonic's Obj2Base

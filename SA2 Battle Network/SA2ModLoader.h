@@ -401,9 +401,9 @@ struct AnimationInfo
 struct CharAnimInfo
 {
 	__int16 AnimationFrame;
-	__int16 Animation;
-	__int16 Animation2;
-	__int16 Animation3;
+	__int16 Next;
+	__int16 Current;
+	__int16 dCurrent;
 	__int16 field_8;
 	__int16 field_A;
 	__int16 field_C;

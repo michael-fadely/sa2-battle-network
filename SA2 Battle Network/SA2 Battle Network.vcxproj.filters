@@ -137,7 +137,7 @@
     <ClCompile Include="Initialize.cpp">
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
-    <ClCompile Include="NewCharacterObject.cpp">
+    <ClCompile Include="NewPlayerObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

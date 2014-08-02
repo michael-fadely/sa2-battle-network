@@ -27,6 +27,55 @@ void PlayerObject::Initialize()
 	SuperSonic	= {};
 }
 
+void PlayerObject::WritePlayer(ObjectMaster* dest, PlayerObject* source)
+{
+	if (source != nullptr)
+	{
+		dest->Data1->Action = source->Data1.Action;
+		dest->Data1->Status = source->Data1.Status;
+		dest->Data1->Rotation = source->Data1.Rotation;
+		dest->Data1->Position = source->Data1.Position;
+		dest->Data1->Scale = source->Data1.Scale;
+
+		dest->Data2->CharID = source->Data2.CharID;
+		dest->Data2->CharID2 = source->Data2.CharID2;
+		dest->Data2->Powerups = source->Data2.Powerups;
+		dest->Data2->Upgrades = source->Data2.Upgrades;
+		dest->Data2->HSpeed = source->Data2.HSpeed;
+		dest->Data2->VSpeed = source->Data2.VSpeed;
+		dest->Data2->PhysData.BaseSpeed = source->Data2.PhysData.BaseSpeed;
+
+		switch (dest->Data2->CharID2)
+		{
+		case Characters_Sonic:
+		case Characters_Shadow:
+		case Characters_Amy:
+		case Characters_MetalSonic:
+			((SonicCharObj2*)dest->Data2)->SpindashTimer = source->Sonic.SpindashTimer;
+			break;
+
+		case Characters_Tails:
+			break;
+
+		case Characters_Eggman:
+			break;
+
+		case Characters_Knuckles:
+		case Characters_Rouge:
+			break;
+
+		case Characters_MechTails:
+		case Characters_MechEggman:
+			dest->Data2->MechHP = source->Data2.MechHP;
+			break;
+
+		case Characters_SuperSonic:
+		case Characters_SuperShadow:
+			break;
+		}
+	}
+}
+
 void PlayerObject::Set(ObjectMaster* player)
 {
 	if (player != LastPointer)
@@ -51,14 +100,12 @@ void PlayerObject::Set(ObjectMaster* player)
 		Data2.VSpeed = player->Data2->VSpeed;
 		Data2.PhysData.BaseSpeed = player->Data2->PhysData.BaseSpeed;
 
-		switch (player->Data2->CharID)
+		switch (player->Data2->CharID2)
 		{
 		case Characters_Sonic:
 		case Characters_Shadow:
 		case Characters_Amy:
 		case Characters_MetalSonic:
-			//Sonic.HomingAttackTimer = ((SonicCharObj2*)player->Data2)->HomingAttackTimer;
-			//Sonic.HomingRangeTimer = ((SonicCharObj2*)player->Data2)->HomingRangeTimer;
 			Sonic.SpindashTimer = ((SonicCharObj2*)player->Data2)->SpindashTimer;
 			break;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MemoryManagement.h"
-//#include "PlayerObject.h"
+#include "NewPlayerObject.h"
 #include "InputStruct.h"
 #include "MemoryStruct.h"
 
@@ -48,10 +48,10 @@ class MemoryHandler
 
 	private:
 		// Methods
-		void InitPlayers();
+		//void InitPlayers();
 		void InitInput();
 
-		void DeinitPlayers();
+		//void DeinitPlayers();
 		void DeinitInput();
 
 		void writeP2Memory();
@@ -59,7 +59,7 @@ class MemoryHandler
 		void writeSpecials();
 		void writeTimeStop();
 
-		void updateAbstractPlayer(AbstractPlayer* recvr, PlayerObject* player);
+		void updateAbstractPlayer(PlayerObject* recvr, ObjectMaster* player);
 		void ToggleSplitscreen();
 		bool CheckTeleport();
 
@@ -68,13 +68,13 @@ class MemoryHandler
 
 		PacketHandler* packetHandler;
 
-		PlayerObject* player1;
-		PlayerObject* player2;
+		//PlayerObject* player1;
+		//PlayerObject* player2;
 
 		InputStruct* p1Input;
 		InputStruct* p2Input;
 
-		AbstractPlayer	recvPlayer, sendPlayer;
+		PlayerObject	recvPlayer, sendPlayer;
 		AbstractInput	recvInput, sendInput;
 		
 		// A Memory Structure that is "remote".
