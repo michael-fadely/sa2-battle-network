@@ -36,7 +36,9 @@ const bool ReadConfig()
 	{
 		for (string s; getline(config, s, ' ');)
 			args.push_back(s);
-
+		
+		config.close();
+		
 		return (args.size() > 1);
 	}
 }

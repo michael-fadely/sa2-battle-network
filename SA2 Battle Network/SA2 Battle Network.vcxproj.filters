@@ -78,13 +78,13 @@
     <ClInclude Include="MemoryHandler.h">
       <Filter>Header Files\netcode</Filter>
     </ClInclude>
-    <ClInclude Include="Initialize.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
     <ClInclude Include="NewPlayerObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModLoaderExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Initialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,10 +134,10 @@
     <ClCompile Include="PlayerObject.cpp">
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
-    <ClCompile Include="Initialize.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
     <ClCompile Include="NewPlayerObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Initialize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
