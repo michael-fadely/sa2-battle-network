@@ -33,9 +33,6 @@
     <ClInclude Include="PacketHandler.h">
       <Filter>Header Files\netcode</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerObject.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
     <ClInclude Include="QuickSock.h">
       <Filter>Header Files\netcode</Filter>
     </ClInclude>
@@ -129,9 +126,6 @@
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
     <ClCompile Include="PacketHandler.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerObject.cpp">
       <Filter>Source Files\netcode</Filter>
     </ClCompile>
     <ClCompile Include="NewPlayerObject.cpp">

@@ -106,7 +106,7 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 	{
 		if (local.system.GameState != GameState && GameState > GameState::LOAD_FINISHED)
 		{
-			cout << "<< Sending gamestate [" << (ushort)GameState << "]" << endl;
+			cout << "<< Sending gamestate [" << (ushort)GameState << ']' << endl;
 
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 			Socket->writeByte(MSG_S_GAMESTATE);
@@ -168,7 +168,7 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 				break;
 			}
 			
-			cout << "]" << endl;
+			cout << ']' << endl;
 			packetHandler->SendMsg(true);
 			local.game.TimeStopMode = TimeStopMode;
 		}
@@ -212,8 +212,8 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 		{
 			if (GameState == GameState::INGAME)
 			{
-				if (Duration(analogTimer) >= 125)
-				{
+				/*if (Duration(analogTimer) >= 125)
+				{*/
 					if (p1Input->analog.x == 0 && p1Input->analog.y == 0)
 					{
 						packetHandler->WriteReliable(); Socket->writeByte(1);
@@ -239,8 +239,8 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 						sendInput.analog.y = p1Input->analog.y;
 					}
 
-					analogTimer = millisecs();
-				}
+					/*analogTimer = millisecs();
+				}*/
 			}
 			else if (sendInput.analog.y != 0 || sendInput.analog.x != 0)
 			{
@@ -261,6 +261,26 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 	else
 		return;
 }
+
+const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
+uint rotateTimer = 0;
+inline const bool RotationMargin(const Rotation& last, const Rotation& current)
+{
+	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotatemargin
+		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotatemargin
+		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotatemargin
+		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
+}
+
+const float speedmargin = 0.25;
+uint speedTimer = 0;
+const bool SpeedMargin(const float last, const float current)
+{
+	return ((max(last, current) - min(last, current)) >= speedmargin
+		|| last != current && current < speedmargin
+		|| last != current && Duration(speedTimer) >= 125);
+}
+
 void MemoryHandler::SendPlayer(QSocket* Socket)
 {
 	// If the game has finished loading...
@@ -390,10 +410,14 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			Socket->writeShort(local.game.RingCount[0]);
 			packetHandler->SendMsg();
 		}
-
+		/*
 		if (memcmp(&sendPlayer.Data1.Rotation, &MainCharacter[0]->Data1->Rotation, sizeof(Rotation)) != 0 ||
 			(MainCharacter[0]->Data2->HSpeed != sendPlayer.Data2.HSpeed || MainCharacter[0]->Data2->VSpeed != sendPlayer.Data2.VSpeed))
+		*/
+		if (RotationMargin(sendPlayer.Data1.Rotation, MainCharacter[0]->Data1->Rotation)
+			|| (SpeedMargin(sendPlayer.Data2.HSpeed, MainCharacter[0]->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, MainCharacter[0]->Data2->VSpeed)))
 		{
+			rotateTimer = speedTimer = millisecs();
 			Socket->writeByte(MSG_NULL); Socket->writeByte(3);
 
 			Socket->writeByte(MSG_P_ROTATION);
