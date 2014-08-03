@@ -63,9 +63,6 @@
     <ClInclude Include="Application.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
     <ClInclude Include="CommonEnums.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
@@ -95,6 +92,9 @@
     </ClInclude>
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
