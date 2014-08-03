@@ -13,126 +13,138 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\netcode">
-      <UniqueIdentifier>{9947278e-4898-4186-ac7a-d61d93485d2f}</UniqueIdentifier>
+    <Filter Include="Header Files\Networking">
+      <UniqueIdentifier>{932d3ca9-8b09-4995-8047-afbc23a0ba2d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\netcode">
-      <UniqueIdentifier>{dfb43c4b-40c0-41a6-a94c-27ae602be028}</UniqueIdentifier>
+    <Filter Include="Source Files\Networking">
+      <UniqueIdentifier>{02a7a80d-de3a-4346-b031-83994e6da4fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Program">
+      <UniqueIdentifier>{836f4cf0-ab0e-4a2c-ad5a-b8aa0b02ce68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Program">
+      <UniqueIdentifier>{e9ba9889-5811-4998-b92b-9e96efac8fbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game Memory">
+      <UniqueIdentifier>{68264a71-e6c1-4c43-abf1-55daa6b33913}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game Memory">
+      <UniqueIdentifier>{07e75d45-fa4f-40b3-9242-5633e7ed18bc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemoryManagement.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryStruct.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="Networking.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHandler.h">
-      <Filter>Header Files\netcode</Filter>
+    <ClInclude Include="QuickTypes.h">
+      <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="QuickSock.h">
-      <Filter>Header Files\netcode</Filter>
+      <Filter>Header Files\Networking</Filter>
     </ClInclude>
-    <ClInclude Include="QuickTypes.h">
-      <Filter>Header Files\netcode</Filter>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking.h">
+      <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="ReliableID.h">
-      <Filter>Header Files\netcode</Filter>
+      <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="ReliablePacketHandler.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="ActionBlacklist.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="AddressList.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonEnums.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="Globals.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="InputStruct.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="LazyMemory.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryHandler.h">
-      <Filter>Header Files\netcode</Filter>
-    </ClInclude>
-    <ClInclude Include="NewPlayerObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ModLoaderExtensions.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="Initialize.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonEnums.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressList.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionBlacklist.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="InputStruct.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="LazyMemory.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryHandler.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManagement.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStruct.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="NewPlayerObject.h">
+      <Filter>Header Files\Game Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="ModLoaderExtensions.h">
+      <Filter>Header Files\Program</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SA2 Battle Network.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QuickSock.cpp">
-      <Filter>Source Files\netcode</Filter>
+    <ClCompile Include="ReliablePacketHandler.cpp">
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="ReliableID.cpp">
-      <Filter>Source Files\netcode</Filter>
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="ReliablePacketHandler.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionBlacklist.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="Common.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="Globals.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="InputStruct.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryHandler.cpp">
-      <Filter>Source Files\netcode</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryManagement.cpp">
-      <Filter>Source Files\netcode</Filter>
+    <ClCompile Include="QuickSock.cpp">
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="PacketHandler.cpp">
-      <Filter>Source Files\netcode</Filter>
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="NewPlayerObject.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="SA2 Battle Network.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="Initialize.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManagement.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionBlacklist.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="InputStruct.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryHandler.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="NewPlayerObject.cpp">
+      <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

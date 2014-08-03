@@ -3,8 +3,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include "LazyMemory.h"
-
 #include "Common.h"
 #include "CommonEnums.h"
 #include "AddressList.h"
@@ -332,7 +330,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 		{
 			cout << "<< Sending specials!" << endl;
 			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_2PSPECIALS);
+			Socket->writeByte(MSG_S_2PSPECIALS);
 			Socket->writeBytes(&P1SpecialAttacks[0], 3);
 
 			memcpy(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3);
@@ -532,7 +530,7 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 				if (local.menu.PlayerReady[0] != PlayerReady[0])
 				{
 					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_2PREADY);
+					Socket->writeByte(MSG_S_2PREADY);
 					Socket->writeByte(PlayerReady[0]);
 					packetHandler->SendMsg(true);
 
@@ -777,7 +775,7 @@ void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
 			writeTimeStop();
 			return;
 
-		case MSG_2PSPECIALS:
+		case MSG_S_2PSPECIALS:
 			for (int i = 0; i < 3; i++)
 				local.game.P2SpecialAttacks[i] = Socket->readChar();
 
@@ -888,7 +886,7 @@ void MemoryHandler::ReceiveMenu(QSocket* Socket, uchar type)
 				cout << ">> Player 2 is no longer on the 2P menu." << endl;
 			return;
 
-		case MSG_2PREADY:
+		case MSG_S_2PREADY:
 			PlayerReady[1] = local.menu.PlayerReady[1] = Socket->readChar();
 
 			cout << ">> Player 2 ready state changed." << endl;
