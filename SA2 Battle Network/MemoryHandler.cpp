@@ -10,7 +10,6 @@
 
 #include "MemoryManagement.h"
 #include "NewPlayerObject.h"
-#include "InputStruct.h"
 #include "MemoryStruct.h"
 
 #include "Networking.h"
@@ -41,17 +40,7 @@ MemoryHandler::MemoryHandler(PacketHandler* packetHandler, bool isserver)
 	Teleported = false;
 	writePlayer = false;
 
-	//MainCharacter[0] = nullptr;
-	//MainCharacter[1] = nullptr;
-	p1Input = nullptr;
-	p2Input = nullptr;
-
-	//InitPlayers();
-	InitInput();
-
 	local = {};
-	//recvPlayer = {};
-	//sendPlayer = {};
 	recvInput = {};
 	sendInput = {};
 
@@ -64,38 +53,6 @@ MemoryHandler::~MemoryHandler()
 {
 	packetHandler = nullptr;
 	cout << "<> [MemoryHandler::~MemoryHandler] Deinitializing Player Objects and Input Structures" << endl;
-	//DeinitPlayers();
-	DeinitInput();
-}
-
-void MemoryHandler::InitInput()
-{
-	if (p1Input == nullptr)
-		p1Input = new InputStruct(ADDR_P1INPUT);
-	else
-		cout << "<> [MemoryHandler::InitInput] P1 Input has already been initialized." << endl;
-
-	if (p2Input == nullptr)
-		p2Input = new InputStruct(ADDR_P2INPUT);
-	else
-		cout << "<> [MemoryHandler::InitInput] P2 Input has already been initialized." << endl;
-
-	return;
-}
-void MemoryHandler::DeinitInput()
-{
-	if (p1Input != nullptr)
-	{
-		delete p1Input;
-		p1Input = nullptr;
-	}
-	if (p2Input != nullptr)
-	{
-		delete p2Input;
-		p2Input = nullptr;
-	}
-
-	return;
 }
 
 void MemoryHandler::SendSystem(QSocket* Socket)
@@ -129,7 +86,6 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 			Socket->writeByte(MSG_NULL); Socket->writeByte(2);
 			Socket->writeByte(MSG_S_TIME);
 			Socket->writeByte(MSG_KEEPALIVE);
-			//cout << "<< [SERVER] Sending keepalive" << endl;
 
 			Socket->writeByte(TimerMinutes);
 			Socket->writeByte(TimerSeconds);
@@ -177,7 +133,6 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 		{
 			Socket->writeByte(MSG_NULL); Socket->writeByte(1);
 			Socket->writeByte(MSG_KEEPALIVE);
-			//cout << "<< [CLIENT] Sending keepalive..." << endl;
 
 			packetHandler->SendMsg();
 			packetHandler->setSentKeepalive();
@@ -188,76 +143,72 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 {
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
-		p1Input->read();
-
 		if (!CheckFrame())
 			ToggleSplitscreen();
 
-		if (sendInput.buttons.Held != p1Input->buttons.Held && GameState != GameState::MEMCARD)
+		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons && GameState != GameState::MEMCARD)
 		{
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 
 			Socket->writeByte(MSG_I_BUTTONS);
-			Socket->writeInt(p1Input->buttons.Held);
+			Socket->writeInt(ControllersRaw[0].HeldButtons);
 
 			packetHandler->SendMsg(true);
 
-			sendInput.buttons.Held = p1Input->buttons.Held;
+			sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
 
 		}
 
-		if (sendInput.analog.x != p1Input->analog.x || sendInput.analog.y != p1Input->analog.y)
+		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
 			if (GameState == GameState::INGAME)
 			{
 				/*if (Duration(analogTimer) >= 125)
 				{*/
-					if (p1Input->analog.x == 0 && p1Input->analog.y == 0)
+					if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 					{
 						packetHandler->WriteReliable(); Socket->writeByte(1);
 						Socket->writeByte(MSG_I_ANALOG);
-						Socket->writeShort(p1Input->analog.x);
-						Socket->writeShort(p1Input->analog.y);
+						Socket->writeShort(ControllersRaw[0].LeftStickX);
+						Socket->writeShort(ControllersRaw[0].LeftStickY);
 
 						packetHandler->SendMsg(true);
 
-						sendInput.analog.x = p1Input->analog.x;
-						sendInput.analog.y = p1Input->analog.y;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
 					}
 					else
 					{
 						Socket->writeByte(MSG_NULL); Socket->writeByte(1);
 						Socket->writeByte(MSG_I_ANALOG);
-						Socket->writeShort(p1Input->analog.x);
-						Socket->writeShort(p1Input->analog.y);
+						Socket->writeShort(ControllersRaw[0].LeftStickX);
+						Socket->writeShort(ControllersRaw[0].LeftStickY);
 
 						packetHandler->SendMsg();
 
-						sendInput.analog.x = p1Input->analog.x;
-						sendInput.analog.y = p1Input->analog.y;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
 					}
 
 					/*analogTimer = millisecs();
 				}*/
 			}
-			else if (sendInput.analog.y != 0 || sendInput.analog.x != 0)
+			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
 			{
 				cout << "<< Resetting analog" << endl;
 				packetHandler->WriteReliable(); Socket->writeByte(1);
 				Socket->writeByte(MSG_I_ANALOG);
 
-				sendInput.analog.y = 0;
-				sendInput.analog.x = 0;
+				sendInput.LeftStickY = 0;
+				sendInput.LeftStickX = 0;
 
-				Socket->writeShort(sendInput.analog.x);
-				Socket->writeShort(sendInput.analog.y);
+				Socket->writeShort(sendInput.LeftStickX);
+				Socket->writeShort(sendInput.LeftStickY);
 
 				packetHandler->SendMsg(true);
 			}
 		}
 	}
-	else
-		return;
 }
 
 const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
@@ -289,7 +240,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 		{
 			cout << "<> Stage has changed to " << (ushort)CurrentLevel << endl;
 
-			updateAbstractPlayer(&sendPlayer, MainCharacter[0]);
+			updateAbstractPlayer(&sendPlayer, Player1);
 
 			// Reset the ringcounts so they don't get sent.
 			local.game.RingCount[0] = 0;
@@ -309,18 +260,18 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			packetHandler->WriteReliable(); Socket->writeByte(2);
 			Socket->writeByte(MSG_P_POSITION); Socket->writeByte(MSG_P_SPEED);
 
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
+			Socket->writeFloat(Player1->Data1->Position.x);
+			Socket->writeFloat(Player1->Data1->Position.y);
+			Socket->writeFloat(Player1->Data1->Position.z);
 
 			
-			sendPlayer.Data1.Position = MainCharacter[0]->Data1->Position;
+			sendPlayer.Data1.Position = Player1->Data1->Position;
 
-			Socket->writeFloat(MainCharacter[0]->Data2->HSpeed);
-			sendPlayer.Data2.HSpeed = MainCharacter[0]->Data2->HSpeed;
+			Socket->writeFloat(Player1->Data2->HSpeed);
+			sendPlayer.Data2.HSpeed = Player1->Data2->HSpeed;
 
-			Socket->writeFloat(MainCharacter[0]->Data2->VSpeed);
-			sendPlayer.Data2.VSpeed = MainCharacter[0]->Data2->VSpeed;
+			Socket->writeFloat(Player1->Data2->VSpeed);
+			sendPlayer.Data2.VSpeed = Player1->Data2->VSpeed;
 
 			packetHandler->SendMsg(true);
 		}
@@ -337,26 +288,26 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 
 			packetHandler->SendMsg(true);
 		}
-		if (MainCharacter[0]->Data2->CharID == 6 || MainCharacter[0]->Data2->CharID == 7)
+		if (Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7)
 		{
-			if (sendPlayer.Data2.MechHP != MainCharacter[0]->Data2->MechHP)
+			if (sendPlayer.Data2.MechHP != Player1->Data2->MechHP)
 			{
-				cout << "<< Sending HP [" << MainCharacter[0]->Data2->MechHP << "]" << endl;
+				cout << "<< Sending HP [" << Player1->Data2->MechHP << "]" << endl;
 				packetHandler->WriteReliable(); Socket->writeByte(1);
 				Socket->writeByte(MSG_P_HP);
-				Socket->writeFloat(MainCharacter[0]->Data2->MechHP);
+				Socket->writeFloat(Player1->Data2->MechHP);
 				
 				packetHandler->SendMsg(true);
 			}
 		}
 
-		if (sendPlayer.Data1.Action != MainCharacter[0]->Data1->Action || sendPlayer.Data1.Status != MainCharacter[0]->Data1->Status)
+		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
 			cout << "<< Sending action...";
 
-			bool sendSpinTimer = (MainCharacter[0]->Data2->CharID2 == Characters_Sonic || MainCharacter[0]->Data2->CharID2 == Characters_Sonic);
+			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic || Player1->Data2->CharID2 == Characters_Sonic);
 
-			if (!isHoldAction(MainCharacter[0]->Data1->Action))
+			if (!isHoldAction(Player1->Data1->Action))
 			{
 				cout << endl;
 				packetHandler->WriteReliable(); Socket->writeByte((sendSpinTimer) ? 5 : 4);
@@ -369,16 +320,16 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 				if (sendSpinTimer)
 					Socket->writeByte(MSG_P_SPINTIMER);
 
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
+				Socket->writeFloat(Player1->Data1->Position.x);
+				Socket->writeFloat(Player1->Data1->Position.y);
+				Socket->writeFloat(Player1->Data1->Position.z);
 
-				Socket->writeByte(MainCharacter[0]->Data1->Action);
-				Socket->writeShort(MainCharacter[0]->Data1->Status);
-				Socket->writeShort(MainCharacter[0]->Data2->AnimInfo.Next);
+				Socket->writeByte(Player1->Data1->Action);
+				Socket->writeShort(Player1->Data1->Status);
+				Socket->writeShort(Player1->Data2->AnimInfo.Next);
 
 				if (sendSpinTimer)
-					Socket->writeShort(((SonicCharObj2*)MainCharacter[0]->Data2)->SpindashTimer);
+					Socket->writeShort(((SonicCharObj2*)Player1->Data2)->SpindashTimer);
 
 				packetHandler->SendMsg(true);
 			}
@@ -390,10 +341,10 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 				Socket->writeByte(MSG_P_POSITION);
 				Socket->writeByte(MSG_P_ACTION);
 
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
-				Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
-				Socket->writeByte(MainCharacter[0]->Data1->Action);
+				Socket->writeFloat(Player1->Data1->Position.x);
+				Socket->writeFloat(Player1->Data1->Position.y);
+				Socket->writeFloat(Player1->Data1->Position.z);
+				Socket->writeByte(Player1->Data1->Action);
 
 				packetHandler->SendMsg(true);
 			}
@@ -409,11 +360,11 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			packetHandler->SendMsg();
 		}
 		/*
-		if (memcmp(&sendPlayer.Data1.Rotation, &MainCharacter[0]->Data1->Rotation, sizeof(Rotation)) != 0 ||
-			(MainCharacter[0]->Data2->HSpeed != sendPlayer.Data2.HSpeed || MainCharacter[0]->Data2->VSpeed != sendPlayer.Data2.VSpeed))
+		if (memcmp(&sendPlayer.Data1.Rotation, &Player1->Data1->Rotation, sizeof(Rotation)) != 0 ||
+			(Player1->Data2->HSpeed != sendPlayer.Data2.HSpeed || Player1->Data2->VSpeed != sendPlayer.Data2.VSpeed))
 		*/
-		if (RotationMargin(sendPlayer.Data1.Rotation, MainCharacter[0]->Data1->Rotation)
-			|| (SpeedMargin(sendPlayer.Data2.HSpeed, MainCharacter[0]->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, MainCharacter[0]->Data2->VSpeed)))
+		if (RotationMargin(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
+			|| (SpeedMargin(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)))
 		{
 			rotateTimer = speedTimer = millisecs();
 			Socket->writeByte(MSG_NULL); Socket->writeByte(3);
@@ -422,41 +373,41 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			Socket->writeByte(MSG_P_POSITION);
 			Socket->writeByte(MSG_P_SPEED);
 
-			Socket->writeInt(MainCharacter[0]->Data1->Rotation.x);
-			Socket->writeInt(MainCharacter[0]->Data1->Rotation.y);
-			Socket->writeInt(MainCharacter[0]->Data1->Rotation.z);
+			Socket->writeInt(Player1->Data1->Rotation.x);
+			Socket->writeInt(Player1->Data1->Rotation.y);
+			Socket->writeInt(Player1->Data1->Rotation.z);
 
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.x);
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.y);
-			Socket->writeFloat(MainCharacter[0]->Data1->Position.z);
+			Socket->writeFloat(Player1->Data1->Position.x);
+			Socket->writeFloat(Player1->Data1->Position.y);
+			Socket->writeFloat(Player1->Data1->Position.z);
 
-			Socket->writeFloat(MainCharacter[0]->Data2->HSpeed);
-			Socket->writeFloat(MainCharacter[0]->Data2->VSpeed);
-			Socket->writeFloat(MainCharacter[0]->Data2->PhysData.BaseSpeed);
+			Socket->writeFloat(Player1->Data2->HSpeed);
+			Socket->writeFloat(Player1->Data2->VSpeed);
+			Socket->writeFloat(Player1->Data2->PhysData.BaseSpeed);
 
 			packetHandler->SendMsg();
 		}
 
-		if (sendPlayer.Data2.Powerups != MainCharacter[0]->Data2->Powerups)
+		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
 		{
 			cout << "<< Sending powerups" << endl;
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 			Socket->writeByte(MSG_P_POWERUPS);
-			Socket->writeShort(MainCharacter[0]->Data2->Powerups);
+			Socket->writeShort(Player1->Data2->Powerups);
 
 			packetHandler->SendMsg(true);
 		}
-		if (sendPlayer.Data2.Upgrades != MainCharacter[0]->Data2->Upgrades)
+		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
 		{
 			cout << "<< Sending upgrades" << endl;
 			packetHandler->WriteReliable(); Socket->writeByte(1);
 			Socket->writeByte(MSG_P_UPGRADES);
-			Socket->writeInt(MainCharacter[0]->Data2->Upgrades);
+			Socket->writeInt(Player1->Data2->Upgrades);
 
 			packetHandler->SendMsg(true);
 		}
 
-		updateAbstractPlayer(&sendPlayer, MainCharacter[0]);
+		updateAbstractPlayer(&sendPlayer, Player1);
 	}
 
 }
@@ -465,14 +416,13 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 	if (GameState == GameState::INACTIVE)
 	{
 		// Menu analog failsafe
-		if (sendInput.analog.x != 0 || sendInput.analog.y != 0)
+		if (sendInput.LeftStickX != 0 || sendInput.LeftStickY != 0)
 		{
 			cout << "<>\tAnalog failsafe!" << endl;
-			p1Input->analog.x = 0;
-			p1Input->analog.y = 0;
-			sendInput.analog.x = 0;
-			sendInput.analog.y = 0;
-			p1Input->writeAnalog(&sendInput, 0);
+			ControllersRaw[0].LeftStickX = 0;
+			ControllersRaw[0].LeftStickY = 0;
+			sendInput.LeftStickX = 0;
+			sendInput.LeftStickY = 0;
 		}
 
 		// ...and we're on the 2P menu...
@@ -645,7 +595,7 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 inline void MemoryHandler::writeP2Memory()
 {
 	if (GameState >= GameState::INGAME)
-		PlayerObject::WritePlayer(MainCharacter[1], &recvPlayer);
+		PlayerObject::WritePlayer(Player2, &recvPlayer);
 }
 inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
@@ -654,12 +604,12 @@ inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopM
 void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
 {
 	// Mech synchronize hack
-	if (GameState >= GameState::INGAME && MainCharacter[1] != nullptr)
+	if (GameState >= GameState::INGAME && Player2 != nullptr)
 	{
-		if (MainCharacter[1]->Data2->CharID2 == Characters_MechEggman || MainCharacter[1]->Data2->CharID2 == Characters_MechTails)
-			MainCharacter[1]->Data2->MechHP = recvPlayer.Data2.MechHP;
-		MainCharacter[1]->Data2->Powerups = recvPlayer.Data2.Powerups;
-		MainCharacter[1]->Data2->Upgrades = recvPlayer.Data2.Upgrades;
+		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
+			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
+		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
+		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
 	}
 
 	destination->Set(source);
@@ -669,7 +619,7 @@ void MemoryHandler::ToggleSplitscreen()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.buttons.Held & (1 << 16)) && (sendInput.buttons.Held & (2 << 16)))
+		if ((sendInput.HeldButtons & (1 << 16)) && (sendInput.HeldButtons & (2 << 16)))
 		{
 			if (!splitToggled)
 			{
@@ -693,13 +643,13 @@ bool MemoryHandler::CheckTeleport()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.buttons.Held & (1 << 5)) && (sendInput.buttons.Held & (1 << 9)))
+		if ((sendInput.HeldButtons & (1 << 5)) && (sendInput.HeldButtons & (1 << 9)))
 		{
 			if (!Teleported)
 			{
 				// Teleport to recvPlayer
 				cout << "<> Teleporting to other player..." << endl;;
-				PlayerObject::Teleport(&recvPlayer, MainCharacter[0]);
+				PlayerObject::Teleport(&recvPlayer, Player1);
 
 				return Teleported = true;
 			}
@@ -711,6 +661,7 @@ bool MemoryHandler::CheckTeleport()
 	return false;
 }
 
+
 void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
 {
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
@@ -721,19 +672,16 @@ void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
 			return;
 
 		case MSG_I_BUTTONS:
-			recvInput.buttons.Held = Socket->readInt();
+			recvInput.HeldButtons = Socket->readInt();
 			if (CheckFrame())
 				MemManage::waitFrame(1, thisFrame);
-			p2Input->writeButtons(&recvInput);
-
+			recvInput.WriteButtons(ControllersRaw[1]);
+			
 			return;
 
 		case MSG_I_ANALOG:
-			recvInput.analog.x = Socket->readShort();
-			recvInput.analog.y = Socket->readShort();
-
-			p2Input->writeAnalog(&recvInput, GameState);
-
+			ControllersRaw[1].LeftStickX = recvInput.LeftStickX = Socket->readShort();
+			ControllersRaw[1].LeftStickY = recvInput.LeftStickY = Socket->readShort();
 			return;
 		}
 	}
@@ -944,9 +892,7 @@ void MemoryHandler::ReceiveMenu(QSocket* Socket, uchar type)
 
 void MemoryHandler::PreReceive()
 {
-	updateAbstractPlayer(&recvPlayer, MainCharacter[1]);
-
-	p2Input->read();
+	updateAbstractPlayer(&recvPlayer, Player2);
 
 	writeRings();
 	writeSpecials();
@@ -956,10 +902,8 @@ void MemoryHandler::PreReceive()
 
 void MemoryHandler::PostReceive()
 {
-	updateAbstractPlayer(&recvPlayer, MainCharacter[1]);
+	updateAbstractPlayer(&recvPlayer, Player2);
 	//writeP2Memory();
-
-	p2Input->read();
 
 	writeRings();
 	writeSpecials();

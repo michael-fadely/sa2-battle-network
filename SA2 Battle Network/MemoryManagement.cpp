@@ -33,7 +33,7 @@ const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint fra
 	uint result = getElapsedFrames(currentFrameCount);
 	
 	if (result > frameCount)
-		cout << "[waitFrameRecursive] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
+		cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
 
 	return (result >= frameCount);
 }

@@ -945,9 +945,9 @@ DataPointer(int, CurrentCharacter, 0x1934B80);
 DataPointer(int, CurrentCharacter2P, 0x1934BE4);
 DataArray(ControllerData, ControllersRaw, 0x1A52918, 4);
 DataPointer(ControllerData, Controller1Raw, &ControllersRaw[0]);
-DataPointer(ControllerData, Controller2Raw, &ControllersRaw[0]);
-DataPointer(ControllerData, Controller3Raw, &ControllersRaw[0]);
-DataPointer(ControllerData, Controller4Raw, &ControllersRaw[0]);
+DataPointer(ControllerData, Controller2Raw, &ControllersRaw[1]);
+DataPointer(ControllerData, Controller3Raw, &ControllersRaw[2]);
+DataPointer(ControllerData, Controller4Raw, &ControllersRaw[3]);
 DataArray(CharObj2 *, MainCharObj2, 0x1DE9600, 2);
 DataArray(ModelIndex, CharacterModels, 0x1DE9620, 532);
 DataArray(CharObj1 *, MainCharObj1, 0x1DEA6C0, 2);
@@ -956,9 +956,9 @@ DataArray(AnimationIndex, CharacterAnimations, 0x1DEA700, 300);
 DataArray(uint32_t, MenuPressedButtons, 0x1DEFB10, 4);
 DataArray(ControllerData, Controllers, 0x1DEFC00, 4);
 DataPointer(ControllerData, Controller1, &Controllers[0]);
-DataPointer(ControllerData, Controller2, &Controllers[0]);
-DataPointer(ControllerData, Controller3, &Controllers[0]);
-DataPointer(ControllerData, Controller4, &Controllers[0]);
+DataPointer(ControllerData, Controller2, &Controllers[1]);
+DataPointer(ControllerData, Controller3, &Controllers[2]);
+DataPointer(ControllerData, Controller4, &Controllers[3]);
 
 // SA2 Functions
 #define FunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) static RETURN_TYPE (__cdecl *const NAME)ARGS = (RETURN_TYPE (__cdecl *)ARGS)ADDRESS

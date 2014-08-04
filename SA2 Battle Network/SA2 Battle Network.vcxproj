@@ -84,12 +84,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CommonEnums.h" />
-    <ClInclude Include="GameObject.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="InputStruct.h" />
     <ClInclude Include="LazyMemory.h" />
     <ClInclude Include="Initialize.h" />
     <ClInclude Include="MemoryHandler.h" />
@@ -103,6 +98,7 @@
     <ClInclude Include="QuickTypes.h" />
     <ClInclude Include="ReliableID.h" />
     <ClInclude Include="ReliablePacketHandler.h" />
+    <ClInclude Include="SA2ModLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActionBlacklist.cpp" />
@@ -116,15 +112,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Globals.cpp" />
-    <ClCompile Include="InputStruct.cpp" />
     <ClCompile Include="Initialize.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
+    <ClCompile Include="ModLoaderExtensions.cpp" />
     <ClCompile Include="NewPlayerObject.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="QuickSock.cpp" />

@@ -72,9 +72,6 @@
     <ClInclude Include="ActionBlacklist.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
-    <ClInclude Include="InputStruct.h">
-      <Filter>Header Files\Game Memory</Filter>
-    </ClInclude>
     <ClInclude Include="LazyMemory.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
@@ -93,7 +90,7 @@
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
+    <ClInclude Include="SA2ModLoader.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
   </ItemGroup>
@@ -131,12 +128,6 @@
     <ClCompile Include="Application.cpp">
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="InputStruct.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryHandler.cpp">
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
@@ -144,6 +135,9 @@
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="NewPlayerObject.cpp">
+      <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="ModLoaderExtensions.cpp">
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
   </ItemGroup>

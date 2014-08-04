@@ -43,18 +43,6 @@ void InputStruct::write(AbstractInput* recvr)
 	writeAnalog(recvr, 1);
 }
 
-void InputStruct::writeButtons(AbstractInput* recvr)
-{
-	buttons.Held = recvr->buttons.Held;
-	buttons.NotHeld = ~buttons.Held;
-
-	WriteMemory((baseAddress+Offset::Held),		&buttons.Held,		sizeof(int));
-	WriteMemory((baseAddress+Offset::NotHeld),	&buttons.NotHeld,	sizeof(int));
-	press();
-	//thread (&InputStruct::press, this).detach();
-}
-
-
 void InputStruct::writeAnalog(AbstractInput* recvr, uint gamestate)
 {
 	analog.x = recvr->analog.x;
@@ -71,6 +59,16 @@ void InputStruct::writeAnalog(AbstractInput* recvr, uint gamestate)
 
 }
 
+void InputStruct::writeButtons(AbstractInput* recvr)
+{
+	buttons.Held = recvr->buttons.Held;
+	buttons.NotHeld = ~buttons.Held;
+
+	WriteMemory((baseAddress+Offset::Held),		&buttons.Held,		sizeof(int));
+	WriteMemory((baseAddress+Offset::NotHeld),	&buttons.NotHeld,	sizeof(int));
+	press();
+	//thread (&InputStruct::press, this).detach();
+}
 
 void InputStruct::press()
 {

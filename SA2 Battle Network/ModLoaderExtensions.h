@@ -77,3 +77,13 @@ struct SuperSonicObj2Base
 	ModelIndex *ModelList;
 	AnimationIndex *MotionList;
 };
+
+struct InputStruct : ControllerData
+{
+	unsigned int LastPressed;
+	void WriteButtons(ControllerData& destination);
+
+};
+
+DataPointer(ObjectMaster*, Player1, &MainCharacter[0]);
+DataPointer(ObjectMaster*, Player2, &MainCharacter[1]);

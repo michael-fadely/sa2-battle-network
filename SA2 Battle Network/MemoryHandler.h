@@ -1,8 +1,8 @@
 #pragma once
 
 #include "MemoryManagement.h"
+#include "ModLoaderExtensions.h"
 #include "NewPlayerObject.h"
-#include "InputStruct.h"
 #include "MemoryStruct.h"
 
 class QSocket;
@@ -49,10 +49,10 @@ class MemoryHandler
 	private:
 		// Methods
 		//void InitPlayers();
-		void InitInput();
+		//void InitInput();
 
 		//void DeinitPlayers();
-		void DeinitInput();
+		//void DeinitInput();
 
 		void writeP2Memory();
 		void writeRings();
@@ -71,11 +71,8 @@ class MemoryHandler
 		//PlayerObject* player1;
 		//PlayerObject* player2;
 
-		InputStruct* p1Input;
-		InputStruct* p2Input;
-
 		PlayerObject	recvPlayer, sendPlayer;
-		AbstractInput	recvInput, sendInput;
+		InputStruct		recvInput, sendInput;
 		
 		// A Memory Structure that is "remote".
 		// Updated every frame with data read from game memory.
