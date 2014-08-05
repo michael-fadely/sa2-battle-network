@@ -50,13 +50,15 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>QSOCK_WINDOWS_LEGACY=1;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>G:\Libraries</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;QSOCK_WINDOWS_LEGACY=1;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>sfml-network-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.1_VC2013x86_STATIC\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -66,9 +68,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>QSOCK_WINDOWS_LEGACY=1;WIN32;NDEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;QSOCK_WINDOWS_LEGACY=1;WIN32;NDEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>G:\Libraries</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
     </ClCompile>
     <Link>
@@ -76,6 +78,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>sfml-network-s.lib;sfml-system-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.1_VC2013x86_STATIC\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -93,11 +97,8 @@
     <ClInclude Include="ModLoaderExtensions.h" />
     <ClInclude Include="Networking.h" />
     <ClInclude Include="NewPlayerObject.h" />
+    <ClInclude Include="PacketExtensions.h" />
     <ClInclude Include="PacketHandler.h" />
-    <ClInclude Include="QuickSock.h" />
-    <ClInclude Include="QuickTypes.h" />
-    <ClInclude Include="ReliableID.h" />
-    <ClInclude Include="ReliablePacketHandler.h" />
     <ClInclude Include="SA2ModLoader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -118,10 +119,8 @@
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="ModLoaderExtensions.cpp" />
     <ClCompile Include="NewPlayerObject.cpp" />
+    <ClCompile Include="PacketExtensions.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
-    <ClCompile Include="QuickSock.cpp" />
-    <ClCompile Include="ReliableID.cpp" />
-    <ClCompile Include="ReliablePacketHandler.cpp" />
     <ClCompile Include="SA2 Battle Network.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "MemoryHandler.h"
 #include "Networking.h"
-#include "QuickSock.h"
+
 #include "ReliablePacketHandler.h"
 #include "ReliableID.h"
 

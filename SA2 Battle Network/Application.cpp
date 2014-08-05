@@ -6,9 +6,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <SFML\Network.hpp>
+
 #include "Common.h"
 #include "Networking.h"
-#include "QuickSock.h"
+
 #include "PacketHandler.h"
 #include "ReliablePacketHandler.h"
 #include "ReliableID.h"
@@ -28,33 +30,31 @@ const std::string Version::str()
 	return out.str();
 }
 
-Version Program::versionNum = { 2, 7 };
+Version Program::versionNum = { 3, 0 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
-Program::Program(const bool server, const clientAddress& address, const Settings& settings, const uint timeout)
+Program::Program(const bool host, const clientAddress& address, const Settings& settings, const uint timeout)
 {
-	isServer = server;
+	isServer = host;
 	ConnectionStart = 0;
 
 	Address.address = address.address;
 	Address.port = address.port;
 
-	// Oh man. This is so terrible.
-	memcpy(&this->settings, &settings, sizeof(Settings));
-
-	QSocket::initSockets();
-	Socket = new QSocket(1024);
+	this->settings = settings;
 
 	Networking = new PacketHandler(this, timeout);
+
+	safeSocket.setBlocking(false);
+	fastSocket.setBlocking(false);
+
+	isConnected = false;
 
 	return;
 }
 
 Program::~Program()
 {
-	delete Socket;
-	QSocket::deinitSockets();
-
 	delete Networking;
 
 	cout << "<> o/" << endl;
@@ -68,69 +68,142 @@ ExitCode Program::Connect()
 	if (isServer)
 	{
 		cout << "\aHosting server on port " << Address.port << "..." << endl;
-		Socket->host(Address.port);
-		cout << "Waiting for connections..." << endl;
+		sf::TcpListener listener;
+
+		if (listener.listen(Address.port) != sf::Socket::Done)
+		{
+			cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
+			return exitCode = ExitCode::ClientTimeout;
+		}
+		if (listener.accept(safeSocket) != sf::Socket::Done)
+		{
+			cout << "Unable to accept the connection." << endl;
+			return exitCode = ExitCode::ClientTimeout;
+		}
+		while (!isConnected)
+		{
+			sf::Packet packet;
+			sf::Socket::Status status;
+			do
+			{
+				status = safeSocket.receive(packet);
+			} while (status == sf::Socket::NotReady);
+
+			if (status != sf::Socket::Done)
+			{
+				cout << "An error occurred while waiting for version number." << endl;
+				continue;
+			}
+
+			uchar id;
+			packet >> id;
+			if (id != MSG_VERSION_CHECK)
+			{
+				cout << "Received malformed packet from client!" << endl;
+				continue;
+			}
+
+			Version remoteVersion;
+			packet >> remoteVersion.major >> remoteVersion.minor;
+			if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
+			{
+				safeSocket.disconnect();
+				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
+				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
+				
+				sf::Packet mismatch;
+				mismatch << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
+				do
+				{
+					status = safeSocket.send(mismatch);
+				} while (status == sf::Socket::NotReady);
+
+				continue;
+			}
+
+			sf::Packet confirm;
+			confirm << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
+			
+			do
+			{
+				status = safeSocket.send(confirm);
+			} while (status == sf::Socket::NotReady);
+
+			if (status != sf::Socket::Done)
+			{
+				cout << "An error occurred while confirming the connection with the client." << endl;
+				continue;
+			}
+
+			isConnected = true;
+			break;
+		}
 	}
 	else
 	{
 		cout << "\a\aConnecting to server at " << Address.address << " on port " << Address.port << "..." << endl;
-		Socket->connect(Address.address.c_str(), Address.port);
-	}
-
-	isConnected = false;
-	while (!isConnected)
-	{
-		Socket->readAvail();
-
-		if (Socket->msgAvail())
+		sf::Socket::Status status = sf::Socket::NotReady;
+		do
 		{
-			if (Socket->readByte() == MSG_ESTABLISH)
+			status = safeSocket.connect(Address.address, Address.port);
+		} while (status == sf::Socket::NotReady);
+
+		if (status != sf::Socket::Done)
+		{
+			cout << "A connection error has occurred." << endl;
+			return exitCode = ExitCode::ClientTimeout;
+		}
+
+
+		while (!isConnected)
+		{
+			sf::Packet packet;
+			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
+			uchar id;
+			
+			do
 			{
-				SendInitMsg();
+				status = safeSocket.send(packet);
+			} while (status == sf::Socket::NotReady);
 
-				remoteVersion.major = (uchar)Socket->readByte();
-				remoteVersion.minor = (uchar)Socket->readByte();
+			if (status != sf::Socket::Done)
+			{
+				cout << "An error occurred while sending the version number!" << endl;
+				continue;
+			}
 
-				if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) == 0)
-				{
-					ConnectionStart = millisecs();
-					isConnected = true;
+			sf::Packet recv;
+			do
+			{
+				status = safeSocket.receive(recv);
+			} while (status == sf::Socket::NotReady);
 
-					if (isServer)
-					{
-						Address.address = QSocket::IntToStringIP(Socket->msgIP());
-						Address.port = Socket->msgPort();
-					}
+			if (status != sf::Socket::Done)
+			{
+				cout << "An error occurred while receiving version confirmation message." << endl;
+				continue;
+			}
 
-					break;
-				}
-				else
-				{
-					if (isServer)
-					{
-						cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
-						cout << "->\tYour version: " << versionNum.str() << " - Client version: " << remoteVersion.str() << endl;
-					}
-					else
-						return exitCode = ExitCode::VersionMismatch;
-				}
+			recv >> id;
+			Version remoteVersion;
+
+			switch (id)
+			{
+			default:
+				cout << "Received malformed packet from server!" << endl;
+				break;
+
+			case MSG_VERSION_MISMATCH:
+				recv >> remoteVersion.major >> remoteVersion.minor;
+				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
+				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
+				break;
+
+			case MSG_VERSION_OK:
+				isConnected = true;
+				break;
 			}
 		}
-		else if (!isServer)
-		{
-			SendInitMsg();
-		}
-		SleepFor((milliseconds)250);
-	}
-
-	system("cls");
-
-	if (isConnected)
-	{
-		if (isServer)
-			cout << "Client connected from " << Address.address << " on port " << Address.port << "!" << endl;
-		else
-			cout << "Connected!" << endl;
 	}
 
 	ConnectionStart = millisecs();
@@ -247,8 +320,8 @@ void Program::Disconnect(bool received, ExitCode code)
 		Networking->netQueue.deque.clear();
 
 		// Store the ID used and send off the reliable message
-		id = Networking->WriteReliable(); Socket->writeByte(1);
-		Socket->writeByte(MSG_DISCONNECT);
+		id = Networking->WriteReliable(); safeSocket->writeByte(1);
+		safeSocket->writeByte(MSG_DISCONNECT);
 
 		Networking->SendMsg(true);
 
@@ -257,8 +330,8 @@ void Program::Disconnect(bool received, ExitCode code)
 			if (Duration(time) >= 10000)
 				break;
 
-			Socket->readAvail();
-			if (Socket->msgAvail())
+			safeSocket->readAvail();
+			if (safeSocket->msgAvail())
 			{
 				if (!Networking->ReliableHandler() && Networking->LastID == id)
 				{
@@ -325,9 +398,9 @@ const bool Program::OnEnd()
 
 inline void Program::SendInitMsg()
 {
-	Socket->writeByte(MSG_ESTABLISH);
-	Socket->writeByte(versionNum.major); Socket->writeByte(versionNum.minor);
-	Socket->sendMsg();
+	safeSocket->writeByte(MSG_ESTABLISH);
+	safeSocket->writeByte(versionNum.major); safeSocket->writeByte(versionNum.minor);
+	safeSocket->sendMsg();
 
 	return;
 }

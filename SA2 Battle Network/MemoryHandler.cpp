@@ -13,7 +13,7 @@
 #include "MemoryStruct.h"
 
 #include "Networking.h"
-#include "QuickSock.h"
+
 #include "PacketHandler.h"
 
 #include "MemoryHandler.h"

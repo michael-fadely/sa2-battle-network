@@ -2,6 +2,7 @@
 
 enum MsgTypes : unsigned char
 {
+	// End of packet
 	MSG_NULL,
 
 	MSG_I_ANALOG,
@@ -38,11 +39,10 @@ enum MsgTypes : unsigned char
 	MSG_S_TIME,
 	MSG_S_TIMESTOP,
 
-	RELIABLE_RECV = 50,
-	RELIABLE_SEND,
-	MSG_ESTABLISH,
+	MSG_VERSION_CHECK,
+	MSG_VERSION_MISMATCH,
+	MSG_VERSION_OK,
 	MSG_KEEPALIVE,
-	MSG_SCREWYOU,
 	MSG_DISCONNECT,
 	MSG_COUNT
 };

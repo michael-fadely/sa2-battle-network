@@ -33,22 +33,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="QuickTypes.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="QuickSock.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
     <ClInclude Include="PacketHandler.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="Networking.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="ReliableID.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="ReliablePacketHandler.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="Initialize.h">
@@ -93,17 +81,11 @@
     <ClInclude Include="SA2ModLoader.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
+    <ClInclude Include="PacketExtensions.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ReliablePacketHandler.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="ReliableID.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="QuickSock.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
@@ -139,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="ModLoaderExtensions.cpp">
       <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketExtensions.cpp">
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

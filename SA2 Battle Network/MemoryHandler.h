@@ -5,7 +5,6 @@
 #include "NewPlayerObject.h"
 #include "MemoryStruct.h"
 
-class QSocket;
 class PacketHandler;
 
 class MemoryHandler

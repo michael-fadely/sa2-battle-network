@@ -10,7 +10,6 @@
 #include "ReliableID.h"
 
 namespace Application { class Program; }
-class QSocket;
 class MemoryHandler;
 
 class PacketHandler

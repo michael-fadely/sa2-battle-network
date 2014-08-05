@@ -12,6 +12,7 @@
 
 #include "Common.h"
 #include "Networking.h"
+#include "PacketExtensions.h"
 #include "Application.h"
 
 #include "Initialize.h"
@@ -99,7 +100,8 @@ void MainThread()
 	if (timeout < 1000)
 		timeout = 1000;
 
-	// LET THE GAMES BEGIN!
+	PacketExt::SetMessageTypeCount(MSG_COUNT);
+
 	while (true)
 	{
 		// Find the SA2 process

@@ -2,9 +2,9 @@
 
 #include <string>
 #include "Networking.h"
+#include <SFML\Network.hpp>
 
 class PacketHandler;
-class QSocket;
 
 namespace Application
 {
@@ -37,7 +37,7 @@ namespace Application
 
 	public:
 		// De/Constructor
-		Program(const bool server, const clientAddress& address, const Settings& settings, const unsigned int timeout);
+		Program(const bool host, const clientAddress& address, const Settings& settings, const unsigned int timeout);
 		~Program();
 
 		// Methods
@@ -70,7 +70,8 @@ namespace Application
 
 		// Members
 		ExitCode exitCode;
-		QSocket* Socket;
+		sf::TcpSocket safeSocket;
+		sf::UdpSocket fastSocket;
 		clientAddress	Address;
 
 		PacketHandler* Networking;
