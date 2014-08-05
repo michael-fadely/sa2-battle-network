@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PacketHandler.h"
+
 namespace sa2bn
 {
 	typedef void *HANDLE;
@@ -7,5 +9,6 @@ namespace sa2bn
 	{
 	public:
 		static HANDLE ProcessID;
+		static PacketHandler Networking;
 	};
 }

@@ -1,36 +1,36 @@
 #include "PacketExtensions.h"
 
 // Static variables
-unsigned char PacketExt::MessageTypeCount = 0xFF;
-void PacketExt::SetMessageTypeCount(const unsigned char msgCount) { MessageTypeCount = msgCount; }
+unsigned char PacketEx::MessageTypeCount = 0xFF;
+void PacketEx::SetMessageTypeCount(const unsigned char msgCount) { MessageTypeCount = msgCount; }
 
-PacketExt::PacketExt(const unsigned char msgCount, const bool safe) : isSafe(safe)
+PacketEx::PacketEx(const unsigned char msgCount, const bool safe) : isSafe(safe)
 {
 	SetMessageTypeCount(msgCount);
 	Initialize();
 }
-PacketExt::PacketExt(const bool safe) : isSafe(safe)
+PacketEx::PacketEx(const bool safe) : isSafe(safe)
 {
 	Initialize();
 }
-PacketExt::~PacketExt()
+PacketEx::~PacketEx()
 {
 	delete[] MessageTypes;
 }
 
-void PacketExt::Initialize()
+void PacketEx::Initialize()
 {
 	empty = true;
 	messageCount = 0;
 	MessageTypes = new bool[MessageTypeCount]();
 }
 
-const bool PacketExt::isInPacket(const unsigned char type)
+const bool PacketEx::isInPacket(const unsigned char type)
 {
 	return MessageTypes[type];
 }
 
-const bool PacketExt::addType(unsigned char type)
+const bool PacketEx::addType(unsigned char type)
 {
 	if (isInPacket(type))
 	{

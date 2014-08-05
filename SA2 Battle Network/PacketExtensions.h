@@ -1,13 +1,13 @@
 #pragma once
 #include <SFML\Network.hpp>
 
-class PacketExt : public sf::Packet
+class PacketEx : public sf::Packet
 {
 public:
 	// Construct a packet
-	PacketExt(const unsigned char msgCount, const bool safe);
-	PacketExt(const bool safe);
-	~PacketExt();
+	PacketEx(const unsigned char msgCount, const bool safe);
+	PacketEx(const bool safe);
+	~PacketEx();
 
 	const bool isInPacket(const unsigned char type);
 	const bool isEmpty() { return empty; }

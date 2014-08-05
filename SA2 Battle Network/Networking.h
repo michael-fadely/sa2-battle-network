@@ -2,8 +2,13 @@
 
 enum MsgTypes : unsigned char
 {
-	// End of packet
-	MSG_NULL,
+	MSG_NULL,				// End of packet
+	MSG_RELIABLE,			// End of packet--requesting response
+	MSG_VERSION_CHECK,		// Initial version check upon connection
+	MSG_VERSION_MISMATCH,	// Client version mismatch
+	MSG_VERSION_OK,			// Client version match
+	MSG_KEEPALIVE,			// Keep-alive ID
+	MSG_DISCONNECT,			// Request disconnect
 
 	MSG_I_ANALOG,
 	MSG_I_BUTTONS,
@@ -39,16 +44,5 @@ enum MsgTypes : unsigned char
 	MSG_S_TIME,
 	MSG_S_TIMESTOP,
 
-	MSG_VERSION_CHECK,
-	MSG_VERSION_MISMATCH,
-	MSG_VERSION_OK,
-	MSG_KEEPALIVE,
-	MSG_DISCONNECT,
 	MSG_COUNT
-};
-
-struct clientAddress
-{
-	std::string address;
-	ushort port;
 };

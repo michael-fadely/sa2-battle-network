@@ -12,8 +12,6 @@
 #include "Networking.h"
 
 #include "PacketHandler.h"
-#include "ReliablePacketHandler.h"
-#include "ReliableID.h"
 #include "MemoryManagement.h"
 
 #include "Application.h"
@@ -33,21 +31,10 @@ const std::string Version::str()
 Version Program::versionNum = { 3, 0 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
-Program::Program(const bool host, const clientAddress& address, const Settings& settings, const uint timeout)
+Program::Program(const bool host, const Settings& settings) : isServer(host), clientSettings(settings), isConnected(false)
 {
 	isServer = host;
 	ConnectionStart = 0;
-
-	Address.address = address.address;
-	Address.port = address.port;
-
-	this->settings = settings;
-
-	Networking = new PacketHandler(this, timeout);
-
-	safeSocket.setBlocking(false);
-	fastSocket.setBlocking(false);
-
 	isConnected = false;
 
 	return;
@@ -312,37 +299,17 @@ void Program::Disconnect(bool received, ExitCode code)
 	}
 	else
 	{
-		bool Received = false;
 		uint time = millisecs();
 		uint id = 0;
 
-		// Might as well
-		Networking->netQueue.deque.clear();
+		sf::Packet disconnect;
+		disconnect << (uchar)MSG_DISCONNECT;
+		sf::Socket::Status status;
 
-		// Store the ID used and send off the reliable message
-		id = Networking->WriteReliable(); safeSocket->writeByte(1);
-		safeSocket->writeByte(MSG_DISCONNECT);
-
-		Networking->SendMsg(true);
-
-		while (!Received)
+		do
 		{
-			if (Duration(time) >= 10000)
-				break;
-
-			safeSocket->readAvail();
-			if (safeSocket->msgAvail())
-			{
-				if (!Networking->ReliableHandler() && Networking->LastID == id)
-				{
-					Received = true;
-					isConnected = false;
-					break;
-				}
-			}
-
-			Networking->netQueue.resend(Networking);
-		}
+			status = safeSocket.send(disconnect);
+		} while (status == sf::Socket::NotReady);
 
 		isConnected = false;
 		return;
@@ -394,13 +361,4 @@ const bool Program::OnEnd()
 		return false;
 
 	return true;
-}
-
-inline void Program::SendInitMsg()
-{
-	safeSocket->writeByte(MSG_ESTABLISH);
-	safeSocket->writeByte(versionNum.major); safeSocket->writeByte(versionNum.minor);
-	safeSocket->sendMsg();
-
-	return;
 }

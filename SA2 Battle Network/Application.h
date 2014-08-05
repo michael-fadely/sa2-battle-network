@@ -33,11 +33,9 @@ namespace Application
 
 	class Program
 	{
-		friend class PacketHandler;
-
 	public:
 		// De/Constructor
-		Program(const bool host, const clientAddress& address, const Settings& settings, const unsigned int timeout);
+		Program(const bool host, const Settings& settings);
 		~Program();
 
 		// Methods
@@ -65,19 +63,14 @@ namespace Application
 		Version remoteVersion;
 
 	private:
-		// Methods:
-		void SendInitMsg();
 
 		// Members
 		ExitCode exitCode;
-		sf::TcpSocket safeSocket;
-		sf::UdpSocket fastSocket;
-		clientAddress	Address;
 
 		PacketHandler* Networking;
 
 		//HANDLE ProcessID;
-		Settings settings;
+		Settings clientSettings;
 
 	};
 }

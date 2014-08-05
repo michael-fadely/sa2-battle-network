@@ -46,8 +46,6 @@ const bool CommandLine()
 
 void MainThread()
 {
-	clientAddress addrStruct = {};
-	//string netMode;
 	bool isServer = false;
 	uint timeout = 15000;
 
@@ -100,7 +98,7 @@ void MainThread()
 	if (timeout < 1000)
 		timeout = 1000;
 
-	PacketExt::SetMessageTypeCount(MSG_COUNT);
+	PacketEx::SetMessageTypeCount(MSG_COUNT);
 
 	while (true)
 	{
