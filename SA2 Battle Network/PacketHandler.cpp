@@ -1,99 +1,137 @@
 #include <iostream>
-
-#include "Common.h"
-#include "Application.h"
-#include "MemoryHandler.h"
+#include <LazyTypedefs.h>
 #include "Networking.h"
-
 #include "PacketHandler.h"
 
 using namespace std;
-using namespace chrono;
+using namespace sf;
 
-PacketHandler::PacketHandler() : connected(false)
+PacketHandler::PacketHandler() : connected(false), Address({})
 {
 	Initialize();
-
 }
-
 PacketHandler::~PacketHandler()
 {
+	if (connected)
+		Disconnect();
 }
-
 void PacketHandler::Initialize()
 {
+	cout << "<> Initializing packet handler..." << endl;
+	//recvTimer = sendTimer = 0;
 	safeSocket.setBlocking(false);
 	fastSocket.setBlocking(false);
 }
 
-const sf::Socket::Status PacketHandler::Connect()
+const Socket::Status PacketHandler::Listen(unsigned short port)
 {
-	sf::Socket::Status result = listener.listen(Address.port);
+	Socket::Status result;
 
-	if (result == sf::Socket::Status::Error)
+	result = listener.listen(port);
+
+	if (result == Socket::Status::Error)
 		throw;
-	else if (result != sf::Socket::Done)
+	else if (result != Socket::Status::Done)
 		return result;
 
 	result = listener.accept(safeSocket);
-	if (result == sf::Socket::Error)
+	if (result == Socket::Status::Error)
 		throw;
-	else if (result != sf::Socket::Done)
+	else if (result != Socket::Status::Done)
 		return result;
 
 	return result;
 }
+const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short port)
+{
+	if (!connected)
+	{
+		Socket::Status result;
 
-const sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
+		do
+		{
+			result = safeSocket.connect(ip, port);
+		} while (result == Socket::Status::NotReady);
+
+		if (result == Socket::Status::Error)
+			throw;
+
+		return result;
+	}
+}
+const Socket::Status PacketHandler::Disconnect()
+{
+	Socket::Status result = Socket::Status::NotReady;
+
+	if (connected)
+	{
+		Packet disconnect;
+		disconnect << (uchar)MSG_DISCONNECT;
+
+		do
+		{
+			result = safeSocket.send(disconnect);
+		} while (result == Socket::Status::NotReady);
+	}
+
+	connected = false;
+	return result;
+}
+
+const Socket::Status PacketHandler::sendSafe(Packet& packet)
 {
 	packet << (uchar)MSG_NULL;
-	sf::Socket::Status result;
+	Socket::Status result;
+
 	do
 	{
 		result = safeSocket.send(packet);
-	} while (result == sf::Socket::NotReady);
+	} while (result == Socket::Status::NotReady);
 
-	if (result == sf::Socket::Error)
+	if (result == Socket::Status::Error)
 		throw;
 
 	return result;
 }
-const sf::Socket::Status PacketHandler::recvSafe(sf::Packet& packet, const bool block)
+const Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 {
-	sf::Socket::Status result;
+	Socket::Status result;
+
 	do
 	{
 		result = safeSocket.receive(packet);
-	} while (result == sf::Socket::NotReady);
+	} while (result == Socket::Status::NotReady);
 
-	if (result == sf::Socket::Error)
+	if (result == Socket::Status::Error)
 		throw;
 
 	return result;
 }
-const sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
+const Socket::Status PacketHandler::sendFast(Packet& packet)
 {
 	packet << (uchar)MSG_NULL;
-	sf::Socket::Status result;
+	Socket::Status result;
+
 	do
 	{
 		result = fastSocket.send(packet, Address.ip, Address.port);
-	} while (result == sf::Socket::NotReady);
+	} while (result == Socket::Status::NotReady);
 
-	if (result == sf::Socket::Error)
+	if (result == Socket::Status::Error)
 		throw;
 
 	return result;
 }
-const sf::Socket::Status PacketHandler::recvFast(sf::Packet& packet, const bool block)
+const Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 {
-	sf::Socket::Status result;
+	Socket::Status result;
+
 	do
 	{
 		result = fastSocket.receive(packet, Address.ip, Address.port);
-	} while (result == sf::Socket::NotReady);
+	} while (result == Socket::Status::NotReady);
 
-	if (result == sf::Socket::Error)
+	if (result == Socket::Status::Error)
 		throw;
 
 	return result;

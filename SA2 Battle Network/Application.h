@@ -2,9 +2,6 @@
 
 #include <string>
 #include "Networking.h"
-#include <SFML\Network.hpp>
-
-class PacketHandler;
 
 namespace Application
 {

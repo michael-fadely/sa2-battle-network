@@ -1,16 +1,14 @@
 #pragma once
 
 /*
-//	"External" and "Internal refers to whether or not
-//	the member (pointer or not) was created from within
-//	this object or if a pointer was simply passed into it.
+	To-do:
+	* Implement real exceptions
+	* 		
 */
+
 #include <SFML\Network.hpp>
 #include <mutex>
 #include "PacketExtensions.h"
-
-namespace Application { class Program; }
-class MemoryHandler;
 
 class PacketHandler
 {
@@ -19,6 +17,16 @@ public:
 	// De/Contstructor
 	PacketHandler();
 	~PacketHandler();
+
+	// Listens for incoming connections and accepts them
+	const sf::Socket::Status Listen(unsigned short port = 27015);
+	// Connects to the address ip on the port port
+	const sf::Socket::Status Connect(sf::IpAddress ip, unsigned short port);
+	// Disconnects all sockets
+	// Returns NotReady if none are connected
+	const sf::Socket::Status Disconnect();
+
+	const bool isConnected() { return connected; }
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function.
@@ -32,14 +40,9 @@ public:
 	const sf::Socket::Status sendFast(sf::Packet& packet);
 	const sf::Socket::Status recvFast(sf::Packet& packet, const bool block = false);
 
-	const sf::Socket::Status Connect();
-
-	const bool isConnected() { return connected; }
-
 	//inline void setSentKeepalive() { sentKeepalive = millisecs(); }
 	//inline const unsigned int getSentKeepalive() { return sentKeepalive; }
-
-	void setStartTime(const unsigned int time);
+	//void setStartTime(const unsigned int time);
 
 	std::mutex safeLock, fastLock;
 	sf::TcpSocket safeSocket;
@@ -53,16 +56,16 @@ public:
 
 protected:
 	// Members
+	bool connected;
 	sf::TcpListener listener;
 	RemoteAddress Address;
 
-	bool connected;
 
 	//MemoryHandler* AbstractMemory;
 
 	// Timers
-	unsigned int sendTimer;
-	unsigned int recvTimer;
+	//unsigned int sendTimer;
+	//unsigned int recvTimer;
 
 	// Time the last keepalive message was received.
 	//unsigned int recvKeepalive;
