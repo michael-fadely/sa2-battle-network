@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "Networking.h"
+#include "PacketHandler.h"
 
 namespace Application
 {
@@ -32,7 +32,7 @@ namespace Application
 	{
 	public:
 		// De/Constructor
-		Program(const bool host, const Settings& settings);
+		Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
 		~Program();
 
 		// Methods
@@ -48,12 +48,6 @@ namespace Application
 
 		// Members
 		bool isServer;
-		bool isConnected;
-
-		// The time in milliseconds when the
-		// connection was successfully initiated.
-		uint ConnectionStart;
-
 		static Version versionNum;
 		static const std::string version;
 
@@ -64,10 +58,7 @@ namespace Application
 		// Members
 		ExitCode exitCode;
 
-		PacketHandler* Networking;
-
 		//HANDLE ProcessID;
 		Settings clientSettings;
-
 	};
 }

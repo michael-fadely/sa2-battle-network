@@ -20,6 +20,7 @@ using namespace std;
 using namespace chrono;
 
 using namespace Application;
+using namespace sa2bn;
 
 const std::string Version::str()
 {
@@ -31,21 +32,12 @@ const std::string Version::str()
 Version Program::versionNum = { 3, 0 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
-Program::Program(const bool host, const Settings& settings) : isServer(host), clientSettings(settings), isConnected(false)
+Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : clientSettings(settings), remoteVersion({}), isServer(host)
 {
-	isServer = host;
-	ConnectionStart = 0;
-	isConnected = false;
-
-	return;
 }
 
 Program::~Program()
 {
-	delete Networking;
-
-	cout << "<> o/" << endl;
-
 	return;
 }
 
@@ -67,7 +59,7 @@ ExitCode Program::Connect()
 			cout << "Unable to accept the connection." << endl;
 			return exitCode = ExitCode::ClientTimeout;
 		}
-		while (!isConnected)
+		while (!Globals::Networking.isConnected())
 		{
 			sf::Packet packet;
 			sf::Socket::Status status;
@@ -122,7 +114,7 @@ ExitCode Program::Connect()
 				continue;
 			}
 
-			isConnected = true;
+			Globals::Networking.isConnected() = true;
 			break;
 		}
 	}
@@ -142,7 +134,7 @@ ExitCode Program::Connect()
 		}
 
 
-		while (!isConnected)
+		while (!Globals::Networking.isConnected())
 		{
 			sf::Packet packet;
 			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
@@ -187,7 +179,7 @@ ExitCode Program::Connect()
 				break;
 
 			case MSG_VERSION_OK:
-				isConnected = true;
+				Globals::Networking.isConnected() = true;
 				break;
 			}
 		}
@@ -225,7 +217,7 @@ void Program::ApplySettings()
 
 const ExitCode Program::RunLoop()
 {
-	if (isConnected)
+	if (Globals::Networking.isConnected())
 	{
 		exitCode = ExitCode::None;
 
@@ -235,7 +227,7 @@ const ExitCode Program::RunLoop()
 
 		uint frame, framecount;
 
-		while (isConnected)
+		while (Globals::Networking.isConnected())
 		{
 			frame = MemManage::getFrameCount();
 
@@ -272,7 +264,7 @@ void Program::Disconnect(bool received, ExitCode code)
 	cout << "<> Disconnecting..." << endl;
 	if (received)
 	{
-		isConnected = false;
+		Globals::Networking.isConnected() = false;
 		cout << "<> Reverting swaps..." << endl;
 
 		MemManage::nopP2Input(false);
@@ -311,7 +303,7 @@ void Program::Disconnect(bool received, ExitCode code)
 			status = safeSocket.send(disconnect);
 		} while (status == sf::Socket::NotReady);
 
-		isConnected = false;
+		Globals::Networking.isConnected() = false;
 		return;
 	}
 }

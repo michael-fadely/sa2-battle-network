@@ -3,7 +3,6 @@
 /*
 	To-do:
 	* Implement real exceptions
-	* 		
 */
 
 #include <SFML\Network.hpp>
@@ -26,7 +25,15 @@ public:
 	// Returns NotReady if none are connected
 	const sf::Socket::Status Disconnect();
 
+	// Returns the connected state of the packet handler.
 	const bool isConnected() { return connected; }
+	// Returns the host state of the packet handler.
+	// Returns true if Listen() was called, and false otherwise
+	// or after Connect() has been called.
+	const bool isServer() { return host; }
+	// Returns the time the last successful connection was established.
+	// Returns 0 if none have been established yet.
+	const unsigned int ConnectStartTime() { return start_time; }
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function.
@@ -57,6 +64,8 @@ public:
 protected:
 	// Members
 	bool connected;
+	bool host;
+	unsigned int start_time;
 	sf::TcpListener listener;
 	RemoteAddress Address;
 
@@ -77,6 +86,9 @@ protected:
 	//unsigned int kaTimeout;
 
 	// Methods
+
+	// Initializes the sockets and such.
+	// Would be used for constructor overloads... if there WERE any!
 	void Initialize();
 
 	// Checks the packet for reliable flag(s) and responds

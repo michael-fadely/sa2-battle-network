@@ -5,15 +5,14 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <fstream>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include "Common.h"
-#include "Networking.h"
-#include "PacketExtensions.h"
-#include "Application.h"
+#include "Common.h"			// for LazyTypedefs, SleepFor, Globals
+#include "Networking.h"		// for MSG_COUNT
+#include "PacketHandler.h"	// for RemoteAddress
+#include "Application.h"	// for Application
 
 #include "Initialize.h"
 
@@ -49,6 +48,7 @@ void MainThread()
 	bool isServer = false;
 	uint timeout = 15000;
 
+	PacketHandler::RemoteAddress Address;
 	Application::Program* Program;
 	Application::Settings Settings = {};
 	Application::ExitCode ExitCode;
@@ -68,14 +68,14 @@ void MainThread()
 			{
 				isServer = true;
 				//netMode = "server";
-				addrStruct.port = atoi(args[++i].c_str());
+				Address.port = atoi(args[++i].c_str());
 			}
 			else if ((args[i] == "--connect" || args[i] == "-c") && (i + 2) < argc)
 			{
 				isServer = false;
 				//netMode = "client";
-				addrStruct.address = args[++i];
-				addrStruct.port = atoi(args[++i].c_str());
+				Address.ip = args[++i];
+				Address.port = atoi(args[++i].c_str());
 			}
 			else if ((args[i] == "--timeout" || args[i] == "-t") && (i + 1) < argc)
 				timeout = atoi(args[++i].c_str());
@@ -106,7 +106,7 @@ void MainThread()
 		//cout << "Looking for SA2 window...\nPlease launch SA2 to start shenanigans.\n";
 		sa2bn::Globals::ProcessID = GetCurrentProcess();
 
-		Program = new Application::Program(isServer, addrStruct, Settings, timeout);
+		Program = new Application::Program(Settings, isServer, Address);
 
 		Program->Connect();
 		Program->ApplySettings();

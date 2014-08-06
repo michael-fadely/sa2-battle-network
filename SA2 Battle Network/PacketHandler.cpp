@@ -6,7 +6,7 @@
 using namespace std;
 using namespace sf;
 
-PacketHandler::PacketHandler() : connected(false), Address({})
+PacketHandler::PacketHandler() : start_time(0), host(false), connected(false), Address({})
 {
 	Initialize();
 }
@@ -40,6 +40,7 @@ const Socket::Status PacketHandler::Listen(unsigned short port)
 	else if (result != Socket::Status::Done)
 		return result;
 
+	host = true;
 	return result;
 }
 const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short port)
@@ -56,6 +57,7 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short por
 		if (result == Socket::Status::Error)
 			throw;
 
+		host = false;
 		return result;
 	}
 }
