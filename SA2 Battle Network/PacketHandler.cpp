@@ -84,7 +84,7 @@ const Socket::Status PacketHandler::sendSafe(Packet& packet)
 {
 	packet << (uchar)MSG_NULL;
 	Socket::Status result;
-
+	safeLock.lock();
 	do
 	{
 		result = safeSocket.send(packet);
@@ -92,13 +92,13 @@ const Socket::Status PacketHandler::sendSafe(Packet& packet)
 
 	if (result == Socket::Status::Error)
 		throw;
-
+	safeLock.unlock();
 	return result;
 }
 const Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 {
 	Socket::Status result;
-
+	safeLock.lock();
 	do
 	{
 		result = safeSocket.receive(packet);
@@ -106,14 +106,14 @@ const Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 
 	if (result == Socket::Status::Error)
 		throw;
-
+	safeLock.unlock();
 	return result;
 }
 const Socket::Status PacketHandler::sendFast(Packet& packet)
 {
 	packet << (uchar)MSG_NULL;
 	Socket::Status result;
-
+	fastLock.lock();
 	do
 	{
 		result = fastSocket.send(packet, Address.ip, Address.port);
@@ -121,13 +121,13 @@ const Socket::Status PacketHandler::sendFast(Packet& packet)
 
 	if (result == Socket::Status::Error)
 		throw;
-
+	fastLock.unlock();
 	return result;
 }
 const Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 {
 	Socket::Status result;
-
+	fastLock.lock();
 	do
 	{
 		result = fastSocket.receive(packet, Address.ip, Address.port);
@@ -135,7 +135,7 @@ const Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 
 	if (result == Socket::Status::Error)
 		throw;
-
+	fastLock.unlock();
 	return result;
 }
 
