@@ -47,6 +47,7 @@ ExitCode Program::Connect()
 {
 	// Used only for connection loops.
 	bool connected = false;
+	sf::Packet packet;
 
 	if (isServer)
 	{
@@ -60,7 +61,6 @@ ExitCode Program::Connect()
 
 		while (!connected)
 		{
-			sf::Packet packet;
 
 			if (Globals::Networking.recvSafe(packet, true) != sf::Socket::Done)
 			{
@@ -78,23 +78,25 @@ ExitCode Program::Connect()
 
 			Version remoteVersion;
 			packet >> remoteVersion.major >> remoteVersion.minor;
+			packet.clear();
+
 			if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
 			{
 				Globals::Networking.Disconnect();
 				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
 				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
 
-				sf::Packet mismatch;
-				mismatch << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
-				Globals::Networking.sendSafe(mismatch);
+
+				packet << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
+				Globals::Networking.sendSafe(packet);
+				packet.clear();
 
 				continue;
 			}
 
-			sf::Packet confirm;
-			confirm << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
+			packet << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
 
-			if (Globals::Networking.sendSafe(confirm) != sf::Socket::Done)
+			if (Globals::Networking.sendSafe(packet) != sf::Socket::Done)
 			{
 				cout << "An error occurred while confirming the connection with the client." << endl;
 				continue;
@@ -107,7 +109,7 @@ ExitCode Program::Connect()
 	else
 	{
 		cout << "\a\aConnecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
-		
+
 		if (Globals::Networking.Connect(Address) != sf::Socket::Done)
 		{
 			cout << "A connection error has occurred." << endl;
@@ -117,7 +119,6 @@ ExitCode Program::Connect()
 
 		while (!connected)
 		{
-			sf::Packet packet;
 			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 			uchar id;
 
@@ -127,15 +128,15 @@ ExitCode Program::Connect()
 				continue;
 			}
 
-			sf::Packet recv;
+			packet.clear();
 
-			if (Globals::Networking.recvSafe(recv, true) != sf::Socket::Done)
+			if (Globals::Networking.recvSafe(packet, true) != sf::Socket::Done)
 			{
 				cout << "An error occurred while receiving version confirmation message." << endl;
 				continue;
 			}
 
-			recv >> id;
+			packet >> id;
 			Version remoteVersion;
 
 			switch (id)
@@ -145,7 +146,7 @@ ExitCode Program::Connect()
 				break;
 
 			case MSG_VERSION_MISMATCH:
-				recv >> remoteVersion.major >> remoteVersion.minor;
+				packet >> remoteVersion.major >> remoteVersion.minor;
 				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
 				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
 				break;
@@ -198,42 +199,20 @@ const ExitCode Program::RunLoop()
 
 		while (Globals::Networking.isConnected())
 		{
-			frame = MemManage::getFrameCount();
-
-			// Receiver
-			recvElapsed = Networking->Receive();
-
-			// Sender
-			sendElapsed = Networking->Send();
-
-			if (Duration(titleTimer) >= 250)
-			{
-				framecount = MemManage::getElapsedFrames(frame);
-				title.str("");
-				title << version << " [RECV: " << recvElapsed << " | SEND: " << sendElapsed << " | FRAMES: " << framecount << "]";
-				SetConsoleTitleA(title.str().c_str());
-				titleTimer = millisecs();
-			}
-
-			//if (MemManage::getFrameCount() == frame)
-			//	MemManage::waitFrame(1, frame);
+			// Networking loop for MemoryHandler goes here!
 			SleepFor((milliseconds)1);
 		}
 
-		return exitCode;
 	}
-	else
-	{
-		return exitCode;
-	}
+	return exitCode;
 }
 
 void Program::Disconnect(bool received, ExitCode code)
 {
 	cout << "<> Disconnecting..." << endl;
+	Globals::Networking.Disconnect();
 	if (received)
 	{
-		Globals::Networking.isConnected() = false;
 		cout << "<> Reverting swaps..." << endl;
 
 		MemManage::nopP2Input(false);
@@ -257,23 +236,6 @@ void Program::Disconnect(bool received, ExitCode code)
 		}
 
 		exitCode = code;
-	}
-	else
-	{
-		uint time = millisecs();
-		uint id = 0;
-
-		sf::Packet disconnect;
-		disconnect << (uchar)MSG_DISCONNECT;
-		sf::Socket::Status status;
-
-		do
-		{
-			status = safeSocket.send(disconnect);
-		} while (status == sf::Socket::NotReady);
-
-		Globals::Networking.isConnected() = false;
-		return;
 	}
 }
 
