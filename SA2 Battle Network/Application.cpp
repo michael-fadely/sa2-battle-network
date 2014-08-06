@@ -22,6 +22,9 @@ using namespace chrono;
 using namespace Application;
 using namespace sa2bn;
 
+Version Program::versionNum = { 3, 0 };
+const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
+
 const std::string Version::str()
 {
 	stringstream out;
@@ -29,8 +32,6 @@ const std::string Version::str()
 	return out.str();
 }
 
-Version Program::versionNum = { 3, 0 };
-const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : clientSettings(settings), remoteVersion({}), isServer(host)
 {
@@ -44,31 +45,24 @@ Program::~Program()
 
 ExitCode Program::Connect()
 {
+	// Used only for connection loops.
+	bool connected = false;
+
 	if (isServer)
 	{
 		cout << "\aHosting server on port " << Address.port << "..." << endl;
-		sf::TcpListener listener;
 
-		if (listener.listen(Address.port) != sf::Socket::Done)
+		if (Globals::Networking.Listen(Address.port) != sf::Socket::Done)
 		{
 			cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
 			return exitCode = ExitCode::ClientTimeout;
 		}
-		if (listener.accept(safeSocket) != sf::Socket::Done)
-		{
-			cout << "Unable to accept the connection." << endl;
-			return exitCode = ExitCode::ClientTimeout;
-		}
-		while (!Globals::Networking.isConnected())
+
+		while (!connected)
 		{
 			sf::Packet packet;
-			sf::Socket::Status status;
-			do
-			{
-				status = safeSocket.receive(packet);
-			} while (status == sf::Socket::NotReady);
 
-			if (status != sf::Socket::Done)
+			if (Globals::Networking.recvSafe(packet, true) != sf::Socket::Done)
 			{
 				cout << "An error occurred while waiting for version number." << endl;
 				continue;
@@ -86,78 +80,56 @@ ExitCode Program::Connect()
 			packet >> remoteVersion.major >> remoteVersion.minor;
 			if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
 			{
-				safeSocket.disconnect();
+				Globals::Networking.Disconnect();
 				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
 				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
-				
+
 				sf::Packet mismatch;
 				mismatch << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
-				do
-				{
-					status = safeSocket.send(mismatch);
-				} while (status == sf::Socket::NotReady);
+				Globals::Networking.sendSafe(mismatch);
 
 				continue;
 			}
 
 			sf::Packet confirm;
 			confirm << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
-			
-			do
-			{
-				status = safeSocket.send(confirm);
-			} while (status == sf::Socket::NotReady);
 
-			if (status != sf::Socket::Done)
+			if (Globals::Networking.sendSafe(confirm) != sf::Socket::Done)
 			{
 				cout << "An error occurred while confirming the connection with the client." << endl;
 				continue;
 			}
 
-			Globals::Networking.isConnected() = true;
+			connected = true;
 			break;
 		}
 	}
 	else
 	{
-		cout << "\a\aConnecting to server at " << Address.address << " on port " << Address.port << "..." << endl;
-		sf::Socket::Status status = sf::Socket::NotReady;
-		do
-		{
-			status = safeSocket.connect(Address.address, Address.port);
-		} while (status == sf::Socket::NotReady);
-
-		if (status != sf::Socket::Done)
+		cout << "\a\aConnecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
+		
+		if (Globals::Networking.Connect(Address) != sf::Socket::Done)
 		{
 			cout << "A connection error has occurred." << endl;
 			return exitCode = ExitCode::ClientTimeout;
 		}
 
 
-		while (!Globals::Networking.isConnected())
+		while (!connected)
 		{
 			sf::Packet packet;
 			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 			uchar id;
-			
-			do
-			{
-				status = safeSocket.send(packet);
-			} while (status == sf::Socket::NotReady);
 
-			if (status != sf::Socket::Done)
+			if (Globals::Networking.sendSafe(packet) != sf::Socket::Done)
 			{
 				cout << "An error occurred while sending the version number!" << endl;
 				continue;
 			}
 
 			sf::Packet recv;
-			do
-			{
-				status = safeSocket.receive(recv);
-			} while (status == sf::Socket::NotReady);
 
-			if (status != sf::Socket::Done)
+			if (Globals::Networking.recvSafe(recv, true) != sf::Socket::Done)
 			{
 				cout << "An error occurred while receiving version confirmation message." << endl;
 				continue;
@@ -179,14 +151,11 @@ ExitCode Program::Connect()
 				break;
 
 			case MSG_VERSION_OK:
-				Globals::Networking.isConnected() = true;
+				connected = true;
 				break;
 			}
 		}
 	}
-
-	ConnectionStart = millisecs();
-	Networking->setStartTime(ConnectionStart);
 
 	return ExitCode::None;
 }
@@ -196,11 +165,11 @@ void Program::ApplySettings()
 {
 	MemManage::nopP2Input(true);
 
-	if (settings.noSpecials)
+	if (clientSettings.noSpecials)
 		MemManage::nop2PSpecials();
-	if (settings.isLocal)
+	if (clientSettings.isLocal)
 		MemManage::swapInput(true);
-	if (settings.KeepWindowActive)
+	if (clientSettings.KeepWindowActive)
 		MemManage::keepActive();
 
 	if (!isServer)
@@ -269,11 +238,11 @@ void Program::Disconnect(bool received, ExitCode code)
 
 		MemManage::nopP2Input(false);
 
-		if (settings.noSpecials)
+		if (clientSettings.noSpecials)
 			MemManage::nop2PSpecials();
-		if (settings.isLocal)
+		if (clientSettings.isLocal)
 			MemManage::swapInput(false);
-		if (settings.KeepWindowActive)
+		if (clientSettings.KeepWindowActive)
 			MemManage::keepActive();
 
 		if (!isServer)

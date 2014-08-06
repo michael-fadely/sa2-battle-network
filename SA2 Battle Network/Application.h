@@ -58,7 +58,7 @@ namespace Application
 		// Members
 		ExitCode exitCode;
 
-		//HANDLE ProcessID;
 		Settings clientSettings;
+		PacketHandler::RemoteAddress Address;
 	};
 }

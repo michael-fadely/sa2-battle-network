@@ -1,5 +1,5 @@
 #include <iostream>
-#include <LazyTypedefs.h>
+#include "Common.h"		// millisecs(), LazyTypedefs
 #include "Networking.h"
 #include "PacketHandler.h"
 
@@ -41,7 +41,13 @@ const Socket::Status PacketHandler::Listen(unsigned short port)
 		return result;
 
 	host = true;
+	connected = true;
+	SetConnectTime();
 	return result;
+}
+const sf::Socket::Status PacketHandler::Connect(RemoteAddress address)
+{
+	return Connect(address.ip, address.port);
 }
 const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short port)
 {
@@ -58,6 +64,8 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short por
 			throw;
 
 		host = false;
+		connected = true;
+		SetConnectTime();
 		return result;
 	}
 }
@@ -78,6 +86,11 @@ const Socket::Status PacketHandler::Disconnect()
 
 	connected = false;
 	return result;
+}
+
+inline void PacketHandler::SetConnectTime()
+{
+	start_time = millisecs();
 }
 
 const Socket::Status PacketHandler::sendSafe(Packet& packet)
@@ -102,7 +115,7 @@ const Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 	do
 	{
 		result = safeSocket.receive(packet);
-	} while (result == Socket::Status::NotReady);
+	} while (block && result == Socket::Status::NotReady);
 
 	if (result == Socket::Status::Error)
 		throw;
@@ -131,7 +144,7 @@ const Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 	do
 	{
 		result = fastSocket.receive(packet, Address.ip, Address.port);
-	} while (result == Socket::Status::NotReady);
+	} while (block && result == Socket::Status::NotReady);
 
 	if (result == Socket::Status::Error)
 		throw;
