@@ -37,7 +37,7 @@ const std::string Version::str()
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 exitCode(ExitCode::None),
 clientSettings(settings),
-remoteVersion({}),
+remoteVersion({ 3, 0 }),
 isServer(host),
 Address(address)
 {
@@ -61,7 +61,7 @@ ExitCode Program::Connect()
 	{
 		cout << "\aHosting server on port " << Address.port << "..." << endl;
 
-		if ((status = Globals::Networking.Listen(Address.port)) != sf::Socket::Done)
+		if ((status = Globals::Networking->Listen(Address.port)) != sf::Socket::Done)
 		{
 			cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
 			return exitCode = ExitCode::ClientTimeout;
@@ -70,7 +70,7 @@ ExitCode Program::Connect()
 		while (!connected)
 		{
 
-			if ((status = Globals::Networking.recvSafe(packet, true)) != sf::Socket::Done)
+			if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while waiting for version number." << endl;
 				continue;
@@ -84,19 +84,18 @@ ExitCode Program::Connect()
 				continue;
 			}
 
-			Version remoteVersion;
 			packet >> remoteVersion.major >> remoteVersion.minor;
 			packet.clear();
 
 			if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
 			{
-				Globals::Networking.Disconnect();
+				Globals::Networking->Disconnect();
 				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
 				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
 
 
 				packet << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
-				Globals::Networking.sendSafe(packet);
+				Globals::Networking->sendSafe(packet);
 				packet.clear();
 
 				continue;
@@ -106,11 +105,14 @@ ExitCode Program::Connect()
 
 
 
-			if ((status = Globals::Networking.sendSafe(packet)) != sf::Socket::Status::Done)
+			if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 			{
-				cout << Globals::Networking.isConnected() << " An error occurred while confirming the connection with the client." << endl;
+				cout << Globals::Networking->isConnected() << " An error occurred while confirming the connection with the client." << endl;
 				continue;
 			}
+
+			system("cls");
+			cout << "\aConnected!" << endl;
 
 			connected = true;
 			break;
@@ -120,7 +122,7 @@ ExitCode Program::Connect()
 	{
 		cout << "\a\aConnecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
 
-		if ((status = Globals::Networking.Connect(Address)) != sf::Socket::Done)
+		if ((status = Globals::Networking->Connect(Address)) != sf::Socket::Done)
 		{
 			cout << "A connection error has occurred." << endl;
 			return exitCode = ExitCode::ClientTimeout;
@@ -132,7 +134,7 @@ ExitCode Program::Connect()
 			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 			uchar id;
 
-			if ((status = Globals::Networking.sendSafe(packet)) != sf::Socket::Done)
+			if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while sending the version number!" << endl;
 				continue;
@@ -140,14 +142,13 @@ ExitCode Program::Connect()
 
 			packet.clear();
 
-			if ((status = Globals::Networking.recvSafe(packet, true)) != sf::Socket::Done)
+			if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while receiving version confirmation message." << endl;
 				continue;
 			}
 
 			packet >> id;
-			Version remoteVersion;
 
 			switch (id)
 			{
@@ -162,6 +163,8 @@ ExitCode Program::Connect()
 				break;
 
 			case MSG_VERSION_OK:
+				system("cls");
+				cout << "\aConnected!" << endl;
 				connected = true;
 				break;
 			}
@@ -197,7 +200,7 @@ void Program::ApplySettings()
 
 const ExitCode Program::RunLoop()
 {
-	if (Globals::Networking.isConnected())
+	if (Globals::Networking->isConnected())
 	{
 		exitCode = ExitCode::None;
 
@@ -207,7 +210,7 @@ const ExitCode Program::RunLoop()
 
 		//uint frame, framecount;
 
-		while (Globals::Networking.isConnected())
+		while (Globals::Networking->isConnected())
 		{
 			AbstractMemory->RecvLoop();
 			AbstractMemory->SendLoop();
@@ -221,7 +224,7 @@ const ExitCode Program::RunLoop()
 void Program::Disconnect(bool received, ExitCode code)
 {
 	cout << "<> Disconnecting..." << endl;
-	Globals::Networking.Disconnect();
+	Globals::Networking->Disconnect();
 	if (received)
 	{
 		cout << "<> Reverting swaps..." << endl;

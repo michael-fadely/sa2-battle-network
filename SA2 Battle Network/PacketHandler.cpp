@@ -43,6 +43,7 @@ const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bo
 
 	if (!isServer)
 		Address.port = fastSocket.getLocalPort();
+
 	return result;
 }
 
@@ -126,10 +127,15 @@ inline void PacketHandler::SetConnectTime()
 
 const sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
-	if (packet.isSafe)
-		return sendSafe(packet);
-	else
-		return sendFast(packet);
+	if (!packet.isEmpty())
+	{
+		if (packet.isSafe)
+			return sendSafe(packet);
+		else
+			return sendFast(packet);
+	}
+
+	return Socket::Status::NotReady;
 }
 const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
 {
@@ -199,11 +205,12 @@ const sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool bloc
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)
 	{
+		RemoteAddress recvaddr = {};
 		int error = 0;
 		fastLock.lock();
 		do
 		{
-			result = fastSocket.receive(packet, Address.ip, Address.port);
+			result = fastSocket.receive(packet, recvaddr.ip, recvaddr.port);
 		} while (block && result == Socket::Status::NotReady);
 
 		if (result == Socket::Status::Error)

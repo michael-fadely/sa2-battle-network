@@ -4,7 +4,7 @@
 unsigned char PacketEx::MessageTypeCount = 0xFF;
 void PacketEx::SetMessageTypeCount(const unsigned char msgCount) { MessageTypeCount = msgCount; }
 
-PacketEx::PacketEx(const unsigned char msgCount, const bool safe) : isSafe(safe)
+PacketEx::PacketEx(const unsigned char msgCount, const bool safe) : sf::Packet(), isSafe(safe)
 {
 	SetMessageTypeCount(msgCount);
 	Initialize();
@@ -32,6 +32,7 @@ const bool PacketEx::isInPacket(const unsigned char type)
 
 const bool PacketEx::addType(unsigned char type)
 {
+	empty = false;
 	if (isInPacket(type))
 	{
 		return false;

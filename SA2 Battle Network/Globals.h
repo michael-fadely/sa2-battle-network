@@ -9,6 +9,6 @@ namespace sa2bn
 	{
 	public:
 		static HANDLE ProcessID;
-		static PacketHandler Networking;
+		static PacketHandler* Networking;
 	};
 }

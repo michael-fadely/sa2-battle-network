@@ -79,60 +79,34 @@ MemoryHandler::~MemoryHandler()
 {
 }
 
-void MemoryHandler::ReceiveSafe(sf::Packet& packet)
+void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 {
-	cout << ">> ";
-	if (Globals::Networking.recvSafe(packet) == sf::Socket::Status::Done)
+	Socket::Status status;
+	if (safe)
+		status = Globals::Networking->recvSafe(packet);
+	else
+		status = Globals::Networking->recvFast(packet);
+
+	if (status == sf::Socket::Status::Done)
 	{
-		uchar id;
-		packet >> id;
+		uchar id = MSG_NULL;
 		while (!packet.endOfPacket())
 		{
+			packet >> id;
+			cout << (ushort)id << endl;
 			switch (id)
 			{
 			case MSG_NULL:
-				cout << "Reached end of packet." << endl;
+				cout << ">> Reached end of packet." << endl;
 				break;
 
 			case MSG_COUNT:
-				cout << "Received message count?! Malformed packet warning!" << endl;
+				cout << ">> Received message count?! Malformed packet warning!" << endl;
 				break;
 
 			case MSG_DISCONNECT:
-				cout << "Received disconnect request from client." << endl;
-				Globals::Networking.Disconnect(true);
-
-			default:
-				ReceiveSystem(id, packet);
-				ReceiveInput(id, packet);
-				ReceivePlayer(id, packet);
-				ReceiveMenu(id, packet);
-			}
-		}
-	}
-}
-void MemoryHandler::ReceiveFast(sf::Packet& packet)
-{
-	cout << ">> ";
-	if (Globals::Networking.recvFast(packet) == sf::Socket::Status::Done)
-	{
-		uchar id;
-		packet >> id;
-		while (!packet.endOfPacket())
-		{
-			switch (id)
-			{
-			case MSG_NULL:
-				cout << "Reached end of packet." << endl;
-				break;
-
-			case MSG_COUNT:
-				cout << "Received message count?! Malformed packet warning!" << endl;
-				break;
-
-			case MSG_DISCONNECT:
-				cout << "Received disconnect request from client." << endl;
-				Globals::Networking.Disconnect(true);
+				cout << ">> Received disconnect request from client." << endl;
+				Globals::Networking->Disconnect(true);
 
 			default:
 				ReceiveSystem(id, packet);
@@ -147,17 +121,17 @@ void MemoryHandler::ReceiveFast(sf::Packet& packet)
 void MemoryHandler::RecvLoop()
 {
 	GetFrame();
-	if (Globals::Networking.isConnected())
+	if (Globals::Networking->isConnected())
 	{
 		PreReceive();
-		
+
 		//if (CurrentMenu[0] < Menu::BATTLE)
-		//	Globals::Networking.Disconnect();
+		//	Globals::Networking->Disconnect();
 
 		sf::Packet packet;
-		ReceiveFast(packet);
-		ReceiveSafe(packet);
-		
+		Receive(packet, true);
+		Receive(packet, false);
+
 		PostReceive();
 	}
 	SetFrame();
@@ -201,7 +175,7 @@ void MemoryHandler::SendSystem()
 			}
 		}
 
-		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking.isServer())
+		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
 		{
 			if (fast.addType(MSG_S_TIME))
 			{
@@ -242,7 +216,7 @@ void MemoryHandler::SendSystem()
 		}
 	}
 	/*
-	if (GameState != GameState::INGAME || TimeStopMode > 0 || !Globals::Networking.isServer())
+	if (GameState != GameState::INGAME || TimeStopMode > 0 || !Globals::Networking->isServer())
 	{
 	if (Duration(packetHandler->getSentKeepalive()) >= 1000)
 	{
@@ -255,8 +229,8 @@ void MemoryHandler::SendSystem()
 	}
 	*/
 
-	Globals::Networking.Send(fast);
-	Globals::Networking.Send(safe);
+	Globals::Networking->Send(fast);
+	Globals::Networking->Send(safe);
 }
 void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
@@ -317,8 +291,8 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 		}
 	}
 
-	Globals::Networking.Send(fast);
-	Globals::Networking.Send(safe);
+	Globals::Networking->Send(fast);
+	Globals::Networking->Send(safe);
 }
 void MemoryHandler::SendPlayer()
 {
@@ -453,8 +427,8 @@ void MemoryHandler::SendPlayer()
 		updateAbstractPlayer(&sendPlayer, Player1);
 	}
 
-	Globals::Networking.Send(fast);
-	Globals::Networking.Send(safe);
+	Globals::Networking->Send(fast);
+	Globals::Networking->Send(safe);
 }
 void MemoryHandler::SendMenu()
 {
@@ -496,7 +470,7 @@ void MemoryHandler::SendMenu()
 
 			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
 			{
-				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking.isServer())
+				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking->isServer())
 				{
 					if (safe.addType(MSG_M_BATTLEOPTSEL))
 					{
@@ -529,7 +503,7 @@ void MemoryHandler::SendMenu()
 					}
 				}
 			}
-			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking.isServer())
+			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking->isServer())
 			{
 				if (local.menu.BattleSelection != BattleSelection)
 				{
@@ -623,8 +597,8 @@ void MemoryHandler::SendMenu()
 		}
 		local.menu.sub = CurrentMenu[1];
 
-		Globals::Networking.Send(fast);
-		Globals::Networking.Send(safe);
+		Globals::Networking->Send(fast);
+		Globals::Networking->Send(safe);
 	}
 }
 

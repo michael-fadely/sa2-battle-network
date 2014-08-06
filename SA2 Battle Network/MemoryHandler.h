@@ -22,8 +22,7 @@ class MemoryHandler
 	private:
 		// Methods
 		
-		void ReceiveSafe(sf::Packet& packet);
-		void ReceiveFast(sf::Packet& packet);
+		void Receive(sf::Packet& packet, const bool safe);
 
 		// Read and send System variables
 		void SendSystem();
