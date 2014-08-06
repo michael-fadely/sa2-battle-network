@@ -151,8 +151,8 @@ void MemoryHandler::RecvLoop()
 	{
 		PreReceive();
 		
-		if (CurrentMenu[0] < Menu::BATTLE)
-			Globals::Networking.Disconnect();
+		//if (CurrentMenu[0] < Menu::BATTLE)
+		//	Globals::Networking.Disconnect();
 
 		sf::Packet packet;
 		ReceiveFast(packet);

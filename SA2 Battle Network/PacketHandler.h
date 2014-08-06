@@ -103,7 +103,7 @@ protected:
 	// Initializes the sockets and such.
 	// Would be used for constructor overloads... if there WERE any!
 	void Initialize();
-	const sf::Socket::Status Bind(const unsigned short port);
+	const sf::Socket::Status Bind(const unsigned short port, const bool isServer);
 	// Sets the time in milliseconds that the last successful connection was established.
 	void SetConnectTime();
 };

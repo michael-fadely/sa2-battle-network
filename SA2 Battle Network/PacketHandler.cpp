@@ -17,8 +17,8 @@ PacketHandler::PacketHandler() : start_time(0), host(false), connected(false), A
 }
 PacketHandler::~PacketHandler()
 {
-	if (connected)
-		Disconnect();
+	Disconnect();
+	safeSocket.disconnect();
 }
 void PacketHandler::Initialize()
 {
@@ -28,23 +28,25 @@ void PacketHandler::Initialize()
 	fastSocket.setBlocking(false);
 }
 
-const Socket::Status PacketHandler::Bind(const unsigned short port)
+const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isServer)
 {
 	Socket::Status result;
 	int error = 0;
 
 	do
 	{
-		result = fastSocket.bind((port + 1));
+		result = fastSocket.bind((isServer) ? port : Socket::AnyPort);
 	} while (result == Socket::Status::NotReady);
 
 	if (result == Socket::Status::Error)
 		throw error = WSAGetLastError();
 
+	if (!isServer)
+		Address.port = fastSocket.getLocalPort();
 	return result;
 }
 
-const Socket::Status PacketHandler::Listen(const unsigned short port)
+const sf::Socket::Status PacketHandler::Listen(const unsigned short port)
 {
 	Socket::Status result;
 	int error = 0;
@@ -62,7 +64,10 @@ const Socket::Status PacketHandler::Listen(const unsigned short port)
 	else if (result != Socket::Status::Done)
 		return result;
 
-	Bind(port);
+	Address.ip = safeSocket.getRemoteAddress();
+	Address.port = safeSocket.getRemotePort();
+
+	Bind(port, true);
 
 	host = true;
 	connected = true;
@@ -73,7 +78,7 @@ const sf::Socket::Status PacketHandler::Connect(RemoteAddress address)
 {
 	return Connect(address.ip, address.port);
 }
-const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port)
+const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
@@ -86,8 +91,8 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned sho
 
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
-		
-		Bind(port);
+
+		Bind(port, false);
 
 		host = false;
 		connected = true;
@@ -95,9 +100,9 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned sho
 	}
 	return result;
 }
-const Socket::Status PacketHandler::Disconnect(const bool received)
+const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	Socket::Status result = Socket::Status::Disconnected;
 
 	if (connected)
 	{
@@ -134,66 +139,77 @@ const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool blo
 		return recvFast(packet, block);
 }
 
-const Socket::Status PacketHandler::sendSafe(Packet& packet)
+const sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
 {
-	packet << (uchar)MSG_NULL;
-	Socket::Status result;
-	int error = 0;
-	safeLock.lock();
-	do
+	Socket::Status result = Socket::Status::NotReady;
+	if (connected)
 	{
-		result = safeSocket.send(packet);
-	} while (result == Socket::Status::NotReady);
+		int error = 0;
+		safeLock.lock();
+		do
+		{
+			result = safeSocket.send(packet);
+		} while (result == Socket::Status::NotReady);
 
-	if (result == Socket::Status::Error)
-		throw error = WSAGetLastError();
-	safeLock.unlock();
+		if (result == Socket::Status::Error)
+			throw error = WSAGetLastError();
+		safeLock.unlock();
+	}
 	return result;
 }
-const Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
+const sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 {
-	Socket::Status result;
-	int error = 0;
-	safeLock.lock();
-	do
+	Socket::Status result = Socket::Status::NotReady;
+	if (connected)
 	{
-		result = safeSocket.receive(packet);
-	} while (block && result == Socket::Status::NotReady);
+		int error = 0;
+		safeLock.lock();
+		do
+		{
+			result = safeSocket.receive(packet);
+		} while (block && result == Socket::Status::NotReady);
 
-	if (result == Socket::Status::Error)
-		throw error = WSAGetLastError();
-	safeLock.unlock();
+		if (result == Socket::Status::Error)
+			throw error = WSAGetLastError();
+		safeLock.unlock();
+	}
 	return result;
 }
-const Socket::Status PacketHandler::sendFast(Packet& packet)
+const sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 {
-	packet << (uchar)MSG_NULL;
-	Socket::Status result;
-	int error = 0;
-	fastLock.lock();
-	do
+	Socket::Status result = Socket::Status::NotReady;
+	if (connected)
 	{
-		result = fastSocket.send(packet, Address.ip, Address.port);
-	} while (result == Socket::Status::NotReady);
+		packet << (uchar)MSG_NULL;
+		int error = 0;
+		fastLock.lock();
+		do
+		{
+			result = fastSocket.send(packet, Address.ip, Address.port);
+		} while (result == Socket::Status::NotReady);
 
-	if (result == Socket::Status::Error)
-		throw error = WSAGetLastError();
-	fastLock.unlock();
+		if (result == Socket::Status::Error)
+			throw error = WSAGetLastError();
+		fastLock.unlock();
+	}
 	return result;
 }
-const Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
+const sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 {
-	Socket::Status result;
-	int error = 0;
-	fastLock.lock();
-	do
+	Socket::Status result = Socket::Status::NotReady;
+	if (connected)
 	{
-		result = fastSocket.receive(packet, Address.ip, Address.port);
-	} while (block && result == Socket::Status::NotReady);
+		int error = 0;
+		fastLock.lock();
+		do
+		{
+			result = fastSocket.receive(packet, Address.ip, Address.port);
+		} while (block && result == Socket::Status::NotReady);
 
-	if (result == Socket::Status::Error)
-		throw error = WSAGetLastError();
-	fastLock.unlock();
+		if (result == Socket::Status::Error)
+			throw error = WSAGetLastError();
+		fastLock.unlock();
+	}
 	return result;
 }
 

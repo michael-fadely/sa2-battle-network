@@ -55,12 +55,13 @@ ExitCode Program::Connect()
 	// Used only for connection loops.
 	bool connected = false;
 	sf::Packet packet;
+	sf::Socket::Status status = sf::Socket::Status::Error;
 
 	if (isServer)
 	{
 		cout << "\aHosting server on port " << Address.port << "..." << endl;
 
-		if (Globals::Networking.Listen(Address.port) != sf::Socket::Done)
+		if ((status = Globals::Networking.Listen(Address.port)) != sf::Socket::Done)
 		{
 			cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
 			return exitCode = ExitCode::ClientTimeout;
@@ -69,7 +70,7 @@ ExitCode Program::Connect()
 		while (!connected)
 		{
 
-			if (Globals::Networking.recvSafe(packet, true) != sf::Socket::Done)
+			if ((status = Globals::Networking.recvSafe(packet, true)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while waiting for version number." << endl;
 				continue;
@@ -103,9 +104,11 @@ ExitCode Program::Connect()
 
 			packet << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
 
-			if (Globals::Networking.sendSafe(packet) != sf::Socket::Done)
+
+
+			if ((status = Globals::Networking.sendSafe(packet)) != sf::Socket::Status::Done)
 			{
-				cout << "An error occurred while confirming the connection with the client." << endl;
+				cout << Globals::Networking.isConnected() << " An error occurred while confirming the connection with the client." << endl;
 				continue;
 			}
 
@@ -117,7 +120,7 @@ ExitCode Program::Connect()
 	{
 		cout << "\a\aConnecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
 
-		if (Globals::Networking.Connect(Address) != sf::Socket::Done)
+		if ((status = Globals::Networking.Connect(Address)) != sf::Socket::Done)
 		{
 			cout << "A connection error has occurred." << endl;
 			return exitCode = ExitCode::ClientTimeout;
@@ -129,7 +132,7 @@ ExitCode Program::Connect()
 			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 			uchar id;
 
-			if (Globals::Networking.sendSafe(packet) != sf::Socket::Done)
+			if ((status = Globals::Networking.sendSafe(packet)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while sending the version number!" << endl;
 				continue;
@@ -137,7 +140,7 @@ ExitCode Program::Connect()
 
 			packet.clear();
 
-			if (Globals::Networking.recvSafe(packet, true) != sf::Socket::Done)
+			if ((status = Globals::Networking.recvSafe(packet, true)) != sf::Socket::Done)
 			{
 				cout << "An error occurred while receiving version confirmation message." << endl;
 				continue;
