@@ -16,23 +16,32 @@ class MemoryHandler
 
 		// Methods
 
+		void RecvLoop();
+		void SendLoop();
+
+	private:
+		// Methods
+		
+		void ReceiveSafe(sf::Packet& packet);
+		void ReceiveFast(sf::Packet& packet);
+
 		// Read and send System variables
 		void SendSystem();
 		// Read and send Input
-		void SendInput(uint sendTimer);
+		void SendInput(/*uint sendTimer*/);
 		// Read and send Player varaibles
 		void SendPlayer();
 		// Read and send Menu variables
 		void SendMenu();
 
 		// Receive and write Input
-		void ReceiveInput(uchar type, sf::Packet& packet);
+		bool ReceiveInput(uchar type, sf::Packet& packet);
 		// Receive game/system variables
-		void ReceiveSystem(uchar type, sf::Packet& packet);
+		bool ReceiveSystem(uchar type, sf::Packet& packet);
 		// Receive and write Player variables
-		void ReceivePlayer(uchar type, sf::Packet& packet);
+		bool ReceivePlayer(uchar type, sf::Packet& packet);
 		// Receive and write Menu variables
-		void ReceiveMenu(uchar type, sf::Packet& packet);
+		bool ReceiveMenu(uchar type, sf::Packet& packet);
 
 		void PreReceive();
 		void PostReceive();
@@ -43,9 +52,6 @@ class MemoryHandler
 		inline void SetFrame() { lastFrame = thisFrame; }
 		// Returns true if thisFrame is the same as lastFrame
 		inline const bool CheckFrame() { return (thisFrame == lastFrame); }
-
-	private:
-		// Methods
 
 		void writeP2Memory();
 		void writeRings();

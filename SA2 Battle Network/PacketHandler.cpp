@@ -69,7 +69,7 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned sho
 	}
 	return result;
 }
-const Socket::Status PacketHandler::Disconnect()
+const Socket::Status PacketHandler::Disconnect(const bool received)
 {
 	Socket::Status result = Socket::Status::NotReady;
 

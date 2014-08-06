@@ -41,8 +41,9 @@ public:
 	// Connects to the address ip on the port port
 	const sf::Socket::Status Connect(sf::IpAddress ip, const unsigned short port);
 	// Disconnects all sockets
-	// Returns NotReady if none are connected
-	const sf::Socket::Status Disconnect();
+	// Returns NotReady if none are connected.
+	// Disconnects from client without sending anything first if received is true.
+	const sf::Socket::Status Disconnect(const bool received = false);
 
 	// Returns the connected state of the packet handler.
 	const bool isConnected() { return connected; }

@@ -29,6 +29,26 @@ using namespace std;
 using namespace sf;
 using namespace sa2bn;
 
+const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
+uint rotateTimer = 0;
+inline const bool RotationMargin(const Rotation& last, const Rotation& current)
+{
+	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotatemargin
+		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotatemargin
+		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotatemargin
+		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
+}
+
+const float speedmargin = 0.25;
+uint speedTimer = 0;
+const bool SpeedMargin(const float last, const float current)
+{
+	return ((max(last, current) - min(last, current)) >= speedmargin
+		|| last != current && current < speedmargin
+		|| last != current && Duration(speedTimer) >= 125);
+}
+
+
 /*
 //	Memory Handler Class
 */
@@ -57,6 +77,98 @@ MemoryHandler::MemoryHandler()
 }
 MemoryHandler::~MemoryHandler()
 {
+}
+
+void MemoryHandler::ReceiveSafe(sf::Packet& packet)
+{
+	cout << ">> ";
+	if (Globals::Networking.recvSafe(packet) == sf::Socket::Status::Done)
+	{
+		uchar id;
+		packet >> id;
+		while (!packet.endOfPacket())
+		{
+			switch (id)
+			{
+			case MSG_NULL:
+				cout << "Reached end of packet." << endl;
+				break;
+
+			case MSG_COUNT:
+				cout << "Received message count?! Malformed packet warning!" << endl;
+				break;
+
+			case MSG_DISCONNECT:
+				cout << "Received disconnect request from client." << endl;
+				Globals::Networking.Disconnect(true);
+
+			default:
+				ReceiveSystem(id, packet);
+				ReceiveInput(id, packet);
+				ReceivePlayer(id, packet);
+				ReceiveMenu(id, packet);
+			}
+		}
+	}
+}
+void MemoryHandler::ReceiveFast(sf::Packet& packet)
+{
+	cout << ">> ";
+	if (Globals::Networking.recvFast(packet) == sf::Socket::Status::Done)
+	{
+		uchar id;
+		packet >> id;
+		while (!packet.endOfPacket())
+		{
+			switch (id)
+			{
+			case MSG_NULL:
+				cout << "Reached end of packet." << endl;
+				break;
+
+			case MSG_COUNT:
+				cout << "Received message count?! Malformed packet warning!" << endl;
+				break;
+
+			case MSG_DISCONNECT:
+				cout << "Received disconnect request from client." << endl;
+				Globals::Networking.Disconnect(true);
+
+			default:
+				ReceiveSystem(id, packet);
+				ReceiveInput(id, packet);
+				ReceivePlayer(id, packet);
+				ReceiveMenu(id, packet);
+			}
+		}
+	}
+}
+
+void MemoryHandler::RecvLoop()
+{
+	GetFrame();
+	if (Globals::Networking.isConnected())
+	{
+		if (CurrentMenu[0] < Menu::BATTLE)
+			Globals::Networking.Disconnect();
+
+		sf::Packet packet;
+		ReceiveFast(packet);
+		ReceiveSafe(packet);
+	}
+	SetFrame();
+}
+
+void MemoryHandler::SendLoop()
+{
+	GetFrame();
+
+	SendInput();
+	SendSystem();
+	SendPlayer();
+	SendMenu();
+
+	SetFrame();
 }
 
 void MemoryHandler::SendSystem()
@@ -142,7 +254,7 @@ void MemoryHandler::SendSystem()
 	Globals::Networking.Send(fast);
 	Globals::Networking.Send(safe);
 }
-void MemoryHandler::SendInput(uint sendTimer)
+void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
 	PacketEx safe(true), fast(false);
 
@@ -204,26 +316,6 @@ void MemoryHandler::SendInput(uint sendTimer)
 	Globals::Networking.Send(fast);
 	Globals::Networking.Send(safe);
 }
-
-const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
-uint rotateTimer = 0;
-inline const bool RotationMargin(const Rotation& last, const Rotation& current)
-{
-	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotatemargin
-		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotatemargin
-		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotatemargin
-		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
-}
-
-const float speedmargin = 0.25;
-uint speedTimer = 0;
-const bool SpeedMargin(const float last, const float current)
-{
-	return ((max(last, current) - min(last, current)) >= speedmargin
-		|| last != current && current < speedmargin
-		|| last != current && Duration(speedTimer) >= 125);
-}
-
 void MemoryHandler::SendPlayer()
 {
 	PacketEx safe(true), fast(false);
@@ -537,79 +629,15 @@ inline void MemoryHandler::writeP2Memory()
 	if (GameState >= GameState::INGAME)
 		PlayerObject::WritePlayer(Player2, &recvPlayer);
 }
-inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
-inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
-inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
 
-void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
-{
-	// Mech synchronize hack
-	if (GameState >= GameState::INGAME && Player2 != nullptr)
-	{
-		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
-			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
-		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
-		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
-	}
-
-	destination->Set(source);
-}
-
-void MemoryHandler::ToggleSplitscreen()
-{
-	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
-	{
-		if ((sendInput.HeldButtons & (1 << 16)) && (sendInput.HeldButtons & (2 << 16)))
-		{
-			if (!splitToggled)
-			{
-				if (SplitscreenMode == 1)
-					SplitscreenMode = 2;
-				else if (SplitscreenMode == 2)
-					SplitscreenMode = 1;
-				else
-					return;
-				splitToggled = true;
-			}
-		}
-
-		else if (splitToggled)
-			splitToggled = false;
-	}
-
-	return;
-}
-bool MemoryHandler::CheckTeleport()
-{
-	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
-	{
-		if ((sendInput.HeldButtons & (1 << 5)) && (sendInput.HeldButtons & (1 << 9)))
-		{
-			if (!Teleported)
-			{
-				// Teleport to recvPlayer
-				cout << "<> Teleporting to other player..." << endl;;
-				PlayerObject::Teleport(&recvPlayer, Player1);
-
-				return Teleported = true;
-			}
-		}
-		else if (Teleported)
-			return Teleported = false;
-	}
-
-	return false;
-}
-
-
-void MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		switch (type)
 		{
 		default:
-			return;
+			return false;
 
 		case MSG_I_BUTTONS:
 			packet >> recvInput.HeldButtons;
@@ -617,25 +645,24 @@ void MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 				MemManage::waitFrame(1, thisFrame);
 			recvInput.WriteButtons(ControllersRaw[1]);
 
-			return;
+			return true;
 
 		case MSG_I_ANALOG:
 			packet >> ControllersRaw[1].LeftStickX >> ControllersRaw[1].LeftStickY;
-			return;
+			return true;
 		}
 	}
-	else
-		return;
-}
 
-void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
+	return false;
+}
+bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
 		switch (type)
 		{
 		default:
-			return;
+			return false;
 
 		case MSG_S_TIME:
 			uchar minute, second, frame;
@@ -643,7 +670,7 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			TimerMinutes = local.game.TimerMinutes = minute;
 			TimerSeconds = local.game.TimerSeconds = second;
 			TimerFrames = local.game.TimerFrames = frame;
-			return;
+			return true;
 
 		case MSG_S_GAMESTATE:
 		{
@@ -653,13 +680,13 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
 				GameState = local.system.GameState = recvGameState;
 
-			return;
+			return true;
 		}
 
 		case MSG_S_PAUSESEL:
 			packet >> local.system.PauseSelection;
 			PauseSelection = local.system.PauseSelection;
-			return;
+			return true;
 
 		case MSG_S_TIMESTOP:
 		{
@@ -667,7 +694,7 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			packet >> temp;
 			local.game.TimeStopMode = temp;
 			writeTimeStop();
-			return;
+			return true;
 		}
 
 		case MSG_S_2PSPECIALS:
@@ -679,7 +706,7 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			memcpy(local.game.P2SpecialAttacks, specials, sizeof(char) * 3);
 
 			writeSpecials();
-			return;
+			return true;
 		}
 
 		case MSG_P_RINGS:
@@ -687,12 +714,12 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			writeRings();
 
 			cout << ">> Ring Count Change: " << local.game.RingCount[1] << endl;
-			return;
+			return true;
 		}
 	}
+	return false;
 }
-
-void MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -700,7 +727,7 @@ void MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 		switch (type)
 		{
 		default:
-			return;
+			return false;
 
 		case MSG_P_HP:
 			packet >> recvPlayer.Data2.MechHP;
@@ -772,19 +799,19 @@ void MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 		if (writePlayer)
 			writeP2Memory();
 
-		return;
+		return writePlayer;
 	}
-	else
-		return;
+
+	return false;
 }
-void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 {
 	if (GameState == GameState::INACTIVE)
 	{
 		switch (type)
 		{
 		default:
-			return;
+			return false;
 
 		case MSG_M_ATMENU:
 			packet >> cAt2PMenu[1];
@@ -792,25 +819,25 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 				cout << ">> Player 2 is ready on the 2P menu!" << endl;
 			else
 				cout << ">> Player 2 is no longer on the 2P menu." << endl;
-			return;
+			return true;
 
 		case MSG_S_2PREADY:
 			packet >> local.menu.PlayerReady[1];
 			PlayerReady[1] = local.menu.PlayerReady[1];
 
 			cout << ">> Player 2 ready state changed." << endl;
-			return;
+			return true;
 
 		case MSG_M_CHARSEL:
-			 packet >> local.menu.CharacterSelection[1];
-			 CharacterSelection[1] = local.menu.CharacterSelection[1];
+			packet >> local.menu.CharacterSelection[1];
+			CharacterSelection[1] = local.menu.CharacterSelection[1];
 
-			return;
+			return true;
 
 		case MSG_M_CHARCHOSEN:
 			packet >> local.menu.CharacterSelected[1];
 			CharacterSelected[1] = local.menu.CharacterSelected[1];
-			return;
+			return true;
 
 		case MSG_M_ALTCHAR:
 			packet >> local.menu.AltCharacterSonic
@@ -828,14 +855,14 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
 			AltCharacterRouge = local.menu.AltCharacterRouge;
 
-			return;
+			return true;
 
 		case MSG_S_BATTLEOPT:
 			for (int i = 0; i < 4; i++)
 				packet >> local.menu.BattleOptions[i];
 			memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
 
-			return;
+			return true;
 
 		case MSG_M_BATTLEOPTSEL:
 			packet >> local.menu.BattleOptionsSelection
@@ -843,7 +870,7 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			BattleOptionsSelection = local.menu.BattleOptionsSelection;
 			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected;
 
-			return;
+			return true;
 
 		case MSG_M_STAGESEL:
 			packet >> local.menu.StageSelection2P[0]
@@ -853,17 +880,16 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			StageSelection2P[1] = local.menu.StageSelection2P[1];
 			BattleOptionsButton = local.menu.BattleOptionsButton;
 
-			return;
+			return true;
 
 		case MSG_M_BATTLEMODESEL:
 			packet >> local.menu.BattleSelection;
 			BattleSelection = local.menu.BattleSelection;
 
-			return;
+			return true;
 		}
 	}
-	else
-		return;
+	return false;
 }
 
 void MemoryHandler::PreReceive()
@@ -875,7 +901,6 @@ void MemoryHandler::PreReceive()
 
 	return;
 }
-
 void MemoryHandler::PostReceive()
 {
 	updateAbstractPlayer(&recvPlayer, Player2);
@@ -885,4 +910,68 @@ void MemoryHandler::PostReceive()
 	writeSpecials();
 
 	return;
+}
+
+inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
+inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
+inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
+
+void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
+{
+	// Mech synchronize hack
+	if (GameState >= GameState::INGAME && Player2 != nullptr)
+	{
+		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
+			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
+		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
+		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
+	}
+
+	destination->Set(source);
+}
+
+void MemoryHandler::ToggleSplitscreen()
+{
+	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
+	{
+		if ((sendInput.HeldButtons & (1 << 16)) && (sendInput.HeldButtons & (2 << 16)))
+		{
+			if (!splitToggled)
+			{
+				if (SplitscreenMode == 1)
+					SplitscreenMode = 2;
+				else if (SplitscreenMode == 2)
+					SplitscreenMode = 1;
+				else
+					return;
+				splitToggled = true;
+			}
+		}
+
+		else if (splitToggled)
+			splitToggled = false;
+	}
+
+	return;
+}
+bool MemoryHandler::CheckTeleport()
+{
+	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
+	{
+		if ((sendInput.HeldButtons & (1 << 5)) && (sendInput.HeldButtons & (1 << 9)))
+		{
+			if (!Teleported)
+			{
+				// Teleport to recvPlayer
+				cout << "<> Teleporting to other player..." << endl;;
+				PlayerObject::Teleport(&recvPlayer, Player1);
+
+				return Teleported = true;
+			}
+		}
+		else if (Teleported)
+			return Teleported = false;
+	}
+
+	return false;
 }
