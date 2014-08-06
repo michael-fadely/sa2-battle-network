@@ -53,6 +53,7 @@
       <PreprocessorDefinitions>SFML_STATIC;QSOCK_WINDOWS_LEGACY=1;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -72,6 +73,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
+      <PreprocessToFile>true</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -212,8 +212,13 @@ const ExitCode Program::RunLoop()
 
 		while (Globals::Networking->isConnected())
 		{
+			AbstractMemory->GetFrame();
 			AbstractMemory->RecvLoop();
+
+			AbstractMemory->GetFrame();
 			AbstractMemory->SendLoop();
+
+			AbstractMemory->SetFrame();
 			SleepFor((milliseconds)1);
 		}
 

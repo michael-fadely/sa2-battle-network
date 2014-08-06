@@ -10,79 +10,79 @@
 
 class MemoryHandler
 {
-	public:
-		MemoryHandler();
-		~MemoryHandler();
+public:
+	MemoryHandler();
+	~MemoryHandler();
 
-		// Methods
+	// Methods
 
-		void RecvLoop();
-		void SendLoop();
+	void RecvLoop();
+	void SendLoop();
 
-	private:
-		// Methods
-		
-		void Receive(sf::Packet& packet, const bool safe);
+	// Reads the frame count from memory into thisFrame
+	inline void GetFrame() { thisFrame = MemManage::getFrameCount(); }
+	// Sets lastFrame to thisFrame
+	inline void SetFrame() { lastFrame = thisFrame; }
+	// Returns true if thisFrame is the same as lastFrame
+	inline const bool CheckFrame() { return (thisFrame == lastFrame); }
 
-		// Read and send System variables
-		void SendSystem();
-		// Read and send Input
-		void SendInput(/*uint sendTimer*/);
-		// Read and send Player varaibles
-		void SendPlayer();
-		// Read and send Menu variables
-		void SendMenu();
+private:
+	// Methods
 
-		// Receive and write Input
-		bool ReceiveInput(uchar type, sf::Packet& packet);
-		// Receive game/system variables
-		bool ReceiveSystem(uchar type, sf::Packet& packet);
-		// Receive and write Player variables
-		bool ReceivePlayer(uchar type, sf::Packet& packet);
-		// Receive and write Menu variables
-		bool ReceiveMenu(uchar type, sf::Packet& packet);
+	void Receive(sf::Packet& packet, const bool safe);
 
-		void PreReceive();
-		void PostReceive();
+	// Read and send System variables
+	void SendSystem();
+	// Read and send Input
+	void SendInput(/*uint sendTimer*/);
+	// Read and send Player varaibles
+	void SendPlayer();
+	// Read and send Menu variables
+	void SendMenu();
 
-		// Reads the frame count from memory into thisFrame
-		inline void GetFrame() { thisFrame = MemManage::getFrameCount(); }
-		// Sets lastFrame to thisFrame
-		inline void SetFrame() { lastFrame = thisFrame; }
-		// Returns true if thisFrame is the same as lastFrame
-		inline const bool CheckFrame() { return (thisFrame == lastFrame); }
+	// Receive and write Input
+	bool ReceiveInput(uchar type, sf::Packet& packet);
+	// Receive game/system variables
+	bool ReceiveSystem(uchar type, sf::Packet& packet);
+	// Receive and write Player variables
+	bool ReceivePlayer(uchar type, sf::Packet& packet);
+	// Receive and write Menu variables
+	bool ReceiveMenu(uchar type, sf::Packet& packet);
 
-		void writeP2Memory();
-		void writeRings();
-		void writeSpecials();
-		void writeTimeStop();
+	void PreReceive();
+	void PostReceive();
 
-		void updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
-		void ToggleSplitscreen();
-		bool CheckTeleport();
+	void writeP2Memory();
+	void writeRings();
+	void writeSpecials();
+	void writeTimeStop();
 
-		// Members
-		uint thisFrame, lastFrame;
+	void updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
+	void ToggleSplitscreen();
+	bool CheckTeleport();
 
-		PlayerObject	recvPlayer, sendPlayer;
-		InputStruct		recvInput, sendInput;
-		
-		// A Memory Structure that is "local".
-		// Used for comparison to determine what to send.
-		MemStruct local;
+	// Members
+	uint thisFrame, lastFrame;
 
-		// Timers etc
-		uint analogTimer;
+	PlayerObject	recvPlayer, sendPlayer;
+	InputStruct		recvInput, sendInput;
 
-		// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
-		// are at the 2P Battle Menu. I'm really not sure if I should do this some other way.
-		bool cAt2PMenu[2];
-		bool lAt2PMenu[2];
+	// A Memory Structure that is "local".
+	// Used for comparison to determine what to send.
+	MemStruct local;
 
-		// Toggles
-		bool firstMenuEntry;
-		bool wroteP2Start;
-		bool splitToggled;
-		bool Teleported;
-		bool writePlayer;
+	// Timers etc
+	uint analogTimer;
+
+	// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
+	// are at the 2P Battle Menu. I'm really not sure if I should do this some other way.
+	bool cAt2PMenu[2];
+	bool lAt2PMenu[2];
+
+	// Toggles
+	bool firstMenuEntry;
+	bool wroteP2Start;
+	bool splitToggled;
+	bool Teleported;
+	bool writePlayer;
 };
