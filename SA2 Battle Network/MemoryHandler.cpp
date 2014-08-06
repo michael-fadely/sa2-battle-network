@@ -526,6 +526,9 @@ void MemoryHandler::SendMenu()
 			}
 		}
 		local.menu.sub = CurrentMenu[1];
+
+		Globals::Networking.Send(fast);
+		Globals::Networking.Send(safe);
 	}
 }
 
@@ -609,7 +612,7 @@ void MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_I_BUTTONS:
-			recvInput.HeldButtons = Socket->readInt();
+			packet >> recvInput.HeldButtons;
 			if (CheckFrame())
 				MemManage::waitFrame(1, thisFrame);
 			recvInput.WriteButtons(ControllersRaw[1]);
@@ -617,8 +620,7 @@ void MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_I_ANALOG:
-			ControllersRaw[1].LeftStickX = recvInput.LeftStickX = Socket->readShort();
-			ControllersRaw[1].LeftStickY = recvInput.LeftStickY = Socket->readShort();
+			packet >> ControllersRaw[1].LeftStickX >> ControllersRaw[1].LeftStickY;
 			return;
 		}
 	}
@@ -636,39 +638,52 @@ void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_S_TIME:
-			TimerMinutes = local.game.TimerMinutes = Socket->readChar();
-			TimerSeconds = local.game.TimerSeconds = Socket->readChar();
-			TimerFrames = local.game.TimerFrames = Socket->readChar();
+			uchar minute, second, frame;
+			packet >> minute >> second >> frame;
+			TimerMinutes = local.game.TimerMinutes = minute;
+			TimerSeconds = local.game.TimerSeconds = second;
+			TimerFrames = local.game.TimerFrames = frame;
 			return;
 
 		case MSG_S_GAMESTATE:
 		{
-			uchar recvGameState = Socket->readChar();
+			uchar recvGameState;
+			packet >> recvGameState;
 
 			if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
-				MemManage::changeGameState(recvGameState, &local);
+				GameState = local.system.GameState = recvGameState;
 
 			return;
 		}
 
 		case MSG_S_PAUSESEL:
-			PauseSelection = local.system.PauseSelection = (uchar)Socket->readChar();
+			packet >> local.system.PauseSelection;
+			PauseSelection = local.system.PauseSelection;
 			return;
 
 		case MSG_S_TIMESTOP:
-			local.game.TimeStopMode = Socket->readChar();
+		{
+			uchar temp;
+			packet >> temp;
+			local.game.TimeStopMode = temp;
 			writeTimeStop();
 			return;
+		}
 
 		case MSG_S_2PSPECIALS:
+		{
+			uchar specials[3];
 			for (int i = 0; i < 3; i++)
-				local.game.P2SpecialAttacks[i] = Socket->readChar();
+				packet >> specials[i];
+
+			memcpy(local.game.P2SpecialAttacks, specials, sizeof(char) * 3);
 
 			writeSpecials();
 			return;
+		}
 
 		case MSG_P_RINGS:
-			local.game.RingCount[1] = Socket->readShort();
+			packet >> local.game.RingCount[1];
 			writeRings();
 
 			cout << ">> Ring Count Change: " << local.game.RingCount[1] << endl;
@@ -688,62 +703,70 @@ void MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_P_HP:
-			recvPlayer.Data2.MechHP = Socket->readFloat();
+			packet >> recvPlayer.Data2.MechHP;
 			cout << ">> Received HP update. (" << recvPlayer.Data2.MechHP << ')' << endl;
 			writePlayer = true;
 			break;
 
 		case MSG_P_ACTION:
-			recvPlayer.Data1.Action = Socket->readChar();
+		{
+			uchar action;
+			packet >> action;
+			recvPlayer.Data1.Action = action;
 			writePlayer = true;
 			break;
+		}
 
 		case MSG_P_STATUS:
-			recvPlayer.Data1.Status = Socket->readShort();
+			packet >> recvPlayer.Data1.Status;
 			writePlayer = true;
 			break;
 
 		case MSG_P_SPINTIMER:
-			recvPlayer.Sonic.SpindashTimer = Socket->readShort();
+			packet >> recvPlayer.Sonic.SpindashTimer;
 			writePlayer = true;
 			break;
 
 		case MSG_P_ANIMATION:
-			recvPlayer.Data2.AnimInfo.Next = Socket->readShort();
+			packet >> recvPlayer.Data2.AnimInfo.Next;
 			writePlayer = true;
 			break;
 
 		case MSG_P_POSITION:
-			recvPlayer.Data1.Position.x = Socket->readFloat();
-			recvPlayer.Data1.Position.y = Socket->readFloat();
-			recvPlayer.Data1.Position.z = Socket->readFloat();
+			packet >> recvPlayer.Data1.Position;
 			writePlayer = true;
 			break;
 
 		case MSG_P_ROTATION:
-			recvPlayer.Data1.Rotation.x = Socket->readInt();
-			recvPlayer.Data1.Rotation.y = Socket->readInt();
-			recvPlayer.Data1.Rotation.z = Socket->readInt();
+			packet >> recvPlayer.Data1.Rotation;
 			writePlayer = true;
 			break;
 
 		case MSG_P_SPEED:
-			recvPlayer.Data2.HSpeed = Socket->readFloat();
-			recvPlayer.Data2.VSpeed = Socket->readFloat();
-			recvPlayer.Data2.PhysData.BaseSpeed = Socket->readFloat();
+			packet >> recvPlayer.Data2.HSpeed;
+			packet >> recvPlayer.Data2.VSpeed;
+			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
 
 			writePlayer = true;
 			break;
 
 		case MSG_P_POWERUPS:
-			recvPlayer.Data2.Powerups = (Powerups)Socket->readShort();
+		{
+			short powerups;
+			packet >> powerups;
+			recvPlayer.Data2.Powerups = (Powerups)powerups;
 			writePlayer = true;
 			break;
+		}
 
 		case MSG_P_UPGRADES:
-			recvPlayer.Data2.Upgrades = (Upgrades)Socket->readInt();
+		{
+			int upgrades;
+			packet >> upgrades;
+			recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
 			writePlayer = true;
 			break;
+		}
 		}
 
 		if (writePlayer)
@@ -764,7 +787,7 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_M_ATMENU:
-			cAt2PMenu[1] = (Socket->readOct() == 1);
+			packet >> cAt2PMenu[1];
 			if (cAt2PMenu[1])
 				cout << ">> Player 2 is ready on the 2P menu!" << endl;
 			else
@@ -772,53 +795,69 @@ void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			return;
 
 		case MSG_S_2PREADY:
-			PlayerReady[1] = local.menu.PlayerReady[1] = Socket->readChar();
+			packet >> local.menu.PlayerReady[1];
+			PlayerReady[1] = local.menu.PlayerReady[1];
 
 			cout << ">> Player 2 ready state changed." << endl;
 			return;
 
 		case MSG_M_CHARSEL:
-			CharacterSelection[1] = local.menu.CharacterSelection[1] = Socket->readChar();
+			 packet >> local.menu.CharacterSelection[1];
+			 CharacterSelection[1] = local.menu.CharacterSelection[1];
 
 			return;
 
 		case MSG_M_CHARCHOSEN:
-			CharacterSelected[1] = local.menu.CharacterSelected[1] = Socket->readChar();
+			packet >> local.menu.CharacterSelected[1];
+			CharacterSelected[1] = local.menu.CharacterSelected[1];
 			return;
 
 		case MSG_M_ALTCHAR:
-			AltCharacterSonic = local.menu.AltCharacterSonic = Socket->readChar();
-			AltCharacterShadow = local.menu.AltCharacterShadow = Socket->readChar();
+			packet >> local.menu.AltCharacterSonic
+				>> local.menu.AltCharacterShadow
+				>> local.menu.AltCharacterTails
+				>> local.menu.AltCharacterEggman
+				>> local.menu.AltCharacterKnuckles
+				>> local.menu.AltCharacterRouge;
+			AltCharacterSonic = local.menu.AltCharacterSonic;
+			AltCharacterShadow = local.menu.AltCharacterShadow;
 
-			AltCharacterTails = local.menu.AltCharacterTails = Socket->readChar();
-			AltCharacterEggman = local.menu.AltCharacterEggman = Socket->readChar();
+			AltCharacterTails = local.menu.AltCharacterTails;
+			AltCharacterEggman = local.menu.AltCharacterEggman;
 
-			AltCharacterKnuckles = local.menu.AltCharacterKnuckles = Socket->readChar();
-			AltCharacterRouge = local.menu.AltCharacterRouge = Socket->readChar();
+			AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
+			AltCharacterRouge = local.menu.AltCharacterRouge;
 
 			return;
 
 		case MSG_S_BATTLEOPT:
 			for (int i = 0; i < 4; i++)
-				BattleOptions[i] = local.menu.BattleOptions[i] = Socket->readChar();
+				packet >> local.menu.BattleOptions[i];
+			memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
 
 			return;
 
 		case MSG_M_BATTLEOPTSEL:
-			BattleOptionsSelection = local.menu.BattleOptionsSelection = Socket->readChar();
-			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected = Socket->readChar();
+			packet >> local.menu.BattleOptionsSelection
+				>> local.menu.BattleOptionsBackSelected;
+			BattleOptionsSelection = local.menu.BattleOptionsSelection;
+			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected;
 
 			return;
 
 		case MSG_M_STAGESEL:
-			StageSelection2P[0] = local.menu.StageSelection2P[0] = Socket->readInt();
-			StageSelection2P[1] = local.menu.StageSelection2P[1] = Socket->readInt();
-			BattleOptionsButton = local.menu.BattleOptionsButton = Socket->readChar();
+			packet >> local.menu.StageSelection2P[0]
+				>> local.menu.StageSelection2P[1]
+				>> local.menu.BattleOptionsButton;
+			StageSelection2P[0] = local.menu.StageSelection2P[0];
+			StageSelection2P[1] = local.menu.StageSelection2P[1];
+			BattleOptionsButton = local.menu.BattleOptionsButton;
 
 			return;
 
 		case MSG_M_BATTLEMODESEL:
-			BattleSelection = local.menu.BattleSelection = Socket->readChar();
+			packet >> local.menu.BattleSelection;
+			BattleSelection = local.menu.BattleSelection;
 
 			return;
 		}

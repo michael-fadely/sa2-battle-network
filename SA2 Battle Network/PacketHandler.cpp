@@ -51,9 +51,9 @@ const sf::Socket::Status PacketHandler::Connect(RemoteAddress address)
 }
 const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port)
 {
+	Socket::Status result = Socket::Status::NotReady;
 	if (!connected)
 	{
-		Socket::Status result;
 
 		do
 		{
@@ -66,8 +66,8 @@ const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned sho
 		host = false;
 		connected = true;
 		SetConnectTime();
-		return result;
 	}
+	return result;
 }
 const Socket::Status PacketHandler::Disconnect()
 {
@@ -96,16 +96,16 @@ inline void PacketHandler::SetConnectTime()
 const sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
 	if (packet.isSafe)
-		sendSafe(packet);
+		return sendSafe(packet);
 	else
-		sendFast(packet);
+		return sendFast(packet);
 }
 const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
 {
 	if (packet.isSafe)
-		recvSafe(packet, block);
+		return recvSafe(packet, block);
 	else
-		recvFast(packet, block);
+		return recvFast(packet, block);
 }
 
 const Socket::Status PacketHandler::sendSafe(Packet& packet)

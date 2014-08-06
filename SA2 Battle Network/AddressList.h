@@ -80,7 +80,7 @@ DataPointer(unsigned char, P2Start, ADDR_P2START);
 DataPointer(short, CharacterSelectTimer, ADDR_CHOSENTIMER);
 DataArray(int, PlayerReady, ADDR_P1READY, 2);
 DataArray(unsigned int, CharacterSelection, ADDR_P1CHARSEL, 2);
-DataArray(char, CharacterSelected, ADDR_P1CHARCHOSEN, 2);
+DataArray(unsigned char, CharacterSelected, ADDR_P1CHARCHOSEN, 2);
 DataPointer(unsigned char, BattleSelection, ADDR_2PMENUSEL);
 DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
@@ -93,10 +93,10 @@ DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
 #pragma region Pointers - Battle Options
-DataArray(char, BattleOptions, ADDR_BATTOPT, 4);
+DataArray(unsigned char, BattleOptions, ADDR_BATTOPT, 4);
 DataPointer(unsigned char, BattleOptionsSelection, ADDR_BATTOPT_SEL);
-DataPointer(char, BattleOptionsBackSelected, ADDR_BATTOPT_BAK);
-DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
+DataPointer(unsigned char, BattleOptionsBackSelected, ADDR_BATTOPT_BAK);
+DataPointer(unsigned char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #pragma endregion
 
 #pragma region Defines - Alt Character Selection
@@ -109,12 +109,12 @@ DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #pragma endregion
 
 #pragma region Pointers - Alt Character Selection
-DataPointer(char, AltCharacterSonic, ADDR_ALTSONIC);
-DataPointer(char, AltCharacterShadow, ADDR_ALTSHADOW);
-DataPointer(char, AltCharacterTails, ADDR_ALTTAILS);
-DataPointer(char, AltCharacterEggman, ADDR_ALTEGGMAN);
-DataPointer(char, AltCharacterKnuckles, ADDR_ALTKNUX);
-DataPointer(char, AltCharacterRouge, ADDR_ALTROUGE);
+DataPointer(unsigned char, AltCharacterSonic, ADDR_ALTSONIC);
+DataPointer(unsigned char, AltCharacterShadow, ADDR_ALTSHADOW);
+DataPointer(unsigned char, AltCharacterTails, ADDR_ALTTAILS);
+DataPointer(unsigned char, AltCharacterEggman, ADDR_ALTEGGMAN);
+DataPointer(unsigned char, AltCharacterKnuckles, ADDR_ALTKNUX);
+DataPointer(unsigned char, AltCharacterRouge, ADDR_ALTROUGE);
 #pragma endregion
 
 #pragma endregion

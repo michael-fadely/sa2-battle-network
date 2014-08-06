@@ -42,6 +42,4 @@ namespace MemManage
 	void swapSpawn(const bool swapstart);
 	void swapCharsel(const bool swapcharsel);
 	void swapInput(const bool doNop=true);
-
-	void changeGameState(unsigned char stateNum, MemStruct* structure);
 };

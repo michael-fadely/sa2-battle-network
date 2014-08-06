@@ -15,11 +15,6 @@
 using namespace std;
 using namespace chrono;
 
-void MemManage::changeGameState(uchar stateNum, MemStruct* structure)
-{
-	WriteMemory(ADDR_GAMESTATE, &stateNum, sizeof(char));
-	structure->system.GameState = stateNum;
-}
 
 inline const uint MemManage::getElapsedFrames(const uint lastFrameCount) { return (FrameCount - lastFrameCount); }
 
