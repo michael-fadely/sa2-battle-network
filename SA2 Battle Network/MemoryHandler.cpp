@@ -149,12 +149,16 @@ void MemoryHandler::RecvLoop()
 	GetFrame();
 	if (Globals::Networking.isConnected())
 	{
+		PreReceive();
+		
 		if (CurrentMenu[0] < Menu::BATTLE)
 			Globals::Networking.Disconnect();
 
 		sf::Packet packet;
 		ReceiveFast(packet);
 		ReceiveSafe(packet);
+		
+		PostReceive();
 	}
 	SetFrame();
 }
@@ -386,7 +390,7 @@ void MemoryHandler::SendPlayer()
 			cout << "<< Sending action..." << endl;
 
 			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
-				|| Player1->Data2->CharID2 == Characters_Sonic
+				|| Player1->Data2->CharID2 == Characters_Shadow
 				|| Player1->Data2->CharID2 == Characters_Amy
 				|| Player1->Data2->CharID2 == Characters_MetalSonic);
 

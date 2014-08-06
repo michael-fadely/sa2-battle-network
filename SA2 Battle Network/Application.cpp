@@ -13,6 +13,7 @@
 
 #include "PacketHandler.h"
 #include "MemoryManagement.h"
+#include "MemoryHandler.h"
 
 #include "Application.h"
 
@@ -33,13 +34,19 @@ const std::string Version::str()
 }
 
 
-Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : exitCode(ExitCode::None), clientSettings(settings), remoteVersion({}), isServer(host)
+Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : 
+exitCode(ExitCode::None),
+clientSettings(settings),
+remoteVersion({}),
+isServer(host),
+Address({})
 {
+	AbstractMemory = new MemoryHandler();
 }
 
 Program::~Program()
 {
-	return;
+	delete AbstractMemory;
 }
 
 
@@ -191,15 +198,16 @@ const ExitCode Program::RunLoop()
 	{
 		exitCode = ExitCode::None;
 
-		uint sendElapsed, recvElapsed;
-		uint titleTimer = millisecs();
-		stringstream title;
+		//uint sendElapsed, recvElapsed;
+		//uint titleTimer = millisecs();
+		//stringstream title;
 
-		uint frame, framecount;
+		//uint frame, framecount;
 
 		while (Globals::Networking.isConnected())
 		{
-			// Networking loop for MemoryHandler goes here!
+			AbstractMemory->RecvLoop();
+			AbstractMemory->SendLoop();
 			SleepFor((milliseconds)1);
 		}
 

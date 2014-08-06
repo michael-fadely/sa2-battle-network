@@ -3,6 +3,8 @@
 #include <string>
 #include "PacketHandler.h"
 
+class MemoryHandler;
+
 namespace Application
 {
 	struct Settings
@@ -57,6 +59,8 @@ namespace Application
 
 		// Members
 		ExitCode exitCode;
+
+		MemoryHandler* AbstractMemory;
 
 		Settings clientSettings;
 		PacketHandler::RemoteAddress Address;
