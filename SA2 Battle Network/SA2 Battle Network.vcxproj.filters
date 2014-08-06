@@ -84,6 +84,9 @@
     <ClInclude Include="PacketExtensions.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
+    <ClInclude Include="AdventurePacketOverloads.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">

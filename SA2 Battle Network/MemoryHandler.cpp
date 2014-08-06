@@ -13,6 +13,7 @@
 
 #include "Networking.h"
 #include "PacketExtensions.h"
+#include "AdventurePacketOverloads.h"
 #include "PacketHandler.h"
 
 #include "SA2ModLoader.h"
@@ -99,7 +100,7 @@ void MemoryHandler::SendSystem()
 			{
 				cout << "<< Sending time stop [";
 				// Swap the value since player 1 is relative to the client
-				
+
 				switch (TimeStopMode)
 				{
 				default:
@@ -127,35 +128,36 @@ void MemoryHandler::SendSystem()
 	/*
 	if (GameState != GameState::INGAME || TimeStopMode > 0 || !Globals::Networking.isServer())
 	{
-		if (Duration(packetHandler->getSentKeepalive()) >= 1000)
-		{
-			Socket->writeByte(MSG_NULL); Socket->writeByte(1);
-			Socket->writeByte(MSG_KEEPALIVE);
+	if (Duration(packetHandler->getSentKeepalive()) >= 1000)
+	{
+	Socket->writeByte(MSG_NULL); Socket->writeByte(1);
+	Socket->writeByte(MSG_KEEPALIVE);
 
-			packetHandler->SendMsg();
-			packetHandler->setSentKeepalive();
-		}
+	packetHandler->SendMsg();
+	packetHandler->setSentKeepalive();
+	}
 	}
 	*/
+
+	Globals::Networking.Send(fast);
+	Globals::Networking.Send(safe);
 }
 void MemoryHandler::SendInput(uint sendTimer)
 {
+	PacketEx safe(true), fast(false);
+
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		if (!CheckFrame())
 			ToggleSplitscreen();
 
-		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons && GameState != GameState::MEMCARD)
+		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
 		{
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-
-			Socket->writeByte(MSG_I_BUTTONS);
-			Socket->writeInt(ControllersRaw[0].HeldButtons);
-
-			packetHandler->SendMsg(true);
-
-			sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
-
+			if (safe.addType(MSG_I_BUTTONS))
+			{
+				safe << ControllersRaw[0].HeldButtons;
+				sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
+			}
 		}
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
@@ -166,27 +168,21 @@ void MemoryHandler::SendInput(uint sendTimer)
 				{*/
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_I_ANALOG);
-					Socket->writeShort(ControllersRaw[0].LeftStickX);
-					Socket->writeShort(ControllersRaw[0].LeftStickY);
-
-					packetHandler->SendMsg(true);
-
-					sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-					sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+					if (safe.addType(MSG_I_ANALOG))
+					{
+						safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+					}
 				}
 				else
 				{
-					Socket->writeByte(MSG_NULL); Socket->writeByte(1);
-					Socket->writeByte(MSG_I_ANALOG);
-					Socket->writeShort(ControllersRaw[0].LeftStickX);
-					Socket->writeShort(ControllersRaw[0].LeftStickY);
-
-					packetHandler->SendMsg();
-
-					sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-					sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+					if (fast.addType(MSG_I_ANALOG))
+					{
+						fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+					}
 				}
 
 				/*analogTimer = millisecs();
@@ -194,20 +190,19 @@ void MemoryHandler::SendInput(uint sendTimer)
 			}
 			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
 			{
-				cout << "<< Resetting analog" << endl;
-				packetHandler->WriteReliable(); Socket->writeByte(1);
-				Socket->writeByte(MSG_I_ANALOG);
-
-				sendInput.LeftStickY = 0;
-				sendInput.LeftStickX = 0;
-
-				Socket->writeShort(sendInput.LeftStickX);
-				Socket->writeShort(sendInput.LeftStickY);
-
-				packetHandler->SendMsg(true);
+				if (safe.addType(MSG_I_ANALOG))
+				{
+					cout << "<< Resetting analog" << endl;
+					sendInput.LeftStickY = 0;
+					sendInput.LeftStickX = 0;
+					safe << sendInput.LeftStickY << sendInput.LeftStickX;
+				}
 			}
 		}
 	}
+
+	Globals::Networking.Send(fast);
+	Globals::Networking.Send(safe);
 }
 
 const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
@@ -231,6 +226,8 @@ const bool SpeedMargin(const float last, const float current)
 
 void MemoryHandler::SendPlayer()
 {
+	PacketEx safe(true), fast(false);
+
 	// If the game has finished loading...
 	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
@@ -256,107 +253,71 @@ void MemoryHandler::SendPlayer()
 		if (CheckTeleport())
 		{
 			// Send a teleport message
-			packetHandler->WriteReliable(); Socket->writeByte(2);
-			Socket->writeByte(MSG_P_POSITION); Socket->writeByte(MSG_P_SPEED);
-
-			Socket->writeFloat(Player1->Data1->Position.x);
-			Socket->writeFloat(Player1->Data1->Position.y);
-			Socket->writeFloat(Player1->Data1->Position.z);
-
-
-			sendPlayer.Data1.Position = Player1->Data1->Position;
-
-			Socket->writeFloat(Player1->Data2->HSpeed);
-			sendPlayer.Data2.HSpeed = Player1->Data2->HSpeed;
-
-			Socket->writeFloat(Player1->Data2->VSpeed);
-			sendPlayer.Data2.VSpeed = Player1->Data2->VSpeed;
-
-			packetHandler->SendMsg(true);
+			if (!fast.isInPacket(MSG_P_POSITION) && safe.addType(MSG_P_POSITION))
+			{
+				safe << Player1->Data1->Position;
+				sendPlayer.Data1.Position = Player1->Data1->Position;
+			}
+			if (!fast.isInPacket(MSG_P_SPEED) && safe.addType(MSG_P_SPEED))
+			{
+				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+				sendPlayer.Data2.HSpeed = Player1->Data2->HSpeed;
+				sendPlayer.Data2.VSpeed = Player1->Data2->VSpeed;
+				sendPlayer.Data2.PhysData.BaseSpeed = Player1->Data2->PhysData.BaseSpeed;
+			}
 		}
 
 
 		if (memcmp(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3) != 0)
 		{
-			cout << "<< Sending specials!" << endl;
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_S_2PSPECIALS);
-			Socket->writeBytes(&P1SpecialAttacks[0], 3);
-
-			memcpy(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3);
-
-			packetHandler->SendMsg(true);
+			if (safe.addType(MSG_S_2PSPECIALS))
+			{
+				cout << "<< Sending specials!" << endl;
+				for (uchar i = 0; i < 3; i++)
+					safe << P1SpecialAttacks[i];
+				memcpy(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3);
+			}
 		}
 		if (Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7)
 		{
 			if (sendPlayer.Data2.MechHP != Player1->Data2->MechHP)
 			{
-				cout << "<< Sending HP [" << Player1->Data2->MechHP << "]" << endl;
-				packetHandler->WriteReliable(); Socket->writeByte(1);
-				Socket->writeByte(MSG_P_HP);
-				Socket->writeFloat(Player1->Data2->MechHP);
-
-				packetHandler->SendMsg(true);
+				if (safe.addType(MSG_P_HP))
+				{
+					safe << Player1->Data2->MechHP;
+				}
 			}
 		}
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
-			cout << "<< Sending action...";
+			cout << "<< Sending action..." << endl;
 
-			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic || Player1->Data2->CharID2 == Characters_Sonic);
+			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
+				|| Player1->Data2->CharID2 == Characters_Sonic
+				|| Player1->Data2->CharID2 == Characters_Amy
+				|| Player1->Data2->CharID2 == Characters_MetalSonic);
 
-			if (!isHoldAction(Player1->Data1->Action))
-			{
-				cout << endl;
-				packetHandler->WriteReliable(); Socket->writeByte((sendSpinTimer) ? 5 : 4);
-
-				Socket->writeByte(MSG_P_POSITION);
-				Socket->writeByte(MSG_P_ACTION);
-				Socket->writeByte(MSG_P_STATUS);
-				Socket->writeByte(MSG_P_ANIMATION);
-
-				if (sendSpinTimer)
-					Socket->writeByte(MSG_P_SPINTIMER);
-
-				Socket->writeFloat(Player1->Data1->Position.x);
-				Socket->writeFloat(Player1->Data1->Position.y);
-				Socket->writeFloat(Player1->Data1->Position.z);
-
-				Socket->writeByte(Player1->Data1->Action);
-				Socket->writeShort(Player1->Data1->Status);
-				Socket->writeShort(Player1->Data2->AnimInfo.Next);
-
-				if (sendSpinTimer)
-					Socket->writeShort(((SonicCharObj2*)Player1->Data2)->SpindashTimer);
-
-				packetHandler->SendMsg(true);
-			}
-			else
-			{
-				cout << "without status bitfield. SCIENCE!" << endl;
-				packetHandler->WriteReliable(); Socket->writeByte(2);
-
-				Socket->writeByte(MSG_P_POSITION);
-				Socket->writeByte(MSG_P_ACTION);
-
-				Socket->writeFloat(Player1->Data1->Position.x);
-				Socket->writeFloat(Player1->Data1->Position.y);
-				Socket->writeFloat(Player1->Data1->Position.z);
-				Socket->writeByte(Player1->Data1->Action);
-
-				packetHandler->SendMsg(true);
-			}
+			if (!fast.isInPacket(MSG_P_POSITION) && safe.addType(MSG_P_POSITION))
+				safe << Player1->Data1->Position;
+			if (safe.addType(MSG_P_ACTION))
+				safe << Player1->Data1->Action;
+			if (safe.addType(MSG_P_STATUS))
+				safe << Player1->Data1->Status;
+			if (safe.addType(MSG_P_ANIMATION))
+				safe << Player1->Data2->AnimInfo.Next;
+			if (sendSpinTimer && safe.addType(MSG_P_SPINTIMER))
+				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 		}
 
 		if (local.game.RingCount[0] != RingCount[0])
 		{
-			local.game.RingCount[0] = RingCount[0];
-			cout << "<< Sending rings (" << local.game.RingCount[0] << ")" << endl;
-			Socket->writeByte(MSG_NULL); Socket->writeByte(1);
-			Socket->writeByte(MSG_P_RINGS);
-			Socket->writeShort(local.game.RingCount[0]);
-			packetHandler->SendMsg();
+			if (fast.addType(MSG_P_RINGS))
+			{
+				cout << "<< Sending rings (" << local.game.RingCount[0] << ")" << endl;
+				local.game.RingCount[0] = RingCount[0];
+				safe << local.game.RingCount[0];
+			}
 		}
 		/*
 		if (memcmp(&sendPlayer.Data1.Rotation, &Player1->Data1->Rotation, sizeof(Rotation)) != 0 ||
@@ -366,54 +327,45 @@ void MemoryHandler::SendPlayer()
 			|| (SpeedMargin(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)))
 		{
 			rotateTimer = speedTimer = millisecs();
-			Socket->writeByte(MSG_NULL); Socket->writeByte(3);
-
-			Socket->writeByte(MSG_P_ROTATION);
-			Socket->writeByte(MSG_P_POSITION);
-			Socket->writeByte(MSG_P_SPEED);
-
-			Socket->writeInt(Player1->Data1->Rotation.x);
-			Socket->writeInt(Player1->Data1->Rotation.y);
-			Socket->writeInt(Player1->Data1->Rotation.z);
-
-			Socket->writeFloat(Player1->Data1->Position.x);
-			Socket->writeFloat(Player1->Data1->Position.y);
-			Socket->writeFloat(Player1->Data1->Position.z);
-
-			Socket->writeFloat(Player1->Data2->HSpeed);
-			Socket->writeFloat(Player1->Data2->VSpeed);
-			Socket->writeFloat(Player1->Data2->PhysData.BaseSpeed);
-
-			packetHandler->SendMsg();
+			if (!safe.isInPacket(MSG_P_ROTATION) && fast.addType(MSG_P_ROTATION))
+				safe << Player1->Data1->Rotation;
+			if (!safe.isInPacket(MSG_P_POSITION) && fast.addType(MSG_P_POSITION))
+				safe << Player1->Data1->Position;
+			if (!safe.isInPacket(MSG_P_SPEED) && fast.addType(MSG_P_SPEED))
+				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		}
 
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
 		{
-			cout << "<< Sending powerups" << endl;
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_P_POWERUPS);
-			Socket->writeShort(Player1->Data2->Powerups);
-
-			packetHandler->SendMsg(true);
+			if (safe.addType(MSG_P_POWERUPS))
+			{
+				cout << "<< Sending powerups" << endl;
+				safe << Player1->Data2->Powerups;
+				sendPlayer.Data2.Powerups;
+			}
 		}
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
 		{
-			cout << "<< Sending upgrades" << endl;
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_P_UPGRADES);
-			Socket->writeInt(Player1->Data2->Upgrades);
-
-			packetHandler->SendMsg(true);
+			if (safe.addType(MSG_P_UPGRADES))
+			{
+				cout << "<< Sending upgrades" << endl;
+				safe << Player1->Data2->Upgrades;
+				sendPlayer.Data2.Upgrades = Player1->Data2->Upgrades;
+			}
 		}
 
 		updateAbstractPlayer(&sendPlayer, Player1);
 	}
 
+	Globals::Networking.Send(fast);
+	Globals::Networking.Send(safe);
 }
 void MemoryHandler::SendMenu()
 {
 	if (GameState == GameState::INACTIVE)
 	{
+		PacketEx safe(true), fast(false);
+
 		// Menu analog failsafe
 		if (sendInput.LeftStickX != 0 || sendInput.LeftStickY != 0)
 		{
@@ -431,35 +383,31 @@ void MemoryHandler::SendMenu()
 
 			if (memcmp(local.menu.BattleOptions, BattleOptions, sizeof(char) * 4) != 0)
 			{
-				cout << "<< Sending battle options..." << endl;
-				memcpy(&local.menu.BattleOptions, BattleOptions, sizeof(char) * 4);
-				local.menu.BattleOptionsSelection = BattleOptionsSelection;
-				local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
+				if (safe.addType(MSG_S_BATTLEOPT))
+				{
+					cout << "<< Sending battle options..." << endl;
+					memcpy(&local.menu.BattleOptions, BattleOptions, sizeof(char) * 4);
+					safe.append(&local.menu.BattleOptions[0], sizeof(char) * 4);
+				}
 
-				packetHandler->WriteReliable(); Socket->writeByte(2);
-				Socket->writeByte(MSG_S_BATTLEOPT); Socket->writeByte(MSG_M_BATTLEOPTSEL);
-
-				Socket->writeBytes(&local.menu.BattleOptions[0], sizeof(char) * 4);
-				Socket->writeByte(local.menu.BattleOptionsSelection);
-				Socket->writeByte(local.menu.BattleOptionsBackSelected);
-
-				packetHandler->SendMsg(true);
+				if (safe.addType(MSG_M_BATTLEOPTSEL))
+				{
+					local.menu.BattleOptionsSelection = BattleOptionsSelection;
+					local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
+					safe << local.menu.BattleOptionsSelection << local.menu.BattleOptionsBackSelected;
+				}
 			}
 
 			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
 			{
 				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking.isServer())
 				{
-					local.menu.BattleOptionsSelection = BattleOptionsSelection;
-					local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
-
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_BATTLEOPTSEL);
-
-					Socket->writeByte(local.menu.BattleOptionsSelection);
-					Socket->writeByte(local.menu.BattleOptionsBackSelected);
-
-					packetHandler->SendMsg(true);
+					if (safe.addType(MSG_M_BATTLEOPTSEL))
+					{
+						local.menu.BattleOptionsSelection = BattleOptionsSelection;
+						local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
+						safe << local.menu.BattleOptionsSelection << local.menu.BattleOptionsBackSelected;
+					}
 				}
 			}
 
@@ -478,24 +426,22 @@ void MemoryHandler::SendMenu()
 			{
 				if (local.menu.PlayerReady[0] != PlayerReady[0])
 				{
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_S_2PREADY);
-					Socket->writeByte(PlayerReady[0]);
-					packetHandler->SendMsg(true);
-
-					local.menu.PlayerReady[0] = PlayerReady[0];
+					if (safe.addType(MSG_S_2PREADY))
+					{
+						safe << PlayerReady[0];
+						local.menu.PlayerReady[0] = PlayerReady[0];
+					}
 				}
 			}
 			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking.isServer())
 			{
 				if (local.menu.BattleSelection != BattleSelection)
 				{
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_BATTLEMODESEL);
-					Socket->writeByte(BattleSelection);
-					packetHandler->SendMsg(true);
-
-					local.menu.BattleSelection = BattleSelection;
+					if (safe.addType(MSG_M_BATTLEMODESEL))
+					{
+						local.menu.BattleSelection = BattleSelection;
+						safe << BattleSelection;
+					}
 				}
 			}
 			// Character Selection
@@ -512,21 +458,19 @@ void MemoryHandler::SendMenu()
 				if (local.menu.CharacterSelection[0] != CharacterSelection[0] || firstMenuEntry)
 				{
 					cout << "<< Sending character selection" << endl;
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_CHARSEL);
-					Socket->writeByte(CharacterSelection[0]);
-					packetHandler->SendMsg(true);
-
-					local.menu.CharacterSelection[0] = CharacterSelection[0];
+					if (safe.addType(MSG_M_CHARSEL))
+					{
+						safe << CharacterSelection[0];
+						local.menu.CharacterSelection[0] = CharacterSelection[0];
+					}
 				}
 				if (local.menu.CharacterSelected[0] != CharacterSelected[0])
 				{
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_CHARCHOSEN);
-					Socket->writeByte(CharacterSelected[0]);
-					packetHandler->SendMsg(true);
-
-					local.menu.CharacterSelected[0] = CharacterSelected[0];
+					if (safe.addType(MSG_M_CHARCHOSEN))
+					{
+						safe << CharacterSelected[0];
+						local.menu.CharacterSelected[0] = CharacterSelected[0];
+					}
 				}
 				if (firstMenuEntry ||
 					((local.menu.AltCharacterSonic != AltCharacterSonic) ||
@@ -537,19 +481,17 @@ void MemoryHandler::SendMenu()
 					(local.menu.AltCharacterRouge != AltCharacterRouge))
 					)
 				{
-					local.menu.AltCharacterSonic = AltCharacterSonic;
-					local.menu.AltCharacterShadow = AltCharacterShadow;
-					local.menu.AltCharacterTails = AltCharacterTails;
-					local.menu.AltCharacterEggman = AltCharacterEggman;
-					local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
-					local.menu.AltCharacterRouge = AltCharacterRouge;
+					if (safe.addType(MSG_M_ALTCHAR))
+					{
+						local.menu.AltCharacterSonic = AltCharacterSonic;
+						local.menu.AltCharacterShadow = AltCharacterShadow;
+						local.menu.AltCharacterTails = AltCharacterTails;
+						local.menu.AltCharacterEggman = AltCharacterEggman;
+						local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
+						local.menu.AltCharacterRouge = AltCharacterRouge;
 
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_ALTCHAR);
-
-					Socket->writeBytes(&local.menu.AltCharacterSonic, sizeof(char) * 6);
-
-					packetHandler->SendMsg(true);
+						safe.append(&local.menu.AltCharacterSonic, sizeof(char) * 6);
+					}
 				}
 			}
 			else if (CurrentMenu[1] == SubMenu2P::I_STAGESEL || CurrentMenu[1] == SubMenu2P::S_STAGESEL)
@@ -557,15 +499,13 @@ void MemoryHandler::SendMenu()
 				if ((memcmp(&local.menu.StageSelection2P[0], &StageSelection2P[0], (sizeof(int) * 2)) != 0 || local.menu.BattleOptionsButton != BattleOptionsButton)
 					|| firstMenuEntry)
 				{
-					packetHandler->WriteReliable(); Socket->writeByte(1);
-					Socket->writeByte(MSG_M_STAGESEL);
-					Socket->writeInt(StageSelection2P[0]); Socket->writeInt(StageSelection2P[1]);
-					Socket->writeByte(BattleOptionsButton);
-					packetHandler->SendMsg(true);
-
-					local.menu.StageSelection2P[0] = StageSelection2P[0];
-					local.menu.StageSelection2P[1] = StageSelection2P[1];
-					local.menu.BattleOptionsButton = BattleOptionsButton;
+					if (safe.addType(MSG_M_STAGESEL))
+					{
+						safe << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+						local.menu.StageSelection2P[0] = StageSelection2P[0];
+						local.menu.StageSelection2P[1] = StageSelection2P[1];
+						local.menu.BattleOptionsButton = BattleOptionsButton;
+					}
 				}
 			}
 		}
@@ -578,15 +518,13 @@ void MemoryHandler::SendMenu()
 
 		if (cAt2PMenu[0] != lAt2PMenu[0])
 		{
-			cout << "<< Sending \"On 2P Menu\" state" << endl;
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_M_ATMENU);
-			Socket->writeByte(cAt2PMenu[0]);
-			packetHandler->SendMsg(true);
-
-			lAt2PMenu[0] = cAt2PMenu[0];
+			if (safe.addType(MSG_M_ATMENU))
+			{
+				cout << "<< Sending \"On 2P Menu\" state" << endl;
+				safe << cAt2PMenu[0];
+				lAt2PMenu[0] = cAt2PMenu[0];
+			}
 		}
-
 		local.menu.sub = CurrentMenu[1];
 	}
 }
