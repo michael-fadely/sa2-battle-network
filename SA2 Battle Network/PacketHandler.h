@@ -97,10 +97,13 @@ protected:
 	//	Methods	
 	//
 
+	// Binds the fast (UDP) socket to the specified port (+1)
+	
+
 	// Initializes the sockets and such.
 	// Would be used for constructor overloads... if there WERE any!
 	void Initialize();
-	
+	const sf::Socket::Status Bind(const unsigned short port);
 	// Sets the time in milliseconds that the last successful connection was established.
 	void SetConnectTime();
 };

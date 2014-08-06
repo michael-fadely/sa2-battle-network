@@ -34,12 +34,12 @@ const std::string Version::str()
 }
 
 
-Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : 
+Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 exitCode(ExitCode::None),
 clientSettings(settings),
 remoteVersion({}),
 isServer(host),
-Address({})
+Address(address)
 {
 	AbstractMemory = new MemoryHandler();
 }

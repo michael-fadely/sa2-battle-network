@@ -75,6 +75,7 @@ void MainThread()
 				isServer = false;
 				//netMode = "client";
 				Address.ip = args[++i];
+				cout << Address.ip << endl;
 				Address.port = atoi(args[++i].c_str());
 			}
 			else if ((args[i] == "--timeout" || args[i] == "-t") && (i + 1) < argc)
