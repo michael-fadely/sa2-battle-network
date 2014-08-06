@@ -23,7 +23,7 @@ void PacketHandler::Initialize()
 	fastSocket.setBlocking(false);
 }
 
-const Socket::Status PacketHandler::Listen(unsigned short port)
+const Socket::Status PacketHandler::Listen(const unsigned short port)
 {
 	Socket::Status result;
 
@@ -49,7 +49,7 @@ const sf::Socket::Status PacketHandler::Connect(RemoteAddress address)
 {
 	return Connect(address.ip, address.port);
 }
-const Socket::Status PacketHandler::Connect(sf::IpAddress ip, unsigned short port)
+const Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port)
 {
 	if (!connected)
 	{
@@ -91,6 +91,21 @@ const Socket::Status PacketHandler::Disconnect()
 inline void PacketHandler::SetConnectTime()
 {
 	start_time = millisecs();
+}
+
+const sf::Socket::Status PacketHandler::Send(PacketEx& packet)
+{
+	if (packet.isSafe)
+		sendSafe(packet);
+	else
+		sendFast(packet);
+}
+const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
+{
+	if (packet.isSafe)
+		recvSafe(packet, block);
+	else
+		recvFast(packet, block);
 }
 
 const Socket::Status PacketHandler::sendSafe(Packet& packet)

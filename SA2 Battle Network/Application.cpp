@@ -33,7 +33,7 @@ const std::string Version::str()
 }
 
 
-Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : clientSettings(settings), remoteVersion({}), isServer(host)
+Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) : exitCode(ExitCode::None), clientSettings(settings), remoteVersion({}), isServer(host)
 {
 }
 
