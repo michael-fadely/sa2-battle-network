@@ -1,34 +1,39 @@
+// Standard Includes
 #include <iostream>
-
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+// Global Includes
+#include <LazyTypedefs.h>
+
+// Local Includes
+#include "Globals.h"
 #include "Common.h"
 #include "CommonEnums.h"
+
+#include "Networking.h"
+#include "PacketExtensions.h"
+#include "PacketHandler.h"
+
+#include "SA2ModLoader.h"
+#include "ModLoaderExtensions.h"
 #include "AddressList.h"
 #include "ActionBlacklist.h"
 
-#include "MemoryManagement.h"
-#include "NewPlayerObject.h"
-#include "MemoryStruct.h"
 
-#include "Networking.h"
-
-#include "PacketHandler.h"
-
+// This Class
 #include "MemoryHandler.h"
 
 using namespace std;
+using namespace sf;
+using namespace sa2bn;
 
 /*
 //	Memory Handler Class
 */
 
-MemoryHandler::MemoryHandler(PacketHandler* packetHandler, bool isserver)
+MemoryHandler::MemoryHandler()
 {
-	this->packetHandler = packetHandler;
-	this->isServer = isserver;
-
 	cAt2PMenu[0] = false;
 	cAt2PMenu[1] = false;
 	lAt2PMenu[0] = false;
@@ -51,83 +56,76 @@ MemoryHandler::MemoryHandler(PacketHandler* packetHandler, bool isserver)
 }
 MemoryHandler::~MemoryHandler()
 {
-	packetHandler = nullptr;
-	cout << "<> [MemoryHandler::~MemoryHandler] Deinitializing Player Objects and Input Structures" << endl;
 }
 
-void MemoryHandler::SendSystem(QSocket* Socket)
+void MemoryHandler::SendSystem()
 {
+	PacketEx safe(true), fast(false);
+
 	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
 		if (local.system.GameState != GameState && GameState > GameState::LOAD_FINISHED)
 		{
-			cout << "<< Sending gamestate [" << (ushort)GameState << ']' << endl;
+			if (safe.addType(MSG_S_GAMESTATE))
+			{
+				cout << "<< Sending gamestate [" << (ushort)GameState << ']' << endl;
 
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_S_GAMESTATE);
-			Socket->writeByte(GameState);
-
-			packetHandler->SendMsg(true);
-			local.system.GameState = GameState;
+				safe << GameState;
+				local.system.GameState = GameState;
+			}
 		}
 
 		if (local.system.PauseSelection != PauseSelection)
 		{
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_S_PAUSESEL);
-			Socket->writeByte(PauseSelection);
-
-			packetHandler->SendMsg(true);
-			local.system.PauseSelection = PauseSelection;
+			if (safe.addType(MSG_S_PAUSESEL))
+			{
+				safe << PauseSelection;
+				local.system.PauseSelection = PauseSelection;
+			}
 		}
 
-		if (local.game.TimerSeconds != TimerSeconds && isServer)
+		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking.isServer())
 		{
-			Socket->writeByte(MSG_NULL); Socket->writeByte(2);
-			Socket->writeByte(MSG_S_TIME);
-			Socket->writeByte(MSG_KEEPALIVE);
-
-			Socket->writeByte(TimerMinutes);
-			Socket->writeByte(TimerSeconds);
-			Socket->writeByte(TimerFrames);
-
-			packetHandler->SendMsg();
-			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-			packetHandler->setSentKeepalive();
+			if (fast.addType(MSG_S_TIME))
+			{
+				fast << TimerMinutes << TimerSeconds << TimerFrames;
+				memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
+			}
 		}
 
 		if (local.game.TimeStopMode != TimeStopMode)
 		{
-			cout << "<< Sending time stop [";
-			packetHandler->WriteReliable(); Socket->writeByte(1);
-			Socket->writeByte(MSG_S_TIMESTOP);
-
-			// Swap the value since player 1 is relative to the client
-			switch (TimeStopMode)
+			if (safe.addType(MSG_S_TIMESTOP))
 			{
-			default:
-			case 0:
-				cout << 0;
-				Socket->writeByte(0);
-				break;
+				cout << "<< Sending time stop [";
+				// Swap the value since player 1 is relative to the client
+				
+				switch (TimeStopMode)
+				{
+				default:
+				case 0:
+					cout << 0;
+					safe << (char)0;
+					break;
 
-			case 1:
-				cout << 2;
-				Socket->writeByte(2);
-				break;
+				case 1:
+					cout << 2;
+					safe << (char)2;
+					break;
 
-			case 2:
-				cout << 1;
-				Socket->writeByte(1);
-				break;
+				case 2:
+					cout << 1;
+					safe << (char)1;
+					break;
+				}
+
+				cout << ']' << endl;
+				local.game.TimeStopMode = TimeStopMode;
 			}
-			
-			cout << ']' << endl;
-			packetHandler->SendMsg(true);
-			local.game.TimeStopMode = TimeStopMode;
 		}
 	}
-	if (GameState != GameState::INGAME || TimeStopMode > 0 || !isServer)
+	/*
+	if (GameState != GameState::INGAME || TimeStopMode > 0 || !Globals::Networking.isServer())
 	{
 		if (Duration(packetHandler->getSentKeepalive()) >= 1000)
 		{
@@ -138,8 +136,9 @@ void MemoryHandler::SendSystem(QSocket* Socket)
 			packetHandler->setSentKeepalive();
 		}
 	}
+	*/
 }
-void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
+void MemoryHandler::SendInput(uint sendTimer)
 {
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
@@ -165,33 +164,33 @@ void MemoryHandler::SendInput(QSocket* Socket, uint sendTimer)
 			{
 				/*if (Duration(analogTimer) >= 125)
 				{*/
-					if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
-					{
-						packetHandler->WriteReliable(); Socket->writeByte(1);
-						Socket->writeByte(MSG_I_ANALOG);
-						Socket->writeShort(ControllersRaw[0].LeftStickX);
-						Socket->writeShort(ControllersRaw[0].LeftStickY);
+				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
+				{
+					packetHandler->WriteReliable(); Socket->writeByte(1);
+					Socket->writeByte(MSG_I_ANALOG);
+					Socket->writeShort(ControllersRaw[0].LeftStickX);
+					Socket->writeShort(ControllersRaw[0].LeftStickY);
 
-						packetHandler->SendMsg(true);
+					packetHandler->SendMsg(true);
 
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-					}
-					else
-					{
-						Socket->writeByte(MSG_NULL); Socket->writeByte(1);
-						Socket->writeByte(MSG_I_ANALOG);
-						Socket->writeShort(ControllersRaw[0].LeftStickX);
-						Socket->writeShort(ControllersRaw[0].LeftStickY);
+					sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+					sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+				}
+				else
+				{
+					Socket->writeByte(MSG_NULL); Socket->writeByte(1);
+					Socket->writeByte(MSG_I_ANALOG);
+					Socket->writeShort(ControllersRaw[0].LeftStickX);
+					Socket->writeShort(ControllersRaw[0].LeftStickY);
 
-						packetHandler->SendMsg();
+					packetHandler->SendMsg();
 
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-					}
+					sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+					sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+				}
 
-					/*analogTimer = millisecs();
-				}*/
+				/*analogTimer = millisecs();
+			}*/
 			}
 			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
 			{
@@ -230,7 +229,7 @@ const bool SpeedMargin(const float last, const float current)
 		|| last != current && Duration(speedTimer) >= 125);
 }
 
-void MemoryHandler::SendPlayer(QSocket* Socket)
+void MemoryHandler::SendPlayer()
 {
 	// If the game has finished loading...
 	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
@@ -264,7 +263,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 			Socket->writeFloat(Player1->Data1->Position.y);
 			Socket->writeFloat(Player1->Data1->Position.z);
 
-			
+
 			sendPlayer.Data1.Position = Player1->Data1->Position;
 
 			Socket->writeFloat(Player1->Data2->HSpeed);
@@ -296,7 +295,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 				packetHandler->WriteReliable(); Socket->writeByte(1);
 				Socket->writeByte(MSG_P_HP);
 				Socket->writeFloat(Player1->Data2->MechHP);
-				
+
 				packetHandler->SendMsg(true);
 			}
 		}
@@ -361,7 +360,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 		}
 		/*
 		if (memcmp(&sendPlayer.Data1.Rotation, &Player1->Data1->Rotation, sizeof(Rotation)) != 0 ||
-			(Player1->Data2->HSpeed != sendPlayer.Data2.HSpeed || Player1->Data2->VSpeed != sendPlayer.Data2.VSpeed))
+		(Player1->Data2->HSpeed != sendPlayer.Data2.HSpeed || Player1->Data2->VSpeed != sendPlayer.Data2.VSpeed))
 		*/
 		if (RotationMargin(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
 			|| (SpeedMargin(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)))
@@ -411,7 +410,7 @@ void MemoryHandler::SendPlayer(QSocket* Socket)
 	}
 
 }
-void MemoryHandler::SendMenu(QSocket* Socket)
+void MemoryHandler::SendMenu()
 {
 	if (GameState == GameState::INACTIVE)
 	{
@@ -449,7 +448,7 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 
 			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
 			{
-				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && isServer)
+				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking.isServer())
 				{
 					local.menu.BattleOptionsSelection = BattleOptionsSelection;
 					local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
@@ -487,7 +486,7 @@ void MemoryHandler::SendMenu(QSocket* Socket)
 					local.menu.PlayerReady[0] = PlayerReady[0];
 				}
 			}
-			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && isServer)
+			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking.isServer())
 			{
 				if (local.menu.BattleSelection != BattleSelection)
 				{
@@ -662,7 +661,7 @@ bool MemoryHandler::CheckTeleport()
 }
 
 
-void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
+void MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
@@ -676,7 +675,7 @@ void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
 			if (CheckFrame())
 				MemManage::waitFrame(1, thisFrame);
 			recvInput.WriteButtons(ControllersRaw[1]);
-			
+
 			return;
 
 		case MSG_I_ANALOG:
@@ -689,7 +688,7 @@ void MemoryHandler::ReceiveInput(QSocket* Socket, uchar type)
 		return;
 }
 
-void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
+void MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -740,7 +739,7 @@ void MemoryHandler::ReceiveSystem(QSocket* Socket, uchar type)
 	}
 }
 
-void MemoryHandler::ReceivePlayer(QSocket* Socket, uchar type)
+void MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -817,7 +816,7 @@ void MemoryHandler::ReceivePlayer(QSocket* Socket, uchar type)
 	else
 		return;
 }
-void MemoryHandler::ReceiveMenu(QSocket* Socket, uchar type)
+void MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 {
 	if (GameState == GameState::INACTIVE)
 	{

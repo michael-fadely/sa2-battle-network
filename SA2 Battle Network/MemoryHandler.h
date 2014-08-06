@@ -5,33 +5,34 @@
 #include "NewPlayerObject.h"
 #include "MemoryStruct.h"
 
-class PacketHandler;
+#include <SFML\Network.hpp>
+#include "PacketExtensions.h"
 
 class MemoryHandler
 {
 	public:
-		MemoryHandler(PacketHandler* packetHandler, bool isserver);
+		MemoryHandler();
 		~MemoryHandler();
 
 		// Methods
 
 		// Read and send System variables
-		void SendSystem(QSocket* Socket);
+		void SendSystem();
 		// Read and send Input
-		void SendInput(QSocket* Socket, uint sendTimer);
+		void SendInput(uint sendTimer);
 		// Read and send Player varaibles
-		void SendPlayer(QSocket* Socket);
+		void SendPlayer();
 		// Read and send Menu variables
-		void SendMenu(QSocket* Socket);
+		void SendMenu();
 
 		// Receive and write Input
-		void ReceiveInput(QSocket* Socket, uchar type);
+		void ReceiveInput(uchar type, sf::Packet& packet);
 		// Receive game/system variables
-		void ReceiveSystem(QSocket* Socket, uchar type);
+		void ReceiveSystem(uchar type, sf::Packet& packet);
 		// Receive and write Player variables
-		void ReceivePlayer(QSocket* Socket, uchar type);
+		void ReceivePlayer(uchar type, sf::Packet& packet);
 		// Receive and write Menu variables
-		void ReceiveMenu(QSocket* Socket, uchar type);
+		void ReceiveMenu(uchar type, sf::Packet& packet);
 
 		void PreReceive();
 		void PostReceive();
@@ -43,15 +44,8 @@ class MemoryHandler
 		// Returns true if thisFrame is the same as lastFrame
 		inline const bool CheckFrame() { return (thisFrame == lastFrame); }
 
-		inline void setStartTime(const uint time) { StartTime = time; }
-
 	private:
 		// Methods
-		//void InitPlayers();
-		//void InitInput();
-
-		//void DeinitPlayers();
-		//void DeinitInput();
 
 		void writeP2Memory();
 		void writeRings();
@@ -65,29 +59,15 @@ class MemoryHandler
 		// Members
 		uint thisFrame, lastFrame;
 
-		PacketHandler* packetHandler;
-
-		//PlayerObject* player1;
-		//PlayerObject* player2;
-
 		PlayerObject	recvPlayer, sendPlayer;
 		InputStruct		recvInput, sendInput;
 		
-		// A Memory Structure that is "remote".
-		// Updated every frame with data read from game memory.
-		//MemStruct remote;
-
 		// A Memory Structure that is "local".
 		// Used for comparison to determine what to send.
 		MemStruct local;
 
 		// Timers etc
 		uint analogTimer;
-
-		// Things inherited from main program
-		// No need for direct access
-		uint StartTime;
-		bool isServer;
 
 		// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
 		// are at the 2P Battle Menu. I'm really not sure if I should do this some other way.
