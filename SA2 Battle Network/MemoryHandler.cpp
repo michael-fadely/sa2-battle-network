@@ -4,6 +4,8 @@
 #define RECEIVE_VERBOSE(type) case type: cout << ">> Received type " #type << endl
 #define RECEIVE_CONCISE(type) case type:;
 
+// Makes sure TYPE isn't in ISIN and adds it to ADDTO
+#define CheckAndAdd(TYPE, ISIN, ADDTO) !ISIN.isInPacket(TYPE) && ADDTO.addType(TYPE)
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -32,26 +34,37 @@
 // This Class
 #include "MemoryHandler.h"
 
+// Namespaces
 using namespace std;
 using namespace sf;
 using namespace sa2bn;
 
-const uint rotatemargin = ((float)11.25 * (float)(65536 / 360));
-uint rotateTimer = 0;
-inline const bool RotationMargin(const Rotation& last, const Rotation& current)
+const float positionDelta = 16;
+uint positionTimer = 0;
+inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 {
-	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotatemargin
-		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotatemargin
-		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotatemargin
+	return ((max(last.x, current.x) - min(last.x, current.x)) >= positionDelta
+		|| (max(last.y, current.y) - min(last.y, current.y)) >= positionDelta
+		|| (max(last.z, current.z) - min(last.z, current.z)) >= positionDelta
+		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 2500);
+}
+
+const uint rotateDelta = ((float)11.25 * (float)(65536 / 360));
+uint rotateTimer = 0;
+inline const bool RotationDelta(const Rotation& last, const Rotation& current)
+{
+	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotateDelta
+		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotateDelta
+		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotateDelta
 		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
 }
 
-const float speedmargin = 0.25;
+const float speedDelta = 0.25;
 uint speedTimer = 0;
-const bool SpeedMargin(const float last, const float current)
+const bool SpeedDelta(const float last, const float current)
 {
-	return ((max(last, current) - min(last, current)) >= speedmargin
-		|| last != current && current < speedmargin
+	return ((max(last, current) - min(last, current)) >= speedDelta
+		|| last != current && current < speedDelta
 		|| last != current && Duration(speedTimer) >= 125);
 }
 
@@ -63,7 +76,7 @@ const bool SpeedMargin(const float last, const float current)
 MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 {
 	//memset(this, 0, sizeof(MemoryHandler));
-	
+
 	analogTimer = 0;
 
 	cAt2PMenu[0] = false;
@@ -98,9 +111,9 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			//cout << (ushort)id << endl;
 			switch (id)
 			{
-			//case MSG_NULL:
-			//	cout << "\a>> Reached end of packet." << endl;
-			//	break;
+				//case MSG_NULL:
+				//	cout << "\a>> Reached end of packet." << endl;
+				//	break;
 
 			case MSG_COUNT:
 				cout << ">> Received message count?! Malformed packet warning!" << endl;
@@ -149,24 +162,23 @@ void MemoryHandler::SendLoop()
 
 void MemoryHandler::SendSystem()
 {
-	PacketEx safe(true), fast(false);
-
 	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
-		if (local.system.GameState != GameState && GameState > GameState::LOAD_FINISHED)
-		{
-			if (safe.addType(MSG_S_GAMESTATE))
-			{
-				cout << "<< Sending gamestate [" << (ushort)GameState << ']' << endl;
+		PacketEx safe(true), fast(false);
 
+		if (local.system.GameState != GameState)
+		{
+			if (CheckAndAdd(MSG_S_GAMESTATE, fast, safe))
+			{
 				safe << GameState;
+				cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
 				local.system.GameState = GameState;
 			}
 		}
 
-		if (local.system.PauseSelection != PauseSelection)
+		if (GameState == GameState::PAUSE && local.system.PauseSelection != PauseSelection)
 		{
-			if (safe.addType(MSG_S_PAUSESEL))
+			if (CheckAndAdd(MSG_S_PAUSESEL, fast, safe))
 			{
 				safe << PauseSelection;
 				local.system.PauseSelection = PauseSelection;
@@ -175,7 +187,7 @@ void MemoryHandler::SendSystem()
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
 		{
-			if (fast.addType(MSG_S_TIME))
+			if (CheckAndAdd(MSG_S_TIME, safe, fast))
 			{
 				fast << TimerMinutes << TimerSeconds << TimerFrames;
 				memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
@@ -184,52 +196,43 @@ void MemoryHandler::SendSystem()
 
 		if (local.game.TimeStopMode != TimeStopMode)
 		{
-			if (safe.addType(MSG_S_TIMESTOP))
+			if (CheckAndAdd(MSG_S_TIMESTOP, fast, safe))
 			{
-				cout << "<< Sending time stop [";
-				// Swap the value since player 1 is relative to the client
+				cout << "<< Sending Time Stop [";
 
-				switch (TimeStopMode)
-				{
-				default:
-				case 0:
-					cout << 0;
-					safe << (char)0;
-					break;
+				// Swap the Time Stop value, as this is connected to player number,
+				// and Player 1 and 2 are relative to the game instance.
 
-				case 1:
-					cout << 2;
-					safe << (char)2;
-					break;
-
-				case 2:
-					cout << 1;
-					safe << (char)1;
-					break;
-				}
+				safe << (char)(TimeStopMode * 5 % 3);
 
 				cout << ']' << endl;
 				local.game.TimeStopMode = TimeStopMode;
 			}
 		}
-	}
-	/*
-	if (GameState != GameState::INGAME || TimeStopMode > 0 || !Globals::Networking->isServer())
-	{
-	if (Duration(packetHandler->getSentKeepalive()) >= 1000)
-	{
-	Socket->writeByte(MSG_NULL); Socket->writeByte(1);
-	Socket->writeByte(MSG_KEEPALIVE);
 
-	packetHandler->SendMsg();
-	packetHandler->setSentKeepalive();
-	}
-	}
-	*/
+		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
+		{
+			if (CheckAndAdd(MSG_S_2PSPECIALS, fast, safe))
+			{
+				safe.append(P1SpecialAttacks, sizeof(char) * 3);
+				memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
+			}
+		}
 
-	Globals::Networking->Send(fast);
-	Globals::Networking->Send(safe);
+		if (local.game.RingCount[0] != RingCount[0])
+		{
+			if (CheckAndAdd(MSG_S_RINGS, fast, safe))
+			{
+				safe << RingCount[0];
+				local.game.RingCount[0] = RingCount[0];
+			}
+		}
+
+		Globals::Networking->Send(fast);
+		Globals::Networking->Send(safe);
+	}
 }
+
 void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
 	PacketEx safe(true), fast(false);
@@ -241,7 +244,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
 		{
-			if (safe.addType(MSG_I_BUTTONS))
+			if (CheckAndAdd(MSG_I_BUTTONS, fast, safe))
 			{
 				safe << ControllersRaw[0].HeldButtons;
 				sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
@@ -256,7 +259,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 				{*/
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
-					if (safe.addType(MSG_I_ANALOG))
+					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
 					{
 						safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
 						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
@@ -265,7 +268,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 				}
 				else
 				{
-					if (fast.addType(MSG_I_ANALOG))
+					if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
 					{
 						fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
 						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
@@ -278,7 +281,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 			}
 			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
 			{
-				if (safe.addType(MSG_I_ANALOG))
+				if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
 				{
 					cout << "<< Resetting analog" << endl;
 					sendInput.LeftStickY = 0;
@@ -292,313 +295,105 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 	Globals::Networking->Send(fast);
 	Globals::Networking->Send(safe);
 }
+
 void MemoryHandler::SendPlayer()
 {
-	PacketEx safe(true), fast(false);
-
-	// If the game has finished loading...
-	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
+	if (GameState >= GameState::LOAD_FINISHED)
 	{
-		// Check if the stage has changed so we can re->valuate the player.
-		if (local.game.CurrentLevel != CurrentLevel)
-		{
-			cout << "<> Stage has changed to " << (ushort)CurrentLevel << endl;
-
-			updateAbstractPlayer(&sendPlayer, Player1);
-
-			// Reset the ringcounts so they don't get sent.
-			local.game.RingCount[0] = 0;
-			local.game.RingCount[1] = 0;
-
-			// Reset specials
-			for (int i = 0; i < 3; i++)
-				local.game.P2SpecialAttacks[i] = 0;
-
-			// And finally, update the stage so this doesn't loop.
-			local.game.CurrentLevel = CurrentLevel;
-		}
-
+		PacketEx safe(true), fast(false);
+		/*
 		if (CheckTeleport())
 		{
-			// Send a teleport message
-			if (!fast.isInPacket(MSG_P_POSITION) && safe.addType(MSG_P_POSITION))
+			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
 			{
+				positionTimer = millisecs();
 				safe << Player1->Data1->Position;
-				sendPlayer.Data1.Position = Player1->Data1->Position;
 			}
-			if (!fast.isInPacket(MSG_P_SPEED) && safe.addType(MSG_P_SPEED))
-			{
+			if (CheckAndAdd(MSG_P_SPEED, fast, safe))
 				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
-				sendPlayer.Data2.HSpeed = Player1->Data2->HSpeed;
-				sendPlayer.Data2.VSpeed = Player1->Data2->VSpeed;
-				sendPlayer.Data2.PhysData.BaseSpeed = Player1->Data2->PhysData.BaseSpeed;
-			}
 		}
-
-
-		if (memcmp(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3) != 0)
+		*/
+		if (PositionDelta(sendPlayer.Data1.Position, Player1->Data1->Position))
 		{
-			if (safe.addType(MSG_S_2PSPECIALS))
+			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
 			{
-				cout << "<< Sending specials!" << endl;
-				for (uchar i = 0; i < 3; i++)
-					safe << P1SpecialAttacks[i];
-				memcpy(&local.game.P1SpecialAttacks[0], &P1SpecialAttacks[0], sizeof(char) * 3);
-			}
-		}
-		if (Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7)
-		{
-			if (sendPlayer.Data2.MechHP != Player1->Data2->MechHP)
-			{
-				if (safe.addType(MSG_P_HP))
-				{
-					safe << Player1->Data2->MechHP;
-				}
+				positionTimer = millisecs();
+				fast << Player1->Data1->Position;
 			}
 		}
 
+		/*
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
-			cout << "<< Sending action..." << endl;
-
 			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
 				|| Player1->Data2->CharID2 == Characters_Shadow
 				|| Player1->Data2->CharID2 == Characters_Amy
 				|| Player1->Data2->CharID2 == Characters_MetalSonic);
 
-			if (!fast.isInPacket(MSG_P_POSITION) && safe.addType(MSG_P_POSITION))
-				safe << Player1->Data1->Position;
-			if (safe.addType(MSG_P_ACTION))
+			if (CheckAndAdd(MSG_P_ACTION, fast, safe))
 				safe << Player1->Data1->Action;
-			if (safe.addType(MSG_P_STATUS))
+			if (CheckAndAdd(MSG_P_STATUS, fast, safe))
 				safe << Player1->Data1->Status;
-			if (safe.addType(MSG_P_ANIMATION))
-				safe << Player1->Data2->AnimInfo.Next;
-			if (sendSpinTimer && safe.addType(MSG_P_SPINTIMER))
+			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
+			{
+				positionTimer = millisecs();
+				safe << Player1->Data1->Position;
+			}
+			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
 				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 		}
 
-		if (local.game.RingCount[0] != RingCount[0])
-		{
-			if (fast.addType(MSG_P_RINGS))
-			{
-				cout << "<< Sending rings (" << local.game.RingCount[0] << ")" << endl;
-				local.game.RingCount[0] = RingCount[0];
-				safe << local.game.RingCount[0];
-			}
-		}
-		/*
-		if (memcmp(&sendPlayer.Data1.Rotation, &Player1->Data1->Rotation, sizeof(Rotation)) != 0 ||
-		(Player1->Data2->HSpeed != sendPlayer.Data2.HSpeed || Player1->Data2->VSpeed != sendPlayer.Data2.VSpeed))
-		*/
-		if (RotationMargin(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
-			|| (SpeedMargin(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedMargin(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)))
+		if (RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
+			|| (SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
+			|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 		{
 			rotateTimer = speedTimer = millisecs();
-			if (!safe.isInPacket(MSG_P_ROTATION) && fast.addType(MSG_P_ROTATION))
-				safe << Player1->Data1->Rotation;
-			if (!safe.isInPacket(MSG_P_POSITION) && fast.addType(MSG_P_POSITION))
-				safe << Player1->Data1->Position;
-			if (!safe.isInPacket(MSG_P_SPEED) && fast.addType(MSG_P_SPEED))
-				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+			if (CheckAndAdd(MSG_P_ROTATION, safe, fast))
+				fast << Player1->Data1->Rotation;
+			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
+			{
+				positionTimer = millisecs();
+				fast << Player1->Data1->Position;
+			}
+			if (CheckAndAdd(MSG_P_SPEED, safe, fast))
+				fast << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+		}
+
+		if ((Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
+		{
+			if (CheckAndAdd(MSG_P_HP, fast, safe))
+				safe << Player1->Data2->MechHP;
 		}
 
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
 		{
-			if (safe.addType(MSG_P_POWERUPS))
+			if (CheckAndAdd(MSG_P_POWERUPS, fast, safe))
 			{
 				cout << "<< Sending powerups" << endl;
 				safe << Player1->Data2->Powerups;
-				sendPlayer.Data2.Powerups;
 			}
 		}
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
 		{
-			if (safe.addType(MSG_P_UPGRADES))
+			if (CheckAndAdd(MSG_P_UPGRADES, fast, safe))
 			{
 				cout << "<< Sending upgrades" << endl;
 				safe << Player1->Data2->Upgrades;
-				sendPlayer.Data2.Upgrades = Player1->Data2->Upgrades;
 			}
 		}
-
+		*/
 		updateAbstractPlayer(&sendPlayer, Player1);
-	}
-
-	Globals::Networking->Send(fast);
-	Globals::Networking->Send(safe);
-}
-void MemoryHandler::SendMenu()
-{
-	if (GameState == GameState::INACTIVE)
-	{
-		PacketEx safe(true), fast(false);
-
-		// Menu analog failsafe
-		if (sendInput.LeftStickX != 0 || sendInput.LeftStickY != 0)
-		{
-			cout << "<>\tAnalog failsafe!" << endl;
-			ControllersRaw[0].LeftStickX = 0;
-			ControllersRaw[0].LeftStickY = 0;
-			sendInput.LeftStickX = 0;
-			sendInput.LeftStickY = 0;
-		}
-
-		// ...and we're on the 2P menu...
-		if (CurrentMenu[0] == Menu::BATTLE)
-		{
-			firstMenuEntry = (local.menu.sub != CurrentMenu[1]);
-
-			if (memcmp(local.menu.BattleOptions, BattleOptions, sizeof(char) * 4) != 0)
-			{
-				if (safe.addType(MSG_S_BATTLEOPT))
-				{
-					cout << "<< Sending battle options..." << endl;
-					memcpy(&local.menu.BattleOptions, BattleOptions, sizeof(char) * 4);
-					safe.append(&local.menu.BattleOptions[0], sizeof(char) * 4);
-				}
-
-				if (safe.addType(MSG_M_BATTLEOPTSEL))
-				{
-					local.menu.BattleOptionsSelection = BattleOptionsSelection;
-					local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
-					safe << local.menu.BattleOptionsSelection << local.menu.BattleOptionsBackSelected;
-				}
-			}
-
-			if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
-			{
-				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking->isServer())
-				{
-					if (safe.addType(MSG_M_BATTLEOPTSEL))
-					{
-						local.menu.BattleOptionsSelection = BattleOptionsSelection;
-						local.menu.BattleOptionsBackSelected = BattleOptionsBackSelected;
-						safe << local.menu.BattleOptionsSelection << local.menu.BattleOptionsBackSelected;
-					}
-				}
-			}
-
-
-			// ...and we haven't pressed start
-			if (cAt2PMenu[0] = (CurrentMenu[1] == SubMenu2P::S_START && P2Start == 0))
-			{
-				if (cAt2PMenu[0] && cAt2PMenu[1] && !wroteP2Start)
-				{
-					P2Start = 2;
-					wroteP2Start = true;
-				}
-			}
-			// ...and we HAVE pressed start
-			if (CurrentMenu[1] == SubMenu2P::S_READY || CurrentMenu[1] == SubMenu2P::O_READY)
-			{
-				if (local.menu.PlayerReady[0] != PlayerReady[0])
-				{
-					if (safe.addType(MSG_S_2PREADY))
-					{
-						safe << PlayerReady[0];
-						local.menu.PlayerReady[0] = PlayerReady[0];
-					}
-				}
-			}
-			if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking->isServer())
-			{
-				if (local.menu.BattleSelection != BattleSelection)
-				{
-					if (safe.addType(MSG_M_BATTLEMODESEL))
-					{
-						local.menu.BattleSelection = BattleSelection;
-						safe << BattleSelection;
-					}
-				}
-			}
-			// Character Selection
-			if (CurrentMenu[1] == SubMenu2P::S_CHARSEL || CurrentMenu[1] == SubMenu2P::O_CHARSEL)
-			{
-				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
-				{
-					cout << "<> Resetting character selections" << endl;
-					CharacterSelectTimer = 0;
-					CurrentMenu[1] = SubMenu2P::O_CHARSEL;
-				}
-
-
-				if (local.menu.CharacterSelection[0] != CharacterSelection[0] || firstMenuEntry)
-				{
-					cout << "<< Sending character selection" << endl;
-					if (safe.addType(MSG_M_CHARSEL))
-					{
-						safe << CharacterSelection[0];
-						cout << local.menu.CharacterSelection[0] << ' ' << CharacterSelection[0]  << endl;
-						local.menu.CharacterSelection[0] = CharacterSelection[0];
-					}
-				}
-				if (local.menu.CharacterSelected[0] != CharacterSelected[0])
-				{
-					if (safe.addType(MSG_M_CHARCHOSEN))
-					{
-						safe << CharacterSelected[0];
-						local.menu.CharacterSelected[0] = CharacterSelected[0];
-					}
-				}
-				if (firstMenuEntry ||
-					((local.menu.AltCharacterSonic != AltCharacterSonic) ||
-					(local.menu.AltCharacterShadow != AltCharacterShadow) ||
-					(local.menu.AltCharacterTails != AltCharacterTails) ||
-					(local.menu.AltCharacterEggman != AltCharacterEggman) ||
-					(local.menu.AltCharacterKnuckles != AltCharacterKnuckles) ||
-					(local.menu.AltCharacterRouge != AltCharacterRouge))
-					)
-				{
-					if (safe.addType(MSG_M_ALTCHAR))
-					{
-						local.menu.AltCharacterSonic = AltCharacterSonic;
-						local.menu.AltCharacterShadow = AltCharacterShadow;
-						local.menu.AltCharacterTails = AltCharacterTails;
-						local.menu.AltCharacterEggman = AltCharacterEggman;
-						local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
-						local.menu.AltCharacterRouge = AltCharacterRouge;
-
-						safe.append(&local.menu.AltCharacterSonic, sizeof(char) * 6);
-					}
-				}
-			}
-			if (CurrentMenu[1] == SubMenu2P::I_STAGESEL || CurrentMenu[1] == SubMenu2P::S_STAGESEL)
-			{
-				if ((memcmp(&local.menu.StageSelection2P[0], &StageSelection2P[0], (sizeof(int) * 2)) != 0 || local.menu.BattleOptionsButton != BattleOptionsButton)
-					|| firstMenuEntry)
-				{
-					if (safe.addType(MSG_M_STAGESEL))
-					{
-						safe << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
-						local.menu.StageSelection2P[0] = StageSelection2P[0];
-						local.menu.StageSelection2P[1] = StageSelection2P[1];
-						local.menu.BattleOptionsButton = BattleOptionsButton;
-					}
-				}
-			}
-		}
-		else
-		{
-			wroteP2Start = false;
-			if (cAt2PMenu[0])
-				cAt2PMenu[0] = false;
-		}
-
-		if (cAt2PMenu[0] != lAt2PMenu[0])
-		{
-			if (safe.addType(MSG_M_ATMENU))
-			{
-				cout << "<< Sending \"On 2P Menu\" state" << endl;
-				safe << cAt2PMenu[0];
-				lAt2PMenu[0] = cAt2PMenu[0];
-			}
-		}
-		local.menu.sub = CurrentMenu[1];
 
 		Globals::Networking->Send(fast);
 		Globals::Networking->Send(safe);
 	}
+}
+void MemoryHandler::SendMenu()
+{
+	PacketEx safe(true), fast(false);
+
+	Globals::Networking->Send(fast);
+	Globals::Networking->Send(safe);
 }
 
 inline void MemoryHandler::writeP2Memory()
@@ -643,11 +438,10 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_S_TIME);
 
-			uchar minute, second, frame;
-			packet >> minute >> second >> frame;
-			TimerMinutes = local.game.TimerMinutes = minute;
-			TimerSeconds = local.game.TimerSeconds = second;
-			TimerFrames = local.game.TimerFrames = frame;
+			packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
+			TimerMinutes = local.game.TimerMinutes;
+			TimerSeconds = local.game.TimerSeconds;
+			TimerFrames = local.game.TimerFrames;
 			return true;
 
 			RECEIVED(MSG_S_GAMESTATE);
@@ -655,7 +449,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 
 				uchar recvGameState;
 				packet >> recvGameState;
-
+				cout << (ushort)recvGameState << ' ' << (ushort)local.system.GameState << ' ' << (ushort)GameState << endl;
 				if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
 					GameState = local.system.GameState = recvGameState;
 
@@ -690,7 +484,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 				return true;
 			}
 
-			RECEIVED(MSG_P_RINGS);
+			RECEIVED(MSG_S_RINGS);
 			packet >> local.game.RingCount[1];
 			writeRings();
 

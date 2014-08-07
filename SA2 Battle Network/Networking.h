@@ -2,12 +2,11 @@
 
 enum MsgTypes : unsigned char
 {
-	MSG_NULL,				// End of packet
-	MSG_RELIABLE,			// End of packet--requesting response
+	MSG_NULL,				// No message
 	MSG_VERSION_CHECK,		// Initial version check upon connection
 	MSG_VERSION_MISMATCH,	// Client version mismatch
 	MSG_VERSION_OK,			// Client version match
-	MSG_KEEPALIVE,			// Keep-alive ID
+	MSG_BIND,				// UDP bind request/confirm
 	MSG_DISCONNECT,			// Request disconnect
 
 	MSG_I_ANALOG,
@@ -27,7 +26,6 @@ enum MsgTypes : unsigned char
 	MSG_P_HP,
 	MSG_P_POSITION,
 	MSG_P_POWERUPS,
-	MSG_P_RINGS,
 	MSG_P_ROTATION,
 	MSG_P_SPEED,
 	MSG_P_SPINTIMER,
@@ -41,6 +39,7 @@ enum MsgTypes : unsigned char
 	MSG_S_GAMESTATE,
 	MSG_S_LEVEL,
 	MSG_S_PAUSESEL,
+	MSG_S_RINGS,
 	MSG_S_TIME,
 	MSG_S_TIMESTOP,
 

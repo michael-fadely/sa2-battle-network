@@ -30,7 +30,7 @@ void PacketHandler::Initialize()
 
 const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isServer)
 {
-	Socket::Status result;
+	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
 
 	do
@@ -49,7 +49,7 @@ const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bo
 
 const sf::Socket::Status PacketHandler::Listen(const unsigned short port)
 {
-	Socket::Status result;
+	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
 
 	result = listener.listen(port);
