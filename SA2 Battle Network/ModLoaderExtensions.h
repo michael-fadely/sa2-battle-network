@@ -80,6 +80,10 @@ struct SuperSonicObj2Base
 
 struct InputStruct : ControllerData
 {
+	InputStruct() : ControllerData()
+	{
+		LastPressed = 0;
+	}
 	unsigned int LastPressed;
 	void WriteButtons(ControllerData& destination);
 

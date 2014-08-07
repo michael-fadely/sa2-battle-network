@@ -41,7 +41,6 @@ remoteVersion({ 3, 0 }),
 isServer(host),
 Address(address)
 {
-	AbstractMemory = nullptr;
 	AbstractMemory = new MemoryHandler();
 }
 

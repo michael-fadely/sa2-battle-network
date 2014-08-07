@@ -62,9 +62,10 @@ const bool SpeedMargin(const float last, const float current)
 
 MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 {
-	memset(this, 0, sizeof(MemoryHandler));
+	//memset(this, 0, sizeof(MemoryHandler));
 	
-	/*
+	analogTimer = 0;
+
 	cAt2PMenu[0] = false;
 	cAt2PMenu[1] = false;
 	lAt2PMenu[0] = false;
@@ -78,9 +79,6 @@ MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 
 	thisFrame = 0;
 	lastFrame = 0;
-	*/
-
-	return;
 }
 
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
@@ -100,9 +98,9 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			//cout << (ushort)id << endl;
 			switch (id)
 			{
-			case MSG_NULL:
-				cout << ">> Reached end of packet." << endl;
-				break;
+			//case MSG_NULL:
+			//	cout << "\a>> Reached end of packet." << endl;
+			//	break;
 
 			case MSG_COUNT:
 				cout << ">> Received message count?! Malformed packet warning!" << endl;
@@ -111,12 +109,14 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			case MSG_DISCONNECT:
 				cout << ">> Received disconnect request from client." << endl;
 				Globals::Networking->Disconnect(true);
+				break;
 
 			default:
 				ReceiveSystem(id, packet);
 				ReceiveInput(id, packet);
 				ReceivePlayer(id, packet);
 				ReceiveMenu(id, packet);
+				break;
 			}
 		}
 	}
@@ -529,6 +529,7 @@ void MemoryHandler::SendMenu()
 					if (safe.addType(MSG_M_CHARSEL))
 					{
 						safe << CharacterSelection[0];
+						cout << local.menu.CharacterSelection[0] << ' ' << CharacterSelection[0]  << endl;
 						local.menu.CharacterSelection[0] = CharacterSelection[0];
 					}
 				}
@@ -796,9 +797,10 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_M_ATMENU);
 			packet >> cAt2PMenu[1];
 			if (cAt2PMenu[1])
-				cout << ">> Player 2 is ready on the 2P menu!" << endl;
+				cout << ">> Player 2 is ready on the 2P menu! ";
 			else
-				cout << ">> Player 2 is no longer on the 2P menu." << endl;
+				cout << ">> Player 2 is no longer on the 2P menu. ";
+			cout << cAt2PMenu[1] << endl;
 			return true;
 
 			RECEIVED(MSG_S_2PREADY);
@@ -811,12 +813,13 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_M_CHARSEL);
 			packet >> local.menu.CharacterSelection[1];
 			CharacterSelection[1] = local.menu.CharacterSelection[1];
-
+			cout << (ushort)local.menu.CharacterSelection[1] << ' ' << (ushort)CharacterSelection[1] << endl;
 			return true;
 
 			RECEIVED(MSG_M_CHARCHOSEN);
 			packet >> local.menu.CharacterSelected[1];
 			CharacterSelected[1] = local.menu.CharacterSelected[1];
+			cout << (ushort)CharacterSelected[1] << ' ' << (ushort)local.menu.CharacterSelected[1] << endl;
 			return true;
 
 			RECEIVED(MSG_M_ALTCHAR);

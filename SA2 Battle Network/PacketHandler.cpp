@@ -93,6 +93,8 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
 
+		
+		Address.ip = ip;
 		Bind(port, false);
 
 		host = false;
@@ -186,7 +188,7 @@ const sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)
 	{
-		packet << (uchar)MSG_NULL;
+		//packet << (uchar)MSG_NULL;
 		int error = 0;
 		fastLock.lock();
 		do

@@ -49,7 +49,7 @@ void MainThread()
 	uint timeout = 15000;
 
 	PacketHandler::RemoteAddress Address;
-	Application::Program* Program;
+	Application::Program* Program = nullptr;
 	Application::Settings Settings = {};
 	Application::ExitCode ExitCode;
 
