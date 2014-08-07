@@ -41,6 +41,7 @@ remoteVersion({ 3, 0 }),
 isServer(host),
 Address(address)
 {
+	AbstractMemory = nullptr;
 	AbstractMemory = new MemoryHandler();
 }
 
@@ -213,9 +214,8 @@ const ExitCode Program::RunLoop()
 		while (Globals::Networking->isConnected())
 		{
 			AbstractMemory->GetFrame();
+			
 			AbstractMemory->RecvLoop();
-
-			AbstractMemory->GetFrame();
 			AbstractMemory->SendLoop();
 
 			AbstractMemory->SetFrame();

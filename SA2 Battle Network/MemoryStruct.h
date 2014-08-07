@@ -31,20 +31,20 @@ struct MemStruct
 		uchar BattleSelection;
 		uchar CharacterSelection[2];
 
-		uchar CharacterSelected[2];
+		char CharacterSelected[2];
 
-		uchar AltCharacterSonic, AltCharacterShadow;
-		uchar AltCharacterTails, AltCharacterEggman;
-		uchar AltCharacterKnuckles, AltCharacterRouge;
+		char AltCharacterSonic, AltCharacterShadow;
+		char AltCharacterTails, AltCharacterEggman;
+		char AltCharacterKnuckles, AltCharacterRouge;
 
 		// Battle Options button selected on stage select
-		uchar BattleOptionsButton;
+		char BattleOptionsButton;
 		// Battle Options array
-		uchar BattleOptions[4];
+		char BattleOptions[4];
 		// Battle Options menu selection
-		uchar BattleOptionsSelection;
+		char BattleOptionsSelection;
 		// Battle Options back button is selected
-		uchar BattleOptionsBackSelected;
+		char BattleOptionsBackSelected;
 	} menu;
 
 	// Gameplay variables for things only seen within the stage

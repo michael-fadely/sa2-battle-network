@@ -18,11 +18,6 @@ using namespace chrono;
 
 inline const uint MemManage::getElapsedFrames(const uint lastFrameCount) { return (FrameCount - lastFrameCount); }
 
-inline const uint MemManage::getFrameCount()
-{
-	return FrameCount;
-}
-
 const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint frameCount)
 {
 	uint result = getElapsedFrames(currentFrameCount);
@@ -39,7 +34,7 @@ void MemManage::waitFrame(const uint frameCount, const uint lastFrame)
 	uint last = 0;
 
 	if (lastFrame == 0)
-		last = getFrameCount();
+		last = FrameCount;
 	else
 		last = lastFrame;
 

@@ -60,8 +60,11 @@ const bool SpeedMargin(const float last, const float current)
 //	Memory Handler Class
 */
 
-MemoryHandler::MemoryHandler()
+MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 {
+	memset(this, 0, sizeof(MemoryHandler));
+	
+	/*
 	cAt2PMenu[0] = false;
 	cAt2PMenu[1] = false;
 	lAt2PMenu[0] = false;
@@ -73,17 +76,11 @@ MemoryHandler::MemoryHandler()
 	Teleported = false;
 	writePlayer = false;
 
-	local = {};
-	recvInput = {};
-	sendInput = {};
-
 	thisFrame = 0;
 	lastFrame = 0;
+	*/
 
 	return;
-}
-MemoryHandler::~MemoryHandler()
-{
 }
 
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
@@ -469,7 +466,7 @@ void MemoryHandler::SendMenu()
 				}
 			}
 
-			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
+			if (CurrentMenu[1] == SubMenu2P::S_BATTLEOPT)
 			{
 				if (local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBackSelected != BattleOptionsBackSelected || firstMenuEntry && Globals::Networking->isServer())
 				{
@@ -484,7 +481,7 @@ void MemoryHandler::SendMenu()
 
 
 			// ...and we haven't pressed start
-			else if (cAt2PMenu[0] = (CurrentMenu[1] == SubMenu2P::S_START && P2Start == 0))
+			if (cAt2PMenu[0] = (CurrentMenu[1] == SubMenu2P::S_START && P2Start == 0))
 			{
 				if (cAt2PMenu[0] && cAt2PMenu[1] && !wroteP2Start)
 				{
@@ -493,7 +490,7 @@ void MemoryHandler::SendMenu()
 				}
 			}
 			// ...and we HAVE pressed start
-			else if (CurrentMenu[1] == SubMenu2P::S_READY || CurrentMenu[1] == SubMenu2P::O_READY)
+			if (CurrentMenu[1] == SubMenu2P::S_READY || CurrentMenu[1] == SubMenu2P::O_READY)
 			{
 				if (local.menu.PlayerReady[0] != PlayerReady[0])
 				{
@@ -504,7 +501,7 @@ void MemoryHandler::SendMenu()
 					}
 				}
 			}
-			else if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking->isServer())
+			if (CurrentMenu[1] == SubMenu2P::S_BATTLEMODE || firstMenuEntry && Globals::Networking->isServer())
 			{
 				if (local.menu.BattleSelection != BattleSelection)
 				{
@@ -516,7 +513,7 @@ void MemoryHandler::SendMenu()
 				}
 			}
 			// Character Selection
-			else if (CurrentMenu[1] == SubMenu2P::S_CHARSEL || CurrentMenu[1] == SubMenu2P::O_CHARSEL)
+			if (CurrentMenu[1] == SubMenu2P::S_CHARSEL || CurrentMenu[1] == SubMenu2P::O_CHARSEL)
 			{
 				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
 				{
@@ -565,7 +562,7 @@ void MemoryHandler::SendMenu()
 					}
 				}
 			}
-			else if (CurrentMenu[1] == SubMenu2P::I_STAGESEL || CurrentMenu[1] == SubMenu2P::S_STAGESEL)
+			if (CurrentMenu[1] == SubMenu2P::I_STAGESEL || CurrentMenu[1] == SubMenu2P::S_STAGESEL)
 			{
 				if ((memcmp(&local.menu.StageSelection2P[0], &StageSelection2P[0], (sizeof(int) * 2)) != 0 || local.menu.BattleOptionsButton != BattleOptionsButton)
 					|| firstMenuEntry)
@@ -808,7 +805,7 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			packet >> local.menu.PlayerReady[1];
 			PlayerReady[1] = local.menu.PlayerReady[1];
 
-			cout << ">> Player 2 ready state changed." << endl;
+			cout << ">> Player 2 ready state changed. " << (ushort)local.menu.PlayerReady[1] << endl;
 			return true;
 
 			RECEIVED(MSG_M_CHARSEL);

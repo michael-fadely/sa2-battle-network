@@ -72,9 +72,6 @@
     <ClInclude Include="MemoryStruct.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
-    <ClInclude Include="NewPlayerObject.h">
-      <Filter>Header Files\Game Memory</Filter>
-    </ClInclude>
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
@@ -85,6 +82,9 @@
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="AdventurePacketOverloads.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="NewPlayerObject.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
   </ItemGroup>

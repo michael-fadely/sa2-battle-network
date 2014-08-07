@@ -12,8 +12,6 @@ namespace MemManage
 	// Returns the number of elapsed frames since lastFrame
 	const unsigned int getElapsedFrames(const unsigned int lastFrame);
 
-	// Gets current framecount from game memory
-	const unsigned int getFrameCount();
 	// To be run on own thread - determines framerate
 	void getFrameRate();
 

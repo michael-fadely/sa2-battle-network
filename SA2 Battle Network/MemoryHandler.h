@@ -2,6 +2,7 @@
 
 #include "MemoryManagement.h"
 #include "ModLoaderExtensions.h"
+#include "AddressList.h"
 #include "NewPlayerObject.h"
 #include "MemoryStruct.h"
 
@@ -12,7 +13,6 @@ class MemoryHandler
 {
 public:
 	MemoryHandler();
-	~MemoryHandler();
 
 	// Methods
 
@@ -20,7 +20,7 @@ public:
 	void SendLoop();
 
 	// Reads the frame count from memory into thisFrame
-	inline void GetFrame() { thisFrame = MemManage::getFrameCount(); }
+	inline void GetFrame() { thisFrame = FrameCount; }
 	// Sets lastFrame to thisFrame
 	inline void SetFrame() { lastFrame = thisFrame; }
 	// Returns true if thisFrame is the same as lastFrame
