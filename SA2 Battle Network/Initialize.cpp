@@ -53,10 +53,6 @@ void MainThread()
 	Application::Settings Settings = {};
 	Application::ExitCode ExitCode;
 
-	//SetConsoleTitleA(Application::Program::version.c_str());
-	//hprint("Thanks for trying Sonic Adventure 2: Battle Network Alpha!\n", (milliseconds)25);
-	//SleepFor((milliseconds)250);
-
 #pragma region "Command line" arguments
 	if (CommandLine())
 	{
@@ -79,7 +75,10 @@ void MainThread()
 				Address.port = atoi(args[++i].c_str());
 			}
 			else if ((args[i] == "--timeout" || args[i] == "-t") && (i + 1) < argc)
-				timeout = atoi(args[++i].c_str());
+			{
+				if ((timeout = atoi(args[++i].c_str())) < 1000)
+					timeout = 1000;
+			}
 
 			// Configuration
 			else if (args[i] == "--no-specials")
@@ -96,8 +95,6 @@ void MainThread()
 	}
 #pragma endregion
 
-	if (timeout < 1000)
-		timeout = 1000;
 
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 

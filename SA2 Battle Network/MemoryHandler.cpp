@@ -96,7 +96,7 @@ MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 {
-	Socket::Status status;
+	Socket::Status status = Socket::Status::NotReady;
 	if (safe)
 		status = Globals::Networking->recvSafe(packet);
 	else
@@ -298,10 +298,10 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 void MemoryHandler::SendPlayer()
 {
-	if (GameState >= GameState::LOAD_FINISHED)
+	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
 	{
 		PacketEx safe(true), fast(false);
-		/*
+
 		if (CheckTeleport())
 		{
 			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
@@ -312,7 +312,7 @@ void MemoryHandler::SendPlayer()
 			if (CheckAndAdd(MSG_P_SPEED, fast, safe))
 				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		}
-		*/
+
 		if (PositionDelta(sendPlayer.Data1.Position, Player1->Data1->Position))
 		{
 			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
@@ -322,7 +322,6 @@ void MemoryHandler::SendPlayer()
 			}
 		}
 
-		/*
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
 			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
@@ -381,7 +380,7 @@ void MemoryHandler::SendPlayer()
 				safe << Player1->Data2->Upgrades;
 			}
 		}
-		*/
+
 		updateAbstractPlayer(&sendPlayer, Player1);
 
 		Globals::Networking->Send(fast);
