@@ -38,7 +38,7 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 	Bind(port, true);
 
 	// If blocking is enabled, listen until a connection is established.
-		result = listener.listen(port);
+	result = listener.listen(port);
 
 	// If there was an error, throw an exception.
 	// If the result is otherwise non-critical and blocking is disabled, return its result.
@@ -166,6 +166,10 @@ const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 		{
 			result = safeSocket.send(disconnect);
 		} while (result == Socket::Status::NotReady);
+
+		safeSocket.disconnect();
+		fastSocket.unbind();
+		listener.close();
 	}
 
 	connected = false;

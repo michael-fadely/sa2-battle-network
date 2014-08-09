@@ -1,7 +1,7 @@
 #include <iostream>
 #include "ModLoaderExtensions.h"
 
-#include "NewPlayerObject.h"
+#include "PlayerObject.h"
 
 PlayerObject::PlayerObject(ObjectMaster* player)
 {

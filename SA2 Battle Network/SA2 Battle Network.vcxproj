@@ -99,7 +99,7 @@
     <ClInclude Include="MemoryStruct.h" />
     <ClInclude Include="ModLoaderExtensions.h" />
     <ClInclude Include="Networking.h" />
-    <ClInclude Include="NewPlayerObject.h" />
+    <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="PacketExtensions.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="SA2ModLoader.h" />
@@ -121,7 +121,7 @@
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="ModLoaderExtensions.cpp" />
-    <ClCompile Include="NewPlayerObject.cpp" />
+    <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketExtensions.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="SA2 Battle Network.cpp" />

@@ -381,6 +381,12 @@ void MemoryHandler::SendPlayer()
 				fast << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		}
 
+		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(Vertex)) != 0)
+		{
+			if (CheckAndAdd(MSG_P_SCALE, fast, safe))
+				safe << Player1->Data1->Scale;
+		}
+
 		if ((Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
 		{
 			if (CheckAndAdd(MSG_P_HP, fast, safe))
@@ -566,6 +572,11 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_ROTATION);
 			packet >> recvPlayer.Data1.Rotation;
+			writePlayer = true;
+			break;
+
+			RECEIVED(MSG_P_SCALE);
+			packet >> recvPlayer.Data1.Scale;
 			writePlayer = true;
 			break;
 

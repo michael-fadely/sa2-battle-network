@@ -3,7 +3,7 @@
 #include "MemoryManagement.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
-#include "NewPlayerObject.h"
+#include "PlayerObject.h"
 #include "MemoryStruct.h"
 
 #include <SFML\Network.hpp>
