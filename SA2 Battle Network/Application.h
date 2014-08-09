@@ -24,6 +24,7 @@ namespace Application
 	enum class ExitCode
 	{
 		None,
+		NotReady,
 		VersionMismatch,
 		GameTerminated,
 		ClientTimeout,

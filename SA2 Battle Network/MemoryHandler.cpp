@@ -105,9 +105,6 @@ void MemoryHandler::RecvLoop()
 		GetFrame();
 		PreReceive();
 
-		//if (CurrentMenu[0] < Menu::BATTLE)
-		//	Globals::Networking->Disconnect();
-
 		sf::Packet packet;
 		Receive(packet, true);
 		Receive(packet, false);
@@ -252,7 +249,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
 	PacketEx safe(true), fast(false);
 
-	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
+	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		if (!CheckFrame())
 			ToggleSplitscreen();
@@ -796,3 +793,19 @@ bool MemoryHandler::CheckTeleport()
 }
 
 #pragma endregion
+
+const unsigned int MemoryHandler::GetCurrentMenu()
+{
+	if (!Globals::Networking->isConnected())
+		GetFrame();
+
+	if (CheckFrame())
+	{
+		return local.menu.main;
+	}
+	else
+	{
+		local.menu.main = CurrentMenu[0];
+		return local.menu.main;
+	}
+}

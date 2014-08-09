@@ -14,6 +14,8 @@
 #include "PacketHandler.h"
 #include "MemoryManagement.h"
 #include "MemoryHandler.h"
+#include "ModLoaderExtensions.h"
+#include "CommonEnums.h"
 
 #include "Application.h"
 
@@ -57,121 +59,141 @@ ExitCode Program::Connect()
 	sf::Packet packet;
 	sf::Socket::Status status = sf::Socket::Status::Error;
 
-	if (isServer)
+
+	if (AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
 	{
-		cout << "\aHosting server on port " << Address.port << "..." << endl;
-
-		if ((status = Globals::Networking->Listen(Address.port)) != sf::Socket::Done)
+		if (isServer)
 		{
-			cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
-			return exitCode = ExitCode::ClientTimeout;
-		}
+#pragma region Server
+			if (!Globals::Networking->isBound())
+				cout << "\aHosting server on port " << Address.port << "..." << endl;
 
-		while (!connected)
-		{
-
-			if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+			if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
 			{
-				cout << "An error occurred while waiting for version number." << endl;
-				continue;
+				if (status == sf::Socket::Error)
+				{
+					cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
+					return exitCode = ExitCode::ClientTimeout;
+				}
+				else if (status == sf::Socket::NotReady)
+				{
+					return ExitCode::NotReady;
+				}
 			}
 
-			uchar id;
-			packet >> id;
-			if (id != MSG_VERSION_CHECK)
+			while (!connected && AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
 			{
-				cout << "Received malformed packet from client!" << endl;
-				continue;
-			}
+				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+				{
+					cout << ">> An error occurred while waiting for version number." << endl;
+					continue;
+				}
 
-			packet >> remoteVersion.major >> remoteVersion.minor;
-			packet.clear();
+				uchar id;
+				packet >> id;
+				if (id != MSG_VERSION_CHECK)
+				{
+					cout << ">> Received malformed packet from client!" << endl;
+					continue;
+				}
 
-			if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
-			{
-				Globals::Networking->Disconnect();
-				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
-				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
-
-
-				packet << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
-				Globals::Networking->sendSafe(packet);
+				packet >> remoteVersion.major >> remoteVersion.minor;
 				packet.clear();
 
-				continue;
-			}
-
-			packet << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
-
-
-
-			if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
-			{
-				cout << Globals::Networking->isConnected() << " An error occurred while confirming the connection with the client." << endl;
-				continue;
-			}
-
-			system("cls");
-			cout << "\aConnected!" << endl;
-
-			connected = true;
-			break;
-		}
-	}
-	else
-	{
-		cout << "\a\aConnecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
-
-		if ((status = Globals::Networking->Connect(Address)) != sf::Socket::Done)
-		{
-			cout << "A connection error has occurred." << endl;
-			return exitCode = ExitCode::ClientTimeout;
-		}
+				if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
+				{
+					Globals::Networking->Disconnect();
+					cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
+					cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
 
 
-		while (!connected)
-		{
-			packet << (unsigned char)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
-			uchar id;
+					packet << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
+					Globals::Networking->sendSafe(packet);
+					packet.clear();
 
-			if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
-			{
-				cout << "An error occurred while sending the version number!" << endl;
-				continue;
-			}
+					continue;
+				}
 
-			packet.clear();
+				packet << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
 
-			if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
-			{
-				cout << "An error occurred while receiving version confirmation message." << endl;
-				continue;
-			}
+				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
+				{
+					cout << ">> An error occurred while confirming the connection with the client." << endl;
+					continue;
+				}
 
-			packet >> id;
-
-			switch (id)
-			{
-			default:
-				cout << "Received malformed packet from server!" << endl;
-				break;
-
-			case MSG_VERSION_MISMATCH:
-				packet >> remoteVersion.major >> remoteVersion.minor;
-				cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
-				cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
-				break;
-
-			case MSG_VERSION_OK:
 				system("cls");
-				cout << "\aConnected!" << endl;
+				cout << "\a>> Connected!" << endl;
+
 				connected = true;
-				break;
+				return ExitCode::None;
 			}
+#pragma endregion
+		}
+		else
+		{
+#pragma region Client
+			if (!Globals::Networking->isBound())
+				cout << "\a\a<< Connecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
+
+			if ((status = Globals::Networking->Connect(Address, false)) != sf::Socket::Done)
+			{
+				if (status == sf::Socket::Error)
+				{
+					cout << "<< A connection error has occurred." << endl;
+					return exitCode = ExitCode::ClientTimeout;
+				}
+				else if (status == sf::Socket::NotReady)
+				{
+					return ExitCode::NotReady;
+				}
+			}
+
+
+			while (!connected && AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
+			{
+				packet << (uchar)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
+				uchar id;
+
+				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
+				{
+					cout << "<< An error occurred while sending the version number!" << endl;
+					continue;
+				}
+
+				packet.clear();
+
+				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+				{
+					cout << ">> An error occurred while receiving version confirmation message." << endl;
+					continue;
+				}
+
+				packet >> id;
+
+				switch (id)
+				{
+				default:
+					cout << ">> Received malformed packet from server!" << endl;
+					break;
+
+				case MSG_VERSION_MISMATCH:
+					packet >> remoteVersion.major >> remoteVersion.minor;
+					cout << "\n>> Connection rejected; the server's version does not match the local version." << endl;
+					cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
+					break;
+
+				case MSG_VERSION_OK:
+					system("cls");
+					cout << "\a<< Connected!" << endl;
+					connected = true;
+					return ExitCode::None;
+				}
+			}
+#pragma endregion
 		}
 	}
-
-	return ExitCode::None;
+	return ExitCode::NotReady;
 }
 
 
@@ -214,12 +236,17 @@ const ExitCode Program::RunLoop()
 		{
 			AbstractMemory->RecvLoop();
 			AbstractMemory->SendLoop();
+
+			// Check to see if we should disconnect
+			if (!(AbstractMemory->GetCurrentMenu() >= Menu::BATTLE))
+				break;
+
 			AbstractMemory->SetFrame();
-			
+
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);
 		}
-
+		Disconnect(!Globals::Networking->isServer(), ExitCode::NotReady);
 	}
 	return exitCode;
 }
@@ -287,9 +314,13 @@ const bool Program::OnEnd()
 		break;
 
 	case ExitCode::None:
+	case ExitCode::NotReady:
+		return true;
+		/*
 		winTitle << "CRAP";
 		winMessage << "PLZ NO. Report to SF94/Morph on Sonic Retro.";
 		break;
+		*/
 	}
 
 	winMessage << "\n\nWould you like to restart SA2:BN with the same settings?"

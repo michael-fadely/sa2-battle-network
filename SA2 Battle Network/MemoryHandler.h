@@ -25,6 +25,10 @@ public:
 	inline void SetFrame() { lastFrame = thisFrame; }
 	// Returns true if thisFrame is the same as lastFrame
 	inline const bool CheckFrame() { return (thisFrame == lastFrame); }
+	// Returns the current menu. Designed exclusively to be used externally.
+	// This function does frame synchronization to ensure you don't catch the value
+	// mid-operation. Used by class Program
+	const unsigned int GetCurrentMenu();
 
 private:
 	// Methods

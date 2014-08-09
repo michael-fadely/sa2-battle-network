@@ -11,14 +11,13 @@ using namespace sf;
 
 #pragma region PacketHandler
 
-PacketHandler::PacketHandler() : start_time(0), host(false), connected(false), Address({})
+PacketHandler::PacketHandler() : start_time(0), bound(false), host(false), connected(false), Address({})
 {
 	Initialize();
 }
 PacketHandler::~PacketHandler()
 {
 	Disconnect();
-	safeSocket.disconnect();
 }
 void PacketHandler::Initialize()
 {
@@ -34,18 +33,27 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
 
-	// First and foremost, we should bind the UDP socket.
-	Bind(port, true);
+	if (!bound)
+	{
+		// First and foremost, we should bind the UDP socket.
+		Bind(port, true);
 
-	// If blocking is enabled, listen until a connection is established.
-	result = listener.listen(port);
+		// If blocking is enabled, listen until a connection is established.
+		do
+		{
+			result = listener.listen(port);
+		} while (block && result == Socket::Status::NotReady);
 
-	// If there was an error, throw an exception.
-	// If the result is otherwise non-critical and blocking is disabled, return its result.
-	if (result == Socket::Status::Error)
-		throw error = WSAGetLastError();
-	else if (!block && result != Socket::Status::Done)
-		return result;
+
+		// If there was an error, throw an exception.
+		// If the result is otherwise non-critical and blocking is disabled, return its result.
+		if (result == Socket::Status::Error)
+			throw error = WSAGetLastError();
+		else if (!block && result != Socket::Status::Done)
+			return result;
+
+		bound = true;
+	}
 
 	// Now attempt to accept the connection.
 	do
@@ -107,7 +115,11 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 	{
 		// First, let's bind the UDP port.
 		// We're going to need its local port to send to the server.
-		Bind(port, false);
+		if (!bound)
+		{
+			Bind(port, false);
+			bound = true;
+		}
 
 		// Assign the address you klutz! STOP FORGETTING!
 		Address.ip = ip;
@@ -167,11 +179,13 @@ const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 			result = safeSocket.send(disconnect);
 		} while (result == Socket::Status::NotReady);
 
-		safeSocket.disconnect();
-		fastSocket.unbind();
-		listener.close();
 	}
 
+	safeSocket.disconnect();
+	fastSocket.unbind();
+	listener.close();
+
+	bound = false;
 	connected = false;
 	return result;
 }

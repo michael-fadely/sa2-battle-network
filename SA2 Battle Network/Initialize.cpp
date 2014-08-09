@@ -113,30 +113,31 @@ void MainThread()
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	sa2bn::Globals::ProcessID = GetCurrentProcess();
 	sa2bn::Globals::Networking = new PacketHandler();
+	Program = new Application::Program(Settings, isServer, Address);
 
 	while (true)
 	{
-		Program = new Application::Program(Settings, isServer, Address);
 
-		Program->Connect();
-		Program->ApplySettings();
-		// This will run indefinitely unless something stops it from
-		// the inside. Therefore, we delete immediately after.
-		ExitCode = Program->RunLoop();
+		if (Program->Connect() != Application::ExitCode::NotReady)
+		{
+			Program->ApplySettings();
+			// This will run indefinitely unless something stops it from
+			// the inside. Therefore, we delete immediately after.
+			ExitCode = Program->RunLoop();
 
-		bool result = Program->OnEnd();
-		delete Program;
+			bool result = Program->OnEnd();
 
-		if (!result)
-			break;
-		else
-			cout << "<> Reinitializing..." << endl;
+			if (!result)
+				break;
+			else
+				cout << "<> Reinitializing..." << endl;
+		}
 
+		SleepFor((milliseconds)250);
 	}
 
-	cout << "Thanks for testing!" << endl;
-	SleepFor((milliseconds)750);
-	return;
+	delete Program;
+	delete sa2bn::Globals::Networking;
 }
 
 // Unnecessary haxy print

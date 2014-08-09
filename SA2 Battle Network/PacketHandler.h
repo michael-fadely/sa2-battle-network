@@ -1,10 +1,10 @@
 #pragma once
 
 /*
-	To-do:
-	* Better exceptions / Exception handler
-	* Multi-connection mode
-	* UDP (and maybe TCP) only modes
+To-do:
+* Better exceptions / Exception handler
+* Multi-connection mode
+* UDP (and maybe TCP) only modes
 */
 
 #include <SFML\Network.hpp>
@@ -60,6 +60,8 @@ public:
 	// otherwise it does not, and simply closes all sockets.
 	const sf::Socket::Status Disconnect(const bool received = false);
 
+	// Returns the state of bound ports.
+	const bool isBound() { return bound; }
 	// Returns the connection state of the packet handler.
 	const bool isConnected() { return connected; }
 	// Returns the host state of the packet handler.
@@ -92,6 +94,9 @@ protected:
 	//
 	//	Members
 	//
+
+	// Value is true if ports have already been bound.
+	bool bound;
 
 	// Value is true if a connection was successfully established.
 	bool connected;
