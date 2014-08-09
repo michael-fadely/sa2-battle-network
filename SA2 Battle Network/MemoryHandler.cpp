@@ -12,6 +12,7 @@
 // Standard Includes
 #include <iostream>
 #include <Windows.h>
+#include <cmath>	// for abs
 
 // Global Includes
 #include <LazyTypedefs.h>
@@ -43,29 +44,29 @@ const float positionDelta = 16;
 uint positionTimer = 0;
 inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 {
-	return ((max(last.x, current.x) - min(last.x, current.x)) >= positionDelta
-		|| (max(last.y, current.y) - min(last.y, current.y)) >= positionDelta
-		|| (max(last.z, current.z) - min(last.z, current.z)) >= positionDelta
-		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 2500);
+	return (abs(last.x - current.x) >= positionDelta
+		|| abs(last.y - current.y) >= positionDelta
+		|| abs(last.z - current.z) >= positionDelta
+		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 1250);
 }
 
 const uint rotateDelta = ((float)11.25 * (float)(65536 / 360));
 uint rotateTimer = 0;
 inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 {
-	return ((max(last.x, current.x) - min(last.x, current.x)) >= rotateDelta
-		|| (max(last.y, current.y) - min(last.y, current.y)) >= rotateDelta
-		|| (max(last.z, current.z) - min(last.z, current.z)) >= rotateDelta
-		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
+	return (abs(last.x - current.x) >= rotateDelta
+		|| abs(last.y - current.y) >= rotateDelta
+		|| abs(last.z - current.z) >= rotateDelta
+		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 1250);
 }
 
-const float speedDelta = 0.25;
+const float speedDelta = 0.125;
 uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
-	return ((max(last, current) - min(last, current)) >= speedDelta
-		|| last != current && current < speedDelta
-		|| last != current && Duration(speedTimer) >= 125);
+	return (abs(last - current) >= max((speedDelta * current), 0.01)
+		//|| last != current && current < speedDelta
+		|| last != current && Duration(speedTimer) >= 1250);
 }
 
 
@@ -92,6 +93,44 @@ MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 
 	thisFrame = 0;
 	lastFrame = 0;
+}
+
+
+void MemoryHandler::RecvLoop()
+{
+	if (Globals::Networking->isConnected())
+	{
+		// Grab the current frame before continuing.
+		// This is for frame synchronization.
+		GetFrame();
+		PreReceive();
+
+		//if (CurrentMenu[0] < Menu::BATTLE)
+		//	Globals::Networking->Disconnect();
+
+		sf::Packet packet;
+		Receive(packet, true);
+		Receive(packet, false);
+
+		PostReceive();
+		// SetFrame() is called from outside this function.
+	}
+}
+void MemoryHandler::SendLoop()
+{
+	// Grab the current frame before continuing.
+	// This is for frame synchronization.
+	GetFrame();
+
+	SendInput();
+	if (!CheckFrame())
+	{
+		SendSystem();
+		SendPlayer();
+		SendMenu();
+	}
+
+	// SetFrame() is called from outside this function.
 }
 
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
@@ -135,30 +174,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	}
 }
 
-void MemoryHandler::RecvLoop()
-{
-	if (Globals::Networking->isConnected())
-	{
-		PreReceive();
-
-		//if (CurrentMenu[0] < Menu::BATTLE)
-		//	Globals::Networking->Disconnect();
-
-		sf::Packet packet;
-		Receive(packet, true);
-		Receive(packet, false);
-
-		PostReceive();
-	}
-}
-
-void MemoryHandler::SendLoop()
-{
-	SendInput();
-	SendSystem();
-	SendPlayer();
-	SendMenu();
-}
+#pragma region Send
 
 void MemoryHandler::SendSystem()
 {
@@ -232,7 +248,6 @@ void MemoryHandler::SendSystem()
 		Globals::Networking->Send(safe);
 	}
 }
-
 void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
 	PacketEx safe(true), fast(false);
@@ -255,29 +270,29 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 		{
 			if (GameState == GameState::INGAME)
 			{
-				/*if (Duration(analogTimer) >= 125)
-				{*/
-				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
+				if (Duration(analogTimer) >= 125)
 				{
-					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
+					if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 					{
-						safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+						if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
+						{
+							safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+							sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+							sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+						}
 					}
-				}
-				else
-				{
-					if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
+					else
 					{
-						fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+						if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
+						{
+							fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+							sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+							sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+						}
 					}
-				}
 
-				/*analogTimer = millisecs();
-			}*/
+					analogTimer = millisecs();
+				}
 			}
 			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
 			{
@@ -295,7 +310,6 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 	Globals::Networking->Send(fast);
 	Globals::Networking->Send(safe);
 }
-
 void MemoryHandler::SendPlayer()
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
@@ -329,6 +343,9 @@ void MemoryHandler::SendPlayer()
 				|| Player1->Data2->CharID2 == Characters_Amy
 				|| Player1->Data2->CharID2 == Characters_MetalSonic);
 
+			// IN CASE OF EMERGENCY, UNCOMMENT
+			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
+
 			if (CheckAndAdd(MSG_P_ACTION, fast, safe))
 				safe << Player1->Data1->Action;
 			if (CheckAndAdd(MSG_P_STATUS, fast, safe))
@@ -346,7 +363,13 @@ void MemoryHandler::SendPlayer()
 			|| (SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
 			|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 		{
-			rotateTimer = speedTimer = millisecs();
+			// IN CASE OF EMERGENCY, UNCOMMENT
+			//cout << RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
+			//	<< " || (" << SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) << " || " << SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)
+			//	<< ") || " << sendPlayer.Data2.PhysData.BaseSpeed << " != " << Player1->Data2->PhysData.BaseSpeed
+			//	<< endl;
+			rotateTimer = millisecs();
+			speedTimer = rotateTimer;
 			if (CheckAndAdd(MSG_P_ROTATION, safe, fast))
 				fast << Player1->Data1->Rotation;
 			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
@@ -389,11 +412,14 @@ void MemoryHandler::SendPlayer()
 }
 void MemoryHandler::SendMenu()
 {
-	PacketEx safe(true), fast(false);
+	//PacketEx safe(true), fast(false);
 
-	Globals::Networking->Send(fast);
-	Globals::Networking->Send(safe);
+	//Globals::Networking->Send(fast);
+	//Globals::Networking->Send(safe);
 }
+
+#pragma endregion
+#pragma region Receive
 
 inline void MemoryHandler::writeP2Memory()
 {
@@ -688,6 +714,9 @@ void MemoryHandler::PostReceive()
 	return;
 }
 
+#pragma endregion
+#pragma region Crap
+
 inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
 inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
@@ -705,6 +734,9 @@ void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster
 
 	destination->Set(source);
 }
+
+#pragma endregion
+#pragma region Toggles
 
 void MemoryHandler::ToggleSplitscreen()
 {
@@ -734,7 +766,7 @@ bool MemoryHandler::CheckTeleport()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.HeldButtons & (1 << 5)) && (sendInput.HeldButtons & (1 << 9)))
+		if ((sendInput.HeldButtons & Buttons_Y) && (sendInput.HeldButtons & Buttons_Up))
 		{
 			if (!Teleported)
 			{
@@ -751,3 +783,5 @@ bool MemoryHandler::CheckTeleport()
 
 	return false;
 }
+
+#pragma endregion

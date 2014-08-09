@@ -82,6 +82,7 @@ void MemManage::nopP2Input(const bool doNop)
 	else
 	{
 		waitInputInit();
+		waitFrame(5);
 
 		uchar buffer[6] = {
 			0x0F,
@@ -127,10 +128,33 @@ void MemManage::swapCharsel(const bool swapcharsel)
 
 }
 
+// Returns true if both input structures have been initalized.
+const bool MemManage::InputInitalized()
+{
+	//uint p1 = 0;
+	//uint p2 = 0;
+
+	//ReadMemory(ADDR_P1INPUT, &p1, sizeof(int));
+	//ReadMemory(ADDR_P2INPUT, &p2, sizeof(int));
+
+	return (P1InputPtr != nullptr && P2InputPtr != nullptr);
+}
+
+void MemManage::waitInputInit()
+{
+	if (!InputInitalized())
+		cout << "Waiting for input structures to initialize..." << endl;
+
+	while (!InputInitalized())
+		SleepFor((milliseconds)1);
+
+	return;
+}
+
 void MemManage::swapInput(const bool doNop)
 {
 	cout << "<> Swapping input devices..." << endl;
-	
+
 	if (doNop)
 		nop(0x00441BCA, 7);
 	else
@@ -145,7 +169,7 @@ void MemManage::swapInput(const bool doNop)
 			0x01
 		};
 
-		WriteMemory(0x00441BCA, &buffer, (sizeof(char)*7));
+		WriteMemory(0x00441BCA, &buffer, (sizeof(char) * 7));
 	}
 
 
@@ -163,27 +187,4 @@ void MemManage::swapInput(const bool doNop)
 	WriteMemory(ADDR_P2INPUT, &p1, sizeof(int));
 
 	cout << "<> Swap complete." << endl;
-}
-
-// Returns true if both input structures have been initalized.
-const bool MemManage::InputInitalized()
-{
-	uint p1 = 0;
-	uint p2 = 0;
-
-	ReadMemory(ADDR_P1INPUT, &p1, sizeof(int));
-	ReadMemory(ADDR_P2INPUT, &p2, sizeof(int));
-
-	return (p1 != 0 && p2 != 0);
-}
-
-void MemManage::waitInputInit()
-{
-	if (!InputInitalized())
-		cout << "Waiting for input structures to initialize..." << endl;
-
-	while (!InputInitalized())
-		SleepFor((milliseconds)1);
-
-	return;
 }

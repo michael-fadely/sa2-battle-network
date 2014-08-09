@@ -35,10 +35,24 @@ void __cdecl Init_t(const char *path)
 
 const bool CommandLine()
 {
-	stringstream CommandLine(GetCommandLineA());
+	string raw(GetCommandLineA());
+	stringstream clean;
 
-	for (string s; getline(CommandLine, s, ' ');)
-		args.push_back(s);
+	for (uint i = 1; i < raw.length(); i++)
+	{
+		if (raw[i] == '\"')
+		{
+			for (uint x = (i + 2); x < raw.length(); x++)
+				clean << raw[x];
+
+			break;
+		}
+	}
+
+	for (string s; getline(clean, s, ' ');)
+		if (s.length() > 0)
+			args.push_back(s);
+
 
 	return (args.size() > 1);
 }
@@ -53,7 +67,7 @@ void MainThread()
 	Application::Settings Settings = {};
 	Application::ExitCode ExitCode;
 
-#pragma region "Command line" arguments
+#pragma region Command line arguments
 	if (CommandLine())
 	{
 		uint argc = args.size();
@@ -97,13 +111,11 @@ void MainThread()
 
 
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
+	sa2bn::Globals::ProcessID = GetCurrentProcess();
+	sa2bn::Globals::Networking = new PacketHandler();
 
 	while (true)
 	{
-		// Find the SA2 process
-		//cout << "Looking for SA2 window...\nPlease launch SA2 to start shenanigans.\n";
-		sa2bn::Globals::ProcessID = GetCurrentProcess();
-
 		Program = new Application::Program(Settings, isServer, Address);
 
 		Program->Connect();

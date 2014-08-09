@@ -54,6 +54,9 @@ DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #define ADDR_P2INOP			0x0077E88C
 #pragma endregion
 
+DataPointer(ControllerData*, P1InputPtr, 0x01DEFB60);
+DataPointer(ControllerData*, P2InputPtr, 0x01DEFB64);
+
 #pragma endregion
 
 #pragma region Menu

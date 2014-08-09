@@ -212,12 +212,11 @@ const ExitCode Program::RunLoop()
 
 		while (Globals::Networking->isConnected())
 		{
-			AbstractMemory->GetFrame();
-			
 			AbstractMemory->RecvLoop();
 			AbstractMemory->SendLoop();
-
 			AbstractMemory->SetFrame();
+			
+			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);
 		}
 
