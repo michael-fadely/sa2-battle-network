@@ -66,9 +66,12 @@ const float speedDelta = 0.125;
 uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
-	return (abs(last - current) >= max((speedDelta * current), 0.01)
-		//|| last != current && current <= speedDelta
-		|| last != current && Duration(speedTimer) >= 1250);
+	return (
+		last != current
+		/*abs(last - current) >= max((speedDelta * current), 0.01)*/
+		/*|| last != current && current <= speedDelta/*
+		/*|| last != current && Duration(speedTimer) >= 1250*/
+		);
 }
 
 
@@ -267,9 +270,9 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			//if (Duration(analogTimer) >= 125 || GameState == GameState::INACTIVE)
-			//{
-				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0 || GameState == GameState::INACTIVE)
+			if (Duration(analogTimer) >= 125 && GameState > GameState::INACTIVE)
+			{
+				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
 					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
 					{
@@ -288,8 +291,8 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 					}
 				}
 
-			//	analogTimer = millisecs();
-			//}
+				analogTimer = millisecs();
+			}
 		}
 	}
 
@@ -435,6 +438,7 @@ void MemoryHandler::SendMenu()
 			break;
 
 		case SubMenu2P::S_READY:
+		case SubMenu2P::O_READY:
 			if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
 			{
 				if (safe.addType(MSG_S_2PREADY))
@@ -459,7 +463,7 @@ void MemoryHandler::SendMenu()
 		case SubMenu2P::S_CHARSEL:
 			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
 			{
-				if (CharacterSelected[2] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
+				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
 				{
 					cout << "<> Resetting character selections" << endl;
 					CharacterSelectTimer = 0;
@@ -481,7 +485,6 @@ void MemoryHandler::SendMenu()
 				}
 			}
 
-			// The Tornado 2
 			// I hate this so much
 			if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
 				|| (local.menu.AltCharacterShadow != AltCharacterShadow)
@@ -610,9 +613,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_S_TIMESTOP);
 			{
 
-				uchar temp;
-				packet >> temp;
-				local.game.TimeStopMode = temp;
+				packet >> local.game.TimeStopMode;
 				writeTimeStop();
 				return true;
 			}
@@ -620,11 +621,8 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_S_2PSPECIALS);
 			{
 
-				uchar specials[3];
 				for (int i = 0; i < 3; i++)
-					packet >> specials[i];
-
-				memcpy(local.game.P2SpecialAttacks, specials, sizeof(char) * 3);
+					packet >> local.game.P2SpecialAttacks[i];
 
 				writeSpecials();
 				return true;
@@ -740,10 +738,9 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_M_ATMENU);
 			packet >> cAt2PMenu[1];
 			if (cAt2PMenu[1])
-				cout << ">> Player 2 is ready on the 2P menu! ";
+				cout << ">> Player 2 is ready on the 2P menu!" << endl;
 			else
-				cout << ">> Player 2 is no longer on the 2P menu. ";
-			cout << cAt2PMenu[1] << endl;
+				cout << ">> Player 2 is no longer on the 2P menu." << endl;
 			return true;
 
 			RECEIVED(MSG_S_2PREADY);
