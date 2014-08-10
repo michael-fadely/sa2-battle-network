@@ -267,8 +267,8 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (Duration(analogTimer) >= 125 || GameState == GameState::INACTIVE)
-			{
+			//if (Duration(analogTimer) >= 125 || GameState == GameState::INACTIVE)
+			//{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0 || GameState == GameState::INACTIVE)
 				{
 					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
@@ -288,8 +288,8 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 					}
 				}
 
-				analogTimer = millisecs();
-			}
+			//	analogTimer = millisecs();
+			//}
 		}
 	}
 
@@ -408,7 +408,7 @@ void MemoryHandler::SendMenu()
 {
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
 	{
-		PacketEx safe(true);//, fast(false);
+		PacketEx safe(true);
 
 		// Skip the Press Start screen straight to "Ready" screen
 		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2)
@@ -426,7 +426,7 @@ void MemoryHandler::SendMenu()
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
-		if ((firstMenuEntry = (local.menu.sub != CurrentMenu[1])))
+		if ((firstMenuEntry = (local.menu.sub != CurrentMenu[1] && Globals::Networking->isServer())))
 			local.menu.sub = CurrentMenu[1];
 
 		switch (CurrentMenu[1])
@@ -483,7 +483,7 @@ void MemoryHandler::SendMenu()
 
 			// The Tornado 2
 			// I hate this so much
-			if (firstMenuEntry && Globals::Networking->isServer() || (local.menu.AltCharacterSonic != AltCharacterSonic)
+			if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
 				|| (local.menu.AltCharacterShadow != AltCharacterShadow)
 				|| (local.menu.AltCharacterTails != AltCharacterTails)
 				|| (local.menu.AltCharacterEggman != AltCharacterEggman)
@@ -492,7 +492,9 @@ void MemoryHandler::SendMenu()
 			{
 				if (safe.addType(MSG_M_ALTCHAR))
 				{
-					safe.append(&local.menu.AltCharacterSonic, sizeof(char) * 6);
+					safe << AltCharacterSonic << AltCharacterShadow
+						<< AltCharacterTails << AltCharacterEggman
+						<< AltCharacterKnuckles << AltCharacterRouge;
 					
 					local.menu.AltCharacterSonic = AltCharacterSonic;
 					local.menu.AltCharacterShadow = AltCharacterShadow;
