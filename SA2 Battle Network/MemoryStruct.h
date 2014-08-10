@@ -25,7 +25,7 @@ struct MemStruct
 		// The current parent menu and its sub menu
 		uint main, sub;
 		uchar P2Start;
-		uchar PlayerReady[2];
+		int PlayerReady[2];
 
 		uint StageSelection2P[2];
 		uchar BattleSelection;
@@ -44,7 +44,7 @@ struct MemStruct
 		// Battle Options menu selection
 		char BattleOptionsSelection;
 		// Battle Options back button is selected
-		char BattleOptionsBackSelected;
+		char BattleOptionsBack;
 	} menu;
 
 	// Gameplay variables for things only seen within the stage

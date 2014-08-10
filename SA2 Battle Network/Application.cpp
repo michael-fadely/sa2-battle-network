@@ -246,7 +246,7 @@ const ExitCode Program::RunLoop()
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);
 		}
-		Disconnect(!Globals::Networking->isServer(), ExitCode::NotReady);
+		Disconnect(false, ExitCode::NotReady);
 	}
 	return exitCode;
 }

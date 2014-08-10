@@ -40,6 +40,8 @@ using namespace std;
 using namespace sf;
 using namespace sa2bn;
 
+// The very manifestation of science
+
 const float positionDelta = 16;
 uint positionTimer = 0;
 inline const bool PositionDelta(const Vertex& last, const Vertex& current)
@@ -65,7 +67,7 @@ uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
 	return (abs(last - current) >= max((speedDelta * current), 0.01)
-		//|| last != current && current < speedDelta
+		//|| last != current && current <= speedDelta
 		|| last != current && Duration(speedTimer) >= 1250);
 }
 
@@ -249,7 +251,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
 	PacketEx safe(true), fast(false);
 
-	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
+	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		if (!CheckFrame())
 			ToggleSplitscreen();
@@ -265,41 +267,28 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (GameState == GameState::INGAME)
+			if (Duration(analogTimer) >= 125 || GameState == GameState::INACTIVE)
 			{
-				if (Duration(analogTimer) >= 125)
+				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0 || GameState == GameState::INACTIVE)
 				{
-					if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
+					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
 					{
-						if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
-						{
-							safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-							sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-							sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-						}
+						safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
 					}
-					else
+				}
+				else
+				{
+					if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
 					{
-						if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
-						{
-							fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-							sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-							sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-						}
+						fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
 					}
+				}
 
-					analogTimer = millisecs();
-				}
-			}
-			else if (sendInput.LeftStickY != 0 || sendInput.LeftStickX != 0)
-			{
-				if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
-				{
-					cout << "<< Resetting analog" << endl;
-					sendInput.LeftStickY = 0;
-					sendInput.LeftStickX = 0;
-					safe << sendInput.LeftStickY << sendInput.LeftStickX;
-				}
+				analogTimer = millisecs();
 			}
 		}
 	}
@@ -347,6 +336,8 @@ void MemoryHandler::SendPlayer()
 				safe << Player1->Data1->Action;
 			if (CheckAndAdd(MSG_P_STATUS, fast, safe))
 				safe << Player1->Data1->Status;
+			if (CheckAndAdd(MSG_P_ANIMATION, fast, safe))
+				safe << Player1->Data2->AnimInfo.Next;
 			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
 			{
 				positionTimer = millisecs();
@@ -384,7 +375,7 @@ void MemoryHandler::SendPlayer()
 				safe << Player1->Data1->Scale;
 		}
 
-		if ((Player1->Data2->CharID == 6 || Player1->Data2->CharID == 7) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
+		if ((Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
 		{
 			if (CheckAndAdd(MSG_P_HP, fast, safe))
 				safe << Player1->Data2->MechHP;
@@ -415,10 +406,135 @@ void MemoryHandler::SendPlayer()
 }
 void MemoryHandler::SendMenu()
 {
-	//PacketEx safe(true), fast(false);
+	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
+	{
+		PacketEx safe(true);//, fast(false);
 
-	//Globals::Networking->Send(fast);
-	//Globals::Networking->Send(safe);
+		// Skip the Press Start screen straight to "Ready" screen
+		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2)
+			P2Start = 2;
+
+		// Send battle options
+		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
+		{
+			if (safe.addType(MSG_S_BATTLEOPT))
+			{
+				safe.append(BattleOptions, BattleOptions_Length);
+				memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
+			}
+		}
+
+		// Always send information about the menu you enter,
+		// regardless of detected change.
+		if ((firstMenuEntry = (local.menu.sub != CurrentMenu[1])))
+			local.menu.sub = CurrentMenu[1];
+
+		switch (CurrentMenu[1])
+		{
+		default:
+			break;
+
+		case SubMenu2P::S_READY:
+			if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
+			{
+				if (safe.addType(MSG_S_2PREADY))
+				{
+					safe << PlayerReady[0];
+					local.menu.PlayerReady[0] = PlayerReady[0];
+				}
+			}
+			break;
+
+		case SubMenu2P::S_BATTLEMODE:
+			if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
+			{
+				if (safe.addType(MSG_M_BATTLESEL))
+				{
+					safe << BattleSelection;
+					local.menu.BattleSelection = BattleSelection;
+				}
+			}
+			break;
+
+		case SubMenu2P::S_CHARSEL:
+			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
+			{
+				if (CharacterSelected[2] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
+				{
+					cout << "<> Resetting character selections" << endl;
+					CharacterSelectTimer = 0;
+					CurrentMenu[1] = SubMenu2P::O_CHARSEL;
+				}
+
+				if (safe.addType(MSG_M_CHARSEL))
+				{
+					safe << CharacterSelection[0];
+					local.menu.CharacterSelection[0] = CharacterSelection[0];
+				}
+			}
+			if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
+			{
+				if (safe.addType(MSG_M_CHARCHOSEN))
+				{
+					safe << CharacterSelected[0];
+					local.menu.CharacterSelected[0] = CharacterSelected[0];
+				}
+			}
+
+			// The Tornado 2
+			// I hate this so much
+			if (firstMenuEntry && Globals::Networking->isServer() || (local.menu.AltCharacterSonic != AltCharacterSonic)
+				|| (local.menu.AltCharacterShadow != AltCharacterShadow)
+				|| (local.menu.AltCharacterTails != AltCharacterTails)
+				|| (local.menu.AltCharacterEggman != AltCharacterEggman)
+				|| (local.menu.AltCharacterKnuckles != AltCharacterKnuckles)
+				|| (local.menu.AltCharacterRouge != AltCharacterRouge))
+			{
+				if (safe.addType(MSG_M_ALTCHAR))
+				{
+					safe.append(&local.menu.AltCharacterSonic, sizeof(char) * 6);
+					
+					local.menu.AltCharacterSonic = AltCharacterSonic;
+					local.menu.AltCharacterShadow = AltCharacterShadow;
+					local.menu.AltCharacterTails = AltCharacterTails;
+					local.menu.AltCharacterEggman = AltCharacterEggman;
+					local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
+					local.menu.AltCharacterRouge = AltCharacterRouge;
+				}
+			}
+
+			break;
+
+		case SubMenu2P::S_STAGESEL:
+			if (firstMenuEntry
+				|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
+				|| local.menu.BattleOptionsButton != BattleOptionsButton)
+			{
+				if (safe.addType(MSG_M_STAGESEL))
+				{
+					safe << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+					local.menu.StageSelection2P[0] = StageSelection2P[0];
+					local.menu.StageSelection2P[1] = StageSelection2P[1];
+					local.menu.BattleOptionsButton = BattleOptionsButton;
+				}
+			}
+			break;
+
+		case SubMenu2P::S_BATTLEOPT:
+			if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
+			{
+				if (safe.addType(MSG_M_BATTLEOPTSEL))
+				{
+					safe << BattleOptionsSelection << BattleOptionsBack;
+					local.menu.BattleOptionsSelection = BattleOptionsSelection;
+					local.menu.BattleOptionsBack = BattleOptionsBack;
+				}
+			}
+			break;
+		}
+
+		Globals::Networking->Send(safe);
+	}
 }
 
 #pragma endregion
@@ -432,7 +548,7 @@ inline void MemoryHandler::writeP2Memory()
 
 bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 {
-	if (CurrentMenu[0] == 16 || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
+	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		switch (type)
 		{
@@ -442,7 +558,7 @@ bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_I_BUTTONS);
 			packet >> recvInput.HeldButtons;
 			if (CheckFrame())
-				MemManage::waitFrame(1, thisFrame);
+				MemManage::waitFrame();
 			recvInput.WriteButtons(ControllersRaw[1]);
 
 			return true;
@@ -540,9 +656,7 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_ACTION);
 			{
-				uchar action;
-				packet >> action;
-				recvPlayer.Data1.Action = action;
+				packet >> recvPlayer.Data1.Action;
 				writePlayer = true;
 				break;
 			}
@@ -676,9 +790,9 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_M_BATTLEOPTSEL);
 			packet >> local.menu.BattleOptionsSelection
-				>> local.menu.BattleOptionsBackSelected;
+				>> local.menu.BattleOptionsBack;
 			BattleOptionsSelection = local.menu.BattleOptionsSelection;
-			BattleOptionsBackSelected = local.menu.BattleOptionsBackSelected;
+			BattleOptionsBack = local.menu.BattleOptionsBack;
 
 			return true;
 
@@ -692,7 +806,7 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 
 			return true;
 
-			RECEIVED(MSG_M_BATTLEMODESEL);
+			RECEIVED(MSG_M_BATTLESEL);
 			packet >> local.menu.BattleSelection;
 			BattleSelection = local.menu.BattleSelection;
 
@@ -714,7 +828,7 @@ void MemoryHandler::PreReceive()
 void MemoryHandler::PostReceive()
 {
 	updateAbstractPlayer(&recvPlayer, Player2);
-	//writeP2Memory();
+	writeP2Memory();
 
 	writeRings();
 	writeSpecials();

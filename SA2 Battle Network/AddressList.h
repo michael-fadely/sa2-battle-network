@@ -98,7 +98,7 @@ DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma region Pointers - Battle Options
 DataArray(char, BattleOptions, ADDR_BATTOPT, 4);
 DataPointer(unsigned char, BattleOptionsSelection, ADDR_BATTOPT_SEL);
-DataPointer(char, BattleOptionsBackSelected, ADDR_BATTOPT_BAK);
+DataPointer(char, BattleOptionsBack, ADDR_BATTOPT_BAK);
 DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #pragma endregion
 

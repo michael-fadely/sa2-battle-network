@@ -52,6 +52,7 @@ void PlayerObject::Set(ObjectMaster* player)
 		Data2.HSpeed = player->Data2->HSpeed;
 		Data2.VSpeed = player->Data2->VSpeed;
 		Data2.PhysData.BaseSpeed = player->Data2->PhysData.BaseSpeed;
+		Data2.AnimInfo.Next = player->Data2->AnimInfo.Next;
 
 		switch (player->Data2->CharID2)
 		{
@@ -101,6 +102,7 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 		destination->Data2->HSpeed = source->Data2.HSpeed;
 		destination->Data2->VSpeed = source->Data2.VSpeed;
 		destination->Data2->PhysData.BaseSpeed = source->Data2.PhysData.BaseSpeed;
+		destination->Data2->AnimInfo.Next = source->Data2.AnimInfo.Next;
 
 		switch (destination->Data2->CharID2)
 		{
