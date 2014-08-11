@@ -61,7 +61,7 @@ private:
 	void writeSpecials();
 	void writeTimeStop();
 
-	void updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
+	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
 	void ToggleSplitscreen();
 	bool CheckTeleport();
 

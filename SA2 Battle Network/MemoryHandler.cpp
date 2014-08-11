@@ -166,13 +166,15 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				break;
 
 			default:
-				ReceiveSystem(id, packet);
 				ReceiveInput(id, packet);
+				ReceiveSystem(id, packet);
 				ReceivePlayer(id, packet);
 				ReceiveMenu(id, packet);
 				break;
 			}
 		}
+		if (writePlayer)
+			writeP2Memory();
 	}
 }
 
@@ -270,7 +272,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (Duration(analogTimer) >= 125 && GameState > GameState::INACTIVE)
+			if (Duration(analogTimer) >= 125 && GameState == GameState::INGAME || GameState > GameState::INGAME)
 			{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
@@ -401,7 +403,7 @@ void MemoryHandler::SendPlayer()
 			}
 		}
 
-		updateAbstractPlayer(&sendPlayer, Player1);
+		UpdateAbstractPlayer(&sendPlayer, Player1);
 
 		Globals::Networking->Send(fast);
 		Globals::Networking->Send(safe);
@@ -498,7 +500,7 @@ void MemoryHandler::SendMenu()
 					safe << AltCharacterSonic << AltCharacterShadow
 						<< AltCharacterTails << AltCharacterEggman
 						<< AltCharacterKnuckles << AltCharacterRouge;
-					
+
 					local.menu.AltCharacterSonic = AltCharacterSonic;
 					local.menu.AltCharacterShadow = AltCharacterShadow;
 					local.menu.AltCharacterTails = AltCharacterTails;
@@ -548,7 +550,10 @@ void MemoryHandler::SendMenu()
 inline void MemoryHandler::writeP2Memory()
 {
 	if (GameState >= GameState::INGAME)
+	{
+		writePlayer = false;
 		PlayerObject::WritePlayer(Player2, &recvPlayer);
+	}
 }
 
 bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
@@ -586,7 +591,6 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			return false;
 
 			RECEIVED(MSG_S_TIME);
-
 			packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
 			TimerMinutes = local.game.TimerMinutes;
 			TimerSeconds = local.game.TimerSeconds;
@@ -595,7 +599,6 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_S_GAMESTATE);
 			{
-
 				uchar recvGameState;
 				packet >> recvGameState;
 				cout << (ushort)recvGameState << ' ' << (ushort)local.system.GameState << ' ' << (ushort)GameState << endl;
@@ -611,22 +614,16 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			return true;
 
 			RECEIVED(MSG_S_TIMESTOP);
-			{
-
-				packet >> local.game.TimeStopMode;
-				writeTimeStop();
-				return true;
-			}
+			packet >> local.game.TimeStopMode;
+			writeTimeStop();
+			return true;
 
 			RECEIVED(MSG_S_2PSPECIALS);
-			{
+			for (int i = 0; i < 3; i++)
+				packet >> local.game.P2SpecialAttacks[i];
 
-				for (int i = 0; i < 3; i++)
-					packet >> local.game.P2SpecialAttacks[i];
-
-				writeSpecials();
-				return true;
-			}
+			writeSpecials();
+			return true;
 
 			RECEIVED(MSG_S_RINGS);
 			packet >> local.game.RingCount[1];
@@ -642,7 +639,7 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
-		writePlayer = false;
+		//writePlayer = false;
 		switch (type)
 		{
 		default:
@@ -655,11 +652,9 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			break;
 
 			RECEIVED(MSG_P_ACTION);
-			{
-				packet >> recvPlayer.Data1.Action;
-				writePlayer = true;
-				break;
-			}
+			packet >> recvPlayer.Data1.Action;
+			writePlayer = true;
+			break;
 
 			RECEIVED(MSG_P_STATUS);
 			packet >> recvPlayer.Data1.Status;
@@ -718,8 +713,8 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			}
 		}
 
-		if (writePlayer)
-			writeP2Memory();
+		//if (writePlayer)
+		//	writeP2Memory();
 
 		return writePlayer;
 	}
@@ -817,7 +812,7 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 
 void MemoryHandler::PreReceive()
 {
-	updateAbstractPlayer(&recvPlayer, Player2);
+	UpdateAbstractPlayer(&recvPlayer, Player2);
 
 	writeRings();
 	writeSpecials();
@@ -826,8 +821,8 @@ void MemoryHandler::PreReceive()
 }
 void MemoryHandler::PostReceive()
 {
-	updateAbstractPlayer(&recvPlayer, Player2);
-	writeP2Memory();
+	UpdateAbstractPlayer(&recvPlayer, Player2);
+	//writeP2Memory();
 
 	writeRings();
 	writeSpecials();
@@ -842,7 +837,7 @@ inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
 inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
 
-void MemoryHandler::updateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
+void MemoryHandler::UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
 {
 	// Mech synchronize hack
 	if (GameState >= GameState::INGAME && Player2 != nullptr)
@@ -863,7 +858,7 @@ void MemoryHandler::ToggleSplitscreen()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.HeldButtons & (1 << 16)) && (sendInput.HeldButtons & (2 << 16)))
+		if ((sendInput.HeldButtons & Buttons_L) && (sendInput.HeldButtons & Buttons_R))
 		{
 			if (!splitToggled)
 			{
@@ -913,12 +908,7 @@ const unsigned int MemoryHandler::GetCurrentMenu()
 		GetFrame();
 
 	if (CheckFrame())
-	{
 		return local.menu.main;
-	}
 	else
-	{
-		local.menu.main = CurrentMenu[0];
-		return local.menu.main;
-	}
+		return local.menu.main = CurrentMenu[0];
 }
