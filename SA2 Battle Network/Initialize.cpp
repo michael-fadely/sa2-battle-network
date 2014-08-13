@@ -1,13 +1,14 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
+#define WIN32_LEAN_AND_MEAN
 
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
 
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <ShellAPI.h>		// for CommandLinetoArgvW
 
 #include "Common.h"			// for LazyTypedefs, SleepFor, Globals
 #include "Networking.h"		// for MSG_COUNT
@@ -24,40 +25,18 @@ using namespace std;
 using namespace chrono;
 
 // Globals
-vector<string> args;
+int argc = 0;
+wchar_t** argv = nullptr;
 
 void __cdecl Init_t(const char *path)
 {
-	thread mainThread(MainThread);
+	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	thread mainThread(MainThread, argc, argv);
 	mainThread.detach();
 	return;
 }
 
-const bool CommandLine()
-{
-	string raw(GetCommandLineA());
-	stringstream clean;
-
-	for (uint i = 1; i < raw.length(); i++)
-	{
-		if (raw[i] == '\"')
-		{
-			for (uint x = (i + 2); x < raw.length(); x++)
-				clean << raw[x];
-
-			break;
-		}
-	}
-
-	for (string s; getline(clean, s, ' ');)
-		if (s.length() > 0)
-			args.push_back(s);
-
-
-	return (args.size() > 1);
-}
-
-void MainThread()
+void MainThread(int argc, wchar_t** argv)
 {
 	bool isServer = false;
 	uint timeout = 15000;
@@ -68,38 +47,40 @@ void MainThread()
 	Application::ExitCode ExitCode;
 
 #pragma region Command line arguments
-	if (CommandLine())
+	if (argc > 2)
 	{
-		uint argc = args.size();
-		for (uint i = 0; i < argc; i++)
+		for (int i = 1; i < argc; i++)
 		{
 			// Connection
-			if ((args[i] == "--host" || args[i] == "-h") && (i + 1) < argc)
+			if ((wcscmp(argv[i], L"--host") == 0 || wcscmp(argv[i], L"-h") == 0) && (i + 1) < argc)
 			{
 				isServer = true;
 				//netMode = "server";
-				Address.port = atoi(args[++i].c_str());
+				Address.port = _wtoi(argv[++i]);
 			}
-			else if ((args[i] == "--connect" || args[i] == "-c") && (i + 2) < argc)
+			else if ((wcscmp(argv[i], L"--connect") == 0 || wcscmp(argv[i], L"-c") == 0) && (i + 2) < argc)
 			{
 				isServer = false;
-				//netMode = "client";
-				Address.ip = args[++i];
+				
+				wstring wstr = argv[++i];
+				string sstr(wstr.begin(), wstr.end());
+
+				Address.ip = sstr;
 				cout << Address.ip << endl;
-				Address.port = atoi(args[++i].c_str());
+				Address.port = _wtoi(argv[++i]);
 			}
-			else if ((args[i] == "--timeout" || args[i] == "-t") && (i + 1) < argc)
+			else if ((wcscmp(argv[i], L"--timeout") == 0 || wcscmp(argv[i], L"-t") == 0) && (i + 1) < argc)
 			{
-				if ((timeout = atoi(args[++i].c_str())) < 1000)
+				if ((timeout = _wtoi(argv[++i])) < 1000)
 					timeout = 1000;
 			}
 
 			// Configuration
-			else if (args[i] == "--no-specials")
+			else if (wcscmp(argv[i], L"--no-specials") == 0)
 				Settings.noSpecials = true;
-			else if (args[i] == "--local" || args[i] == "-l")
+			else if (wcscmp(argv[i], L"--local") == 0 || wcscmp(argv[i], L"-l") == 0)
 				Settings.isLocal = true;
-			else if (args[i] == "--keep-active")
+			else if (wcscmp(argv[i], L"--keep-active") == 0)
 				Settings.KeepWindowActive = true;
 		}
 	}
