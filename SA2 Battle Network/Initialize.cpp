@@ -17,9 +17,6 @@
 
 #include "Initialize.h"
 
-// Prototypes
-void hprint(std::string text, std::chrono::milliseconds sleep);
-
 // Namespaces
 using namespace std;
 using namespace chrono;
@@ -135,14 +132,4 @@ void MainThread(int argc, wchar_t** argv)
 
 	delete Program;
 	delete sa2bn::Globals::Networking;
-}
-
-// Unnecessary haxy print
-void hprint(std::string text, std::chrono::milliseconds sleep)
-{
-	for (unsigned int i = 0; i < text.length(); i++)
-	{
-		cout << text[i];
-		SleepFor(sleep);
-	}
 }
