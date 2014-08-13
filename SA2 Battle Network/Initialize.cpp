@@ -38,6 +38,7 @@ void __cdecl Init_t(const char *path)
 
 void MainThread(int argc, wchar_t** argv)
 {
+	bool ValidArguments = false;
 	bool isServer = false;
 	uint timeout = 15000;
 
@@ -57,6 +58,7 @@ void MainThread(int argc, wchar_t** argv)
 				isServer = true;
 				//netMode = "server";
 				Address.port = _wtoi(argv[++i]);
+				ValidArguments = true;
 			}
 			else if ((wcscmp(argv[i], L"--connect") == 0 || wcscmp(argv[i], L"-c") == 0) && (i + 2) < argc)
 			{
@@ -68,26 +70,40 @@ void MainThread(int argc, wchar_t** argv)
 				Address.ip = sstr;
 				cout << Address.ip << endl;
 				Address.port = _wtoi(argv[++i]);
+				ValidArguments = true;
 			}
 			else if ((wcscmp(argv[i], L"--timeout") == 0 || wcscmp(argv[i], L"-t") == 0) && (i + 1) < argc)
 			{
 				if ((timeout = _wtoi(argv[++i])) < 1000)
 					timeout = 1000;
+				ValidArguments = true;
 			}
 
 			// Configuration
 			else if (wcscmp(argv[i], L"--no-specials") == 0)
+			{
 				Settings.noSpecials = true;
+				ValidArguments = true;
+			}
 			else if (wcscmp(argv[i], L"--local") == 0 || wcscmp(argv[i], L"-l") == 0)
+			{
 				Settings.isLocal = true;
+				ValidArguments = true;
+			}
 			else if (wcscmp(argv[i], L"--keep-active") == 0)
+			{
 				Settings.KeepWindowActive = true;
+				ValidArguments = true;
+			}
 		}
 	}
 	else
 	{
 		return;
 	}
+
+	if (!ValidArguments)
+		return;
 #pragma endregion
 
 
