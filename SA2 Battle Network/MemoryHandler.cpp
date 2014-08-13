@@ -137,9 +137,12 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
+	UpdateAbstractPlayer(&recvPlayer, Player2);
+
 	if (status == sf::Socket::Status::Done)
 	{
 		uchar id = MSG_NULL;
+		
 		while (!packet.endOfPacket())
 		{
 			packet >> id;
@@ -167,6 +170,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				break;
 			}
 		}
+
 		if (writePlayer)
 			writeP2Memory();
 	}
@@ -643,7 +647,6 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
-		UpdateAbstractPlayer(&recvPlayer, Player2);
 		//writePlayer = false;
 		switch (type)
 		{
