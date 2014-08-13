@@ -1,9 +1,3 @@
-// Defines
-
-#define RECEIVED RECEIVE_VERBOSE
-#define RECEIVE_VERBOSE(type) case type: cout << ">> Received type " #type << endl
-#define RECEIVE_CONCISE(type) case type:;
-
 // Makes sure TYPE isn't in ISIN and adds it to ADDTO
 #define CheckAndAdd(TYPE, ISIN, ADDTO) !ISIN.isInPacket(TYPE) && ADDTO.addType(TYPE)
 
@@ -67,7 +61,7 @@ uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
 	return (
-		last != current
+		last != current // <- Old behavior for testing purposes.
 		/*abs(last - current) >= max((speedDelta * current), 0.01)*/
 		/*|| last != current && current <= speedDelta/*
 		/*|| last != current && Duration(speedTimer) >= 1250*/
@@ -182,9 +176,16 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 void MemoryHandler::SendSystem()
 {
-	if (GameState >= GameState::LOAD_FINISHED && TwoPlayerMode > 0)
+	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
 		PacketEx safe(true), fast(false);
+		
+		if (local.game.CurrentLevel != CurrentLevel)
+		{
+			RingCount[0] = 0;
+			local.game.RingCount[0] = 0;
+			local.game.CurrentLevel = CurrentLevel;
+		}
 
 		if (local.system.GameState != GameState)
 		{
@@ -239,7 +240,7 @@ void MemoryHandler::SendSystem()
 			}
 		}
 
-		if (local.game.RingCount[0] != RingCount[0])
+		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::INGAME)
 		{
 			if (CheckAndAdd(MSG_S_RINGS, fast, safe))
 			{
@@ -416,8 +417,11 @@ void MemoryHandler::SendMenu()
 		PacketEx safe(true);
 
 		// Skip the Press Start screen straight to "Ready" screen
-		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2)
+		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2 && !wroteP2Start)
+		{
+			wroteP2Start = true;
 			P2Start = 2;
+		}
 
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
@@ -639,6 +643,7 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
+		UpdateAbstractPlayer(&recvPlayer, Player2);
 		//writePlayer = false;
 		switch (type)
 		{
@@ -812,7 +817,7 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 
 void MemoryHandler::PreReceive()
 {
-	UpdateAbstractPlayer(&recvPlayer, Player2);
+	//UpdateAbstractPlayer(&recvPlayer, Player2);
 
 	writeRings();
 	writeSpecials();
@@ -821,7 +826,7 @@ void MemoryHandler::PreReceive()
 }
 void MemoryHandler::PostReceive()
 {
-	UpdateAbstractPlayer(&recvPlayer, Player2);
+	//UpdateAbstractPlayer(&recvPlayer, Player2);
 	//writeP2Memory();
 
 	writeRings();

@@ -1,5 +1,14 @@
 #pragma once
 
+// Defines
+#ifndef RECEIVED
+#define RECEIVED RECV_CONCISE
+#endif
+
+#define RECV_VERBOSE(type) case type: cout << ">> Received type " #type << endl
+#define RECV_CONCISE(type) case type:
+
+
 #include "MemoryManagement.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
@@ -13,8 +22,10 @@ class MemoryHandler
 {
 public:
 	MemoryHandler();
-
+	
+	//
 	// Methods
+	//
 
 	void RecvLoop();
 	void SendLoop();
@@ -31,7 +42,9 @@ public:
 	const unsigned int GetCurrentMenu();
 
 private:
+	//
 	// Methods
+	//
 
 	void Receive(sf::Packet& packet, const bool safe);
 
@@ -48,7 +61,7 @@ private:
 	bool ReceiveInput(uchar type, sf::Packet& packet);
 	// Receive game/system variables
 	bool ReceiveSystem(uchar type, sf::Packet& packet);
-	// Receive and write Player variables
+	// Receive and queue write of Player variables
 	bool ReceivePlayer(uchar type, sf::Packet& packet);
 	// Receive and write Menu variables
 	bool ReceiveMenu(uchar type, sf::Packet& packet);
@@ -56,26 +69,32 @@ private:
 	void PreReceive();
 	void PostReceive();
 
+	// Pretty much all of these are just so I can be lazy
 	void writeP2Memory();
 	void writeRings();
 	void writeSpecials();
 	void writeTimeStop();
 
+	// Populates a local player object (destination) with data from an ingame player (source).
 	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
 	void ToggleSplitscreen();
 	bool CheckTeleport();
 
+	//
 	// Members
+	//
+
+	// Used for frame synchronization.
 	uint thisFrame, lastFrame;
 
 	PlayerObject	recvPlayer, sendPlayer;
 	InputStruct		recvInput, sendInput;
 
-	// A Memory Structure that is "local".
 	// Used for comparison to determine what to send.
 	MemStruct local;
 
-	// Timers etc
+	// Analog throttle timer.
+	// Prevents it from spamming packets.
 	uint analogTimer;
 
 	// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
@@ -83,7 +102,7 @@ private:
 	bool cAt2PMenu[2];
 	bool lAt2PMenu[2];
 
-	// Toggles
+	// Toggles and things
 	bool firstMenuEntry;
 	bool wroteP2Start;
 	bool splitToggled;
