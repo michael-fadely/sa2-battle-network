@@ -27,6 +27,13 @@ wchar_t** argv = nullptr;
 
 void __cdecl Init_t(const char *path)
 {
+	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0) {
+		abort();
+	}
+	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0) {
+		abort();
+	}
+
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	thread mainThread(MainThread, argc, argv);
 	mainThread.detach();

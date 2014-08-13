@@ -5,7 +5,7 @@
 #define RECEIVED RECV_CONCISE
 #endif
 
-#define RECV_VERBOSE(type) case type: cout << ">> Received type " #type << endl
+#define RECV_VERBOSE(type) case type: cout << ">> [" << millisecs() << "] Received type " #type << endl
 #define RECV_CONCISE(type) case type:
 
 
@@ -26,6 +26,8 @@ public:
 	//
 	// Methods
 	//
+
+	void Initialize();
 
 	void RecvLoop();
 	void SendLoop();

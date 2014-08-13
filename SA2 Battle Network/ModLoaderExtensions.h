@@ -6,19 +6,10 @@
 
 // Sonic's Obj2Base
 // Shared with: Shadow, Amy, MetalSonic
-struct SonicObj2Base
-{
-	char field_1B8[420];
-
-	char HomingAttackTimer;
-	char padding_1[7];
-
-	char HomingRangeTimer;
-	char padding_2[3];
-
-	unsigned short SpindashTimer;
-	char padding_3[46];
-
+struct SonicObj2Base {
+	char field_1B8[432];
+	short SpindashTimer;
+	char filler[42];
 	TexList *TextureList;
 	ModelIndex *ModelList;
 	AnimationIndex *MotionList;

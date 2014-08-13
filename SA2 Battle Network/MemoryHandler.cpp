@@ -73,9 +73,16 @@ const bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
+MemoryHandler::MemoryHandler()
 {
-	//memset(this, 0, sizeof(MemoryHandler));
+	Initialize();
+}
+
+void MemoryHandler::Initialize()
+{
+	local = {};
+	recvInput = {};
+	sendInput = {};
 
 	analogTimer = 0;
 
@@ -93,7 +100,6 @@ MemoryHandler::MemoryHandler() : local(), recvInput(), sendInput()
 	thisFrame = 0;
 	lastFrame = 0;
 }
-
 
 void MemoryHandler::RecvLoop()
 {
@@ -117,6 +123,13 @@ void MemoryHandler::SendLoop()
 	// Grab the current frame before continuing.
 	// This is for frame synchronization.
 	GetFrame();
+
+	if (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
+		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y))
+	{
+		cout << "Warping to test level!" << endl;
+		CurrentLevel = 0;
+	}
 
 	SendInput();
 	if (!CheckFrame())
@@ -142,16 +155,27 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	if (status == sf::Socket::Status::Done)
 	{
 		uchar id = MSG_NULL;
-		
+		uchar lastID = MSG_NULL;
+
 		while (!packet.endOfPacket())
 		{
 			packet >> id;
+
+			if (lastID == id)
+			{
+				cout << "\a<> Packet read loop failsafe! [LAST " << (ushort)lastID << " - RECV " << (ushort)id << ']' << endl;
+				break;
+			}
+
+			if (writePlayer)
+				writeP2Memory();
+
 			//cout << (ushort)id << endl;
 			switch (id)
 			{
-				//case MSG_NULL:
-				//	cout << "\a>> Reached end of packet." << endl;
-				//	break;
+			case MSG_NULL:
+				cout << "\a>> Reached end of packet." << endl;
+				break;
 
 			case MSG_COUNT:
 				cout << ">> Received message count?! Malformed packet warning!" << endl;
@@ -169,10 +193,10 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				ReceiveMenu(id, packet);
 				break;
 			}
+
+			lastID = id;
 		}
 
-		if (writePlayer)
-			writeP2Memory();
 	}
 }
 
@@ -183,7 +207,7 @@ void MemoryHandler::SendSystem()
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
 		PacketEx safe(true), fast(false);
-		
+
 		if (local.game.CurrentLevel != CurrentLevel)
 		{
 			RingCount[0] = 0;
@@ -277,7 +301,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (Duration(analogTimer) >= 125 && GameState == GameState::INGAME || GameState > GameState::INGAME)
+			if (Duration(analogTimer) >= 125 && GameState == GameState::INGAME)
 			{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
@@ -332,19 +356,29 @@ void MemoryHandler::SendPlayer()
 			}
 		}
 
+		bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
+			|| Player1->Data2->CharID2 == Characters_Shadow
+			|| Player1->Data2->CharID2 == Characters_Amy
+			|| Player1->Data2->CharID2 == Characters_MetalSonic);
+
+		if (sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
+		{
+			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
+			{
+				cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+			}
+		}
+
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
-			bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
-				|| Player1->Data2->CharID2 == Characters_Shadow
-				|| Player1->Data2->CharID2 == Characters_Amy
-				|| Player1->Data2->CharID2 == Characters_MetalSonic);
 
 			// IN CASE OF EMERGENCY, UNCOMMENT
 			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
 
 			if (CheckAndAdd(MSG_P_ACTION, fast, safe))
 				safe << Player1->Data1->Action;
-			if (CheckAndAdd(MSG_P_STATUS, fast, safe))
+			if (!isHoldAction(Player1->Data1->Action) && CheckAndAdd(MSG_P_STATUS, fast, safe))
 				safe << Player1->Data1->Status;
 			if (CheckAndAdd(MSG_P_ANIMATION, fast, safe))
 				safe << Player1->Data2->AnimInfo.Next;
@@ -354,7 +388,10 @@ void MemoryHandler::SendPlayer()
 				safe << Player1->Data1->Position;
 			}
 			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
+			{
+				cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+			}
 		}
 
 		if (RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
@@ -471,15 +508,19 @@ void MemoryHandler::SendMenu()
 			break;
 
 		case SubMenu2P::S_CHARSEL:
+		case SubMenu2P::O_CHARSEL:
+			// Character select bug work-around
+			// When a button press is missed, but the character selected state is synchronized,
+			// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
+			if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
+			{
+				cout << "<> Resetting character selections" << endl;
+				CharacterSelectTimer = 0;
+				CurrentMenu[1] = SubMenu2P::O_CHARSEL;
+			}
+
 			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
 			{
-				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
-				{
-					cout << "<> Resetting character selections" << endl;
-					CharacterSelectTimer = 0;
-					CurrentMenu[1] = SubMenu2P::O_CHARSEL;
-				}
-
 				if (safe.addType(MSG_M_CHARSEL))
 				{
 					safe << CharacterSelection[0];
@@ -598,7 +639,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 		default:
 			return false;
 
-			RECEIVED(MSG_S_TIME);
+		case MSG_S_TIME:
 			packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
 			TimerMinutes = local.game.TimerMinutes;
 			TimerSeconds = local.game.TimerSeconds;
@@ -609,7 +650,6 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			{
 				uchar recvGameState;
 				packet >> recvGameState;
-				cout << (ushort)recvGameState << ' ' << (ushort)local.system.GameState << ' ' << (ushort)GameState << endl;
 				if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
 					GameState = local.system.GameState = recvGameState;
 
@@ -637,7 +677,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			packet >> local.game.RingCount[1];
 			writeRings();
 
-			cout << ">> Ring Count Change); " << local.game.RingCount[1] << endl;
+			cout << ">> Ring Count Change " << local.game.RingCount[1] << endl;
 			return true;
 		}
 	}
@@ -669,8 +709,10 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_SPINTIMER);
+			//RECEIVED(MSG_P_SPINTIMER);
+		case MSG_P_SPINTIMER:
 			packet >> recvPlayer.Sonic.SpindashTimer;
+			cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
 			writePlayer = true;
 			break;
 
@@ -679,12 +721,14 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_POSITION);
+			//RECEIVED(MSG_P_POSITION);
+		case MSG_P_POSITION:
 			packet >> recvPlayer.Data1.Position;
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_ROTATION);
+			//RECEIVED(MSG_P_ROTATION);
+		case MSG_P_ROTATION:
 			packet >> recvPlayer.Data1.Rotation;
 			writePlayer = true;
 			break;
@@ -694,7 +738,8 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_SPEED);
+			//RECEIVED(MSG_P_SPEED);
+		case MSG_P_SPEED:
 			packet >> recvPlayer.Data2.HSpeed;
 			packet >> recvPlayer.Data2.VSpeed;
 			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
@@ -704,7 +749,7 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_POWERUPS);
 			{
-				short powerups;
+				int powerups;
 				packet >> powerups;
 				recvPlayer.Data2.Powerups = (Powerups)powerups;
 				writePlayer = true;

@@ -222,6 +222,7 @@ void Program::ApplySettings()
 
 const ExitCode Program::RunLoop()
 {
+	AbstractMemory->Initialize();
 	if (Globals::Networking->isConnected())
 	{
 		exitCode = ExitCode::None;

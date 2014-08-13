@@ -469,17 +469,9 @@ typedef CharObj2 CharObj2Base;
 // Sonic's CharObj2
 // Shared with: Shadow, Amy, MetalSonic
 struct SonicCharObj2 : CharObj2 {
-	char field_1B8[420];
-	
-	char HomingAttackTimer;
-	char padding_1[7];
-	
-	char HomingRangeTimer;
-	char padding_2[3];
-	
-	unsigned short SpindashTimer;
-	char padding_3[46];
-
+	char field_1B8[432];
+	short SpindashTimer;
+	char filler[42];
 	TexList *TextureList;
 	ModelIndex *ModelList;
 	AnimationIndex *MotionList;
