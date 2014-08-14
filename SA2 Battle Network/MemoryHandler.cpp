@@ -56,7 +56,7 @@ inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
 }
 
-const float speedDelta = 0.05F;
+const float speedDelta = 0.1F;
 uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
@@ -307,7 +307,7 @@ void MemoryHandler::SendInput(/*uint sendTimer*/)
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (Duration(analogTimer) >= 125 && GameState == GameState::INGAME)
+			if (/*Duration(analogTimer) >= 125 && */GameState == GameState::INGAME)
 			{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 				{
