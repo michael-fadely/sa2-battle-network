@@ -5,7 +5,7 @@
 #define RECEIVED RECV_CONCISE
 #endif
 
-#define RECV_VERBOSE(type) case type: cout << ">> [" << millisecs() << "] Received type " #type << endl
+#define RECV_VERBOSE(type) case type: cout << ">> [" << millisecs() << "] " #type << endl
 #define RECV_CONCISE(type) case type:
 
 
@@ -110,4 +110,5 @@ private:
 	bool splitToggled;
 	bool Teleported;
 	bool writePlayer;
+	bool sendSpinTimer;
 };

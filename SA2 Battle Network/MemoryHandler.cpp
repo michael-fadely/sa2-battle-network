@@ -46,25 +46,26 @@ inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 1250);
 }
 
-const uint rotateDelta = ((float)11.25 * (float)(65536 / 360));
+const uint rotateDelta = (uint)(5.625 * (65536 / 360));
 uint rotateTimer = 0;
 inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 {
 	return (abs(last.x - current.x) >= rotateDelta
 		|| abs(last.y - current.y) >= rotateDelta
 		|| abs(last.z - current.z) >= rotateDelta
-		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 1250);
+		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
 }
 
-const float speedDelta = 0.125;
+const float speedDelta = 0.05F;
 uint speedTimer = 0;
 const bool SpeedDelta(const float last, const float current)
 {
 	return (
-		last != current // <- Old behavior for testing purposes.
-		/*abs(last - current) >= max((speedDelta * current), 0.01)*/
-		/*|| last != current && current <= speedDelta/*
-		/*|| last != current && Duration(speedTimer) >= 1250*/
+		//last != current // <- Old behavior for testing purposes.
+		//abs(last - current) >= max((speedDelta * current), 0.01)
+		abs(last - current) >= speedDelta
+		//|| last != current && current <= speedDelta
+		|| last != current && Duration(speedTimer) >= 125
 		);
 }
 
@@ -77,7 +78,6 @@ MemoryHandler::MemoryHandler()
 {
 	Initialize();
 }
-
 void MemoryHandler::Initialize()
 {
 	local = {};
@@ -212,6 +212,12 @@ void MemoryHandler::SendSystem()
 		{
 			RingCount[0] = 0;
 			local.game.RingCount[0] = 0;
+
+			sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
+				|| Player1->Data2->CharID2 == Characters_Shadow
+				|| Player1->Data2->CharID2 == Characters_Amy
+				|| Player1->Data2->CharID2 == Characters_MetalSonic);
+
 			local.game.CurrentLevel = CurrentLevel;
 		}
 
@@ -356,16 +362,11 @@ void MemoryHandler::SendPlayer()
 			}
 		}
 
-		bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
-			|| Player1->Data2->CharID2 == Characters_Shadow
-			|| Player1->Data2->CharID2 == Characters_Amy
-			|| Player1->Data2->CharID2 == Characters_MetalSonic);
-
 		if (sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 		{
 			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
 			{
-				cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+				//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 			}
 		}
@@ -389,7 +390,7 @@ void MemoryHandler::SendPlayer()
 			}
 			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
 			{
-				cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+				//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 			}
 		}
@@ -650,7 +651,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 			{
 				uchar recvGameState;
 				packet >> recvGameState;
-				if (GameState >= GameState::INGAME && recvGameState > GameState::LOAD_FINISHED)
+				if (GameState >= GameState::NORMAL_RESTART && recvGameState > GameState::LOAD_FINISHED)
 					GameState = local.system.GameState = recvGameState;
 
 				return true;
@@ -709,10 +710,10 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			//RECEIVED(MSG_P_SPINTIMER);
-		case MSG_P_SPINTIMER:
+			RECEIVED(MSG_P_SPINTIMER);
+			//case MSG_P_SPINTIMER:
 			packet >> recvPlayer.Sonic.SpindashTimer;
-			cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
+			//cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
 			writePlayer = true;
 			break;
 
@@ -721,14 +722,14 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			//RECEIVED(MSG_P_POSITION);
-		case MSG_P_POSITION:
+			RECEIVED(MSG_P_POSITION);
+			//case MSG_P_POSITION:
 			packet >> recvPlayer.Data1.Position;
 			writePlayer = true;
 			break;
 
-			//RECEIVED(MSG_P_ROTATION);
-		case MSG_P_ROTATION:
+			RECEIVED(MSG_P_ROTATION);
+			//case MSG_P_ROTATION:
 			packet >> recvPlayer.Data1.Rotation;
 			writePlayer = true;
 			break;
@@ -738,8 +739,8 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			//RECEIVED(MSG_P_SPEED);
-		case MSG_P_SPEED:
+			RECEIVED(MSG_P_SPEED);
+			//case MSG_P_SPEED:
 			packet >> recvPlayer.Data2.HSpeed;
 			packet >> recvPlayer.Data2.VSpeed;
 			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
@@ -870,12 +871,21 @@ void MemoryHandler::PreReceive()
 	writeRings();
 	writeSpecials();
 
+	if (GameState == GameState::PAUSE &&
+		(recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0 || ControllersRaw[1].LeftStickX != 0 || ControllersRaw[1].LeftStickY != 0))
+	{
+		recvInput.LeftStickX = 0;
+		recvInput.LeftStickY = 0;
+		ControllersRaw[1].LeftStickX = 0;
+		ControllersRaw[1].LeftStickY = 0;
+	}
+
 	return;
 }
 void MemoryHandler::PostReceive()
 {
 	//UpdateAbstractPlayer(&recvPlayer, Player2);
-	//writeP2Memory();
+	writeP2Memory();
 
 	writeRings();
 	writeSpecials();

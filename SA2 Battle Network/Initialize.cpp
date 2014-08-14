@@ -72,7 +72,6 @@ void MainThread(int argc, wchar_t** argv)
 				string sstr(wstr.begin(), wstr.end());
 
 				Address.ip = sstr;
-				cout << Address.ip << endl;
 				Address.port = _wtoi(argv[++i]);
 				ValidArguments = true;
 			}
