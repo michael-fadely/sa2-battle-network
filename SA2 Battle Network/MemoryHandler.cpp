@@ -362,9 +362,9 @@ void MemoryHandler::SendPlayer()
 			}
 		}
 
-		if (sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
+		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 		{
-			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
+			if (CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
 			{
 				//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
@@ -377,10 +377,14 @@ void MemoryHandler::SendPlayer()
 			// IN CASE OF EMERGENCY, UNCOMMENT
 			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
 
-			if (CheckAndAdd(MSG_P_ACTION, fast, safe))
-				safe << Player1->Data1->Action;
-			if (!isHoldAction(Player1->Data1->Action) && CheckAndAdd(MSG_P_STATUS, fast, safe))
-				safe << Player1->Data1->Status;
+			if (sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15
+				|| sendPlayer.Data1.Action == 0x20)
+			{
+				if (CheckAndAdd(MSG_P_ACTION, fast, safe))
+					safe << Player1->Data1->Action;
+				if (CheckAndAdd(MSG_P_STATUS, fast, safe))
+					safe << Player1->Data1->Status;
+			}
 			if (CheckAndAdd(MSG_P_ANIMATION, fast, safe))
 				safe << Player1->Data2->AnimInfo.Next;
 			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
