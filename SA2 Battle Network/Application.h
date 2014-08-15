@@ -65,5 +65,7 @@ namespace Application
 
 		Settings clientSettings;
 		PacketHandler::RemoteAddress Address;
+
+		bool setMusic;
 	};
 }

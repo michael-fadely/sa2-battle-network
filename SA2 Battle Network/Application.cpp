@@ -25,6 +25,14 @@ using namespace chrono;
 using namespace Application;
 using namespace sa2bn;
 
+
+void ChangeMusic(const char* song)
+{
+	StopMusic();
+	PlayMusic(song);
+	ResetMusic();
+}
+
 Version Program::versionNum = { 3, 0 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
@@ -41,7 +49,8 @@ exitCode(ExitCode::None),
 clientSettings(settings),
 remoteVersion({ 3, 0 }),
 isServer(host),
-Address(address)
+Address(address),
+setMusic(false)
 {
 	AbstractMemory = new MemoryHandler();
 }
@@ -62,6 +71,12 @@ ExitCode Program::Connect()
 
 	if (AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
 	{
+		if (!setMusic)
+		{
+			ChangeMusic("chao_k_net_connect.adx");
+			setMusic = true;
+		}
+
 		if (isServer)
 		{
 #pragma region Server
@@ -193,6 +208,10 @@ ExitCode Program::Connect()
 #pragma endregion
 		}
 	}
+	else
+	{
+		setMusic = false;
+	}
 	return ExitCode::NotReady;
 }
 
@@ -225,6 +244,9 @@ const ExitCode Program::RunLoop()
 	AbstractMemory->Initialize();
 	if (Globals::Networking->isConnected())
 	{
+		PlayMusic("btl_sel.adx");
+		PlayJingle(0, "chao_k_net_fine.adx");
+
 		exitCode = ExitCode::None;
 
 		//uint sendElapsed, recvElapsed;
@@ -254,6 +276,13 @@ const ExitCode Program::RunLoop()
 
 void Program::Disconnect(bool received, ExitCode code)
 {
+	setMusic = false;
+	
+	//if (AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
+	//	PlayMusic("btl_sel.adx");
+	//else if (AbstractMemory->GetCurrentMenu() == Menu::MAIN)
+	//	PlayMusic("advsng_1.adx");
+
 	cout << "<> Disconnecting..." << endl;
 	Globals::Networking->Disconnect();
 	if (received)
@@ -282,6 +311,9 @@ void Program::Disconnect(bool received, ExitCode code)
 
 		exitCode = code;
 	}
+
+	MemManage::waitFrame();
+	PlayJingle(0, "chao_k_net_fault.adx");
 }
 
 const bool Program::OnEnd()
