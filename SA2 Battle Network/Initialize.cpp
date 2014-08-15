@@ -119,7 +119,6 @@ void MainThread(int argc, wchar_t** argv)
 
 	while (true)
 	{
-
 		if (Program->Connect() != Application::ExitCode::NotReady)
 		{
 			Program->ApplySettings();
@@ -134,7 +133,6 @@ void MainThread(int argc, wchar_t** argv)
 			else
 				cout << "<> Reinitializing..." << endl;
 		}
-
 		SleepFor((milliseconds)250);
 	}
 
