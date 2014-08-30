@@ -277,11 +277,6 @@ const ExitCode Program::RunLoop()
 void Program::Disconnect(bool received, ExitCode code)
 {
 	setMusic = false;
-	
-	//if (AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
-	//	PlayMusic("btl_sel.adx");
-	//else if (AbstractMemory->GetCurrentMenu() == Menu::MAIN)
-	//	PlayMusic("advsng_1.adx");
 
 	cout << "<> Disconnecting..." << endl;
 	Globals::Networking->Disconnect();
@@ -316,6 +311,7 @@ void Program::Disconnect(bool received, ExitCode code)
 	PlayJingle(0, "chao_k_net_fault.adx");
 }
 
+// TODO: Remove this function as it's no longer required, and check RunLoop's return value instead.
 const bool Program::OnEnd()
 {
 	stringstream winMessage, winTitle;

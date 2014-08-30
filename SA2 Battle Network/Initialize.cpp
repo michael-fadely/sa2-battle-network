@@ -65,7 +65,7 @@ void MainThread(int argc, wchar_t** argv)
 			else if ((wcscmp(argv[i], L"--connect") == 0 || wcscmp(argv[i], L"-c") == 0) && (i + 2) < argc)
 			{
 				isServer = false;
-				
+
 				wstring wstr = argv[++i];
 				string sstr(wstr.begin(), wstr.end());
 
@@ -118,13 +118,9 @@ void MainThread(int argc, wchar_t** argv)
 		if (Program->Connect() != Application::ExitCode::NotReady)
 		{
 			Program->ApplySettings();
-			// This will run indefinitely unless something stops it from
-			// the inside. Therefore, we delete immediately after.
 			ExitCode = Program->RunLoop();
 
-			bool result = Program->OnEnd();
-
-			if (!result)
+			if (!Program->OnEnd())
 				break;
 			else
 				cout << "<> Reinitializing..." << endl;

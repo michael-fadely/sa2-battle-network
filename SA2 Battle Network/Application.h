@@ -47,6 +47,7 @@ namespace Application
 		void ApplySettings();
 		const ExitCode RunLoop();
 
+		// TODO: Remove this function as it's no longer required, and check RunLoop's return value instead.
 		const bool OnEnd();
 
 		// Members

@@ -906,7 +906,7 @@ inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopM
 
 void MemoryHandler::UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
 {
-	// Mech synchronize hack
+	// HACK: Mech HP synchronization fix. This REALLY sucks.
 	if (GameState >= GameState::INGAME && Player2 != nullptr)
 	{
 		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)

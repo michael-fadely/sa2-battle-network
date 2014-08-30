@@ -1,10 +1,10 @@
 #pragma once
 
 /*
-To-do:
-* Better exceptions / Exception handler
-* Multi-connection mode
-* UDP (and maybe TCP) only modes
+	TODO:
+	* Better exceptions / Exception handler
+	* Multi-connection mode
+	* Single-protocol modes (TCP/UDP)
 */
 
 #include <SFML\Network.hpp>
