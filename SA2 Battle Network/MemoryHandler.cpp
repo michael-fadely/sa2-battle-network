@@ -96,6 +96,7 @@ void MemoryHandler::Initialize()
 	splitToggled = false;
 	Teleported = false;
 	writePlayer = false;
+	sendSpinTimer = false;
 
 	thisFrame = 0;
 	lastFrame = 0;
@@ -202,6 +203,8 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 #pragma region Send
 
+// TODO: Make a function that takes in a message type and adds that "template" to the socket.
+
 void MemoryHandler::SendSystem()
 {
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
@@ -289,6 +292,12 @@ void MemoryHandler::SendSystem()
 }
 void MemoryHandler::SendInput(/*uint sendTimer*/)
 {
+	// TODO: Dynamic sending of specials. Explanation below.
+	/*
+		While B is held:
+		* If (any) last special was 1 but now 0, send button press and then specials.
+		* [Potentially problematic] If (any) last special was 0 but now 1, send specials first and then button press.
+	*/
 	PacketEx safe(true), fast(false);
 
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
