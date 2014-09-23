@@ -1,7 +1,6 @@
-#include <string>
-#include <sstream>
-#include <chrono>
 #include <iostream>
+#include <string>
+#include <chrono>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -18,6 +17,8 @@
 #include "CommonEnums.h"
 
 #include "Application.h"
+
+// TODO: Replace music filename strings with constants or read them from a file.
 
 using namespace std;
 using namespace chrono;
@@ -38,9 +39,7 @@ const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
 const std::string Version::str()
 {
-	stringstream out;
-	out << (ushort)major << "." << (ushort)minor;
-	return out.str();
+	return to_string(major) + "." + to_string(minor);
 }
 
 
@@ -309,56 +308,4 @@ void Program::Disconnect(bool received, ExitCode code)
 
 	MemManage::waitFrame();
 	PlayJingle(0, "chao_k_net_fault.adx");
-}
-
-// TODO: Remove this function as it's no longer required, and check RunLoop's return value instead.
-const bool Program::OnEnd()
-{
-	stringstream winMessage, winTitle;
-	winMessage << "";
-	winTitle << "SA2:BN - ";
-
-	switch (exitCode)
-	{
-	case ExitCode::ClientDisconnect:
-		winTitle << "Connection terminated";
-		winMessage << "The other player has exited the game.";
-		break;
-
-	case ExitCode::ClientTimeout:
-		winTitle << "Connection timeout";
-		winMessage << "The connection to the other player has timed out.";
-		break;
-
-	case ExitCode::GameTerminated:
-		winTitle << "Game terminated";
-		winMessage << "The game has been terminated (or it crashed).";
-		break;
-
-	case ExitCode::VersionMismatch:
-		winTitle << "Connection rejected: Version mismatch";
-		winMessage << "Connection rejected: the version number received from the client does not match the local version." << endl << endl;
-		winMessage << "Your version: " << versionNum.str() << endl;
-		winMessage << "Server version: " << remoteVersion.str();
-		break;
-
-	case ExitCode::None:
-	case ExitCode::NotReady:
-		return true;
-		/*
-		winTitle << "CRAP";
-		winMessage << "PLZ NO. Report to SF94/Morph on Sonic Retro.";
-		break;
-		*/
-	}
-
-	winMessage << "\n\nWould you like to restart SA2:BN with the same settings?"
-		<< "\nChoosing \"No\" will exit the program.";
-
-	int mbResult = MessageBoxA(NULL, winMessage.str().c_str(), winTitle.str().c_str(), MB_YESNO | MB_ICONQUESTION | MB_SYSTEMMODAL);
-
-	if (mbResult == IDNO)
-		return false;
-
-	return true;
 }

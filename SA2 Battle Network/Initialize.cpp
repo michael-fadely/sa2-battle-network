@@ -47,7 +47,6 @@ void MainThread(int argc, wchar_t** argv)
 	PacketHandler::RemoteAddress Address;
 	Application::Program* Program = nullptr;
 	Application::Settings Settings = {};
-	Application::ExitCode ExitCode;
 
 #pragma region Command line arguments
 	if (argc > 2)
@@ -107,7 +106,6 @@ void MainThread(int argc, wchar_t** argv)
 		return;
 #pragma endregion
 
-
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	sa2bn::Globals::ProcessID = GetCurrentProcess();
 	sa2bn::Globals::Networking = new PacketHandler();
@@ -118,12 +116,7 @@ void MainThread(int argc, wchar_t** argv)
 		if (Program->Connect() != Application::ExitCode::NotReady)
 		{
 			Program->ApplySettings();
-			ExitCode = Program->RunLoop();
-
-			if (!Program->OnEnd())
-				break;
-			else
-				cout << "<> Reinitializing..." << endl;
+			Program->RunLoop();
 		}
 		SleepFor((milliseconds)250);
 	}

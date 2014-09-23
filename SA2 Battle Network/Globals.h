@@ -4,7 +4,7 @@
 
 namespace sa2bn
 {
-	typedef void *HANDLE;
+	typedef void* HANDLE;
 	class Globals
 	{
 	public:
