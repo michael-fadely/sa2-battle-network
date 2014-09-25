@@ -290,10 +290,12 @@ void MemoryHandler::SendSystem()
 		Globals::Networking->Send(safe);
 	}
 }
-void MemoryHandler::SendInput(/*uint sendTimer*/)
+void MemoryHandler::SendInput()
 {
 	// TODO: Dynamic sending of specials. Explanation below.
 	/*
+		It can be done now with some copy-pasting, but it should honestly wait for the packet request system.
+
 		While B is held:
 		* If (any) last special was 1 but now 0, send button press and then specials.
 		* [Potentially problematic] If (any) last special was 0 but now 1, send specials first and then button press.

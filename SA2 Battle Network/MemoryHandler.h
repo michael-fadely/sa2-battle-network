@@ -53,7 +53,7 @@ private:
 	// Read and send System variables
 	void SendSystem();
 	// Read and send Input
-	void SendInput(/*uint sendTimer*/);
+	void SendInput();
 	// Read and send Player varaibles
 	void SendPlayer();
 	// Read and send Menu variables
