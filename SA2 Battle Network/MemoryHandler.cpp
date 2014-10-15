@@ -563,15 +563,13 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		packet << Player1->Data1->Action;
 		return true;
 
-	case MSG_P_ANIMATION:
-		packet << Player1->Data2->AnimInfo.Next;
+	case MSG_P_STATUS:
+		packet << Player1->Data1->Status;
 		return true;
 
-	case MSG_P_CHARACTER:	// Not yet implemented.
-		return false;
-
-	case MSG_P_HP:
-		packet << Player1->Data2->MechHP;
+	case MSG_P_ROTATION:
+		rotateTimer = millisecs();
+		packet << Player1->Data1->Rotation;
 		return true;
 
 	case MSG_P_POSITION:
@@ -581,32 +579,17 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		packet << Player1->Data1->Position;
 		return true;
 
-	case MSG_P_POWERUPS:
-		cout << "<< Sending powerups" << endl;
-		packet << Player1->Data2->Powerups;
-		return true;
-
-	case MSG_P_ROTATION:
-		rotateTimer = millisecs();
-		packet << Player1->Data1->Rotation;
-		return true;
-
 	case MSG_P_SCALE:
 		speedTimer = millisecs();
 		packet << Player1->Data1->Scale;
 		return true;
 
-	case MSG_P_SPEED:
-		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
-		return true;
+	case MSG_P_CHARACTER:	// Not yet implemented.
+		return false;
 
-	case MSG_P_SPINTIMER:
-		//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
-		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-		return true;
-
-	case MSG_P_STATUS:
-		packet << Player1->Data1->Status;
+	case MSG_P_POWERUPS:
+		cout << "<< Sending powerups" << endl;
+		packet << Player1->Data2->Powerups;
 		return true;
 
 	case MSG_P_UPGRADES:
@@ -614,63 +597,80 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		packet << Player1->Data2->Upgrades;
 		return true;
 
+	case MSG_P_HP:
+		packet << Player1->Data2->MechHP;
+		return true;
+
+	case MSG_P_SPEED:
+		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+		return true;
+
+	case MSG_P_ANIMATION:
+		packet << Player1->Data2->AnimInfo.Next;
+		return true;
+
+	case MSG_P_SPINTIMER:
+		//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+		return true;
+
 #pragma endregion
 
 #pragma region System
 
-		case MSG_S_2PMODE:	// Not yet implemented.
-			return false;
+	case MSG_S_2PMODE:	// Not yet implemented.
+		return false;
 
-		case MSG_S_2PREADY:
-			packet << PlayerReady[0];
-			local.menu.PlayerReady[0] = PlayerReady[0];
-			return true;
+	case MSG_S_2PREADY:
+		packet << PlayerReady[0];
+		local.menu.PlayerReady[0] = PlayerReady[0];
+		return true;
 
-		case MSG_S_2PSPECIALS:
-			packet.append(P1SpecialAttacks, sizeof(char) * 3);
-			memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
-			return true;
+	case MSG_S_2PSPECIALS:
+		packet.append(P1SpecialAttacks, sizeof(char) * 3);
+		memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
+		return true;
 
-		case MSG_S_BATTLEOPT:
-			packet.append(BattleOptions, BattleOptions_Length);
-			memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
-			return true;
+	case MSG_S_BATTLEOPT:
+		packet.append(BattleOptions, BattleOptions_Length);
+		memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
+		return true;
 
-		case MSG_S_GAMESTATE:
-			packet << GameState;
-			cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
-			local.system.GameState = GameState;
-			return true;
+	case MSG_S_GAMESTATE:
+		packet << GameState;
+		cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
+		local.system.GameState = GameState;
+		return true;
 
-		case MSG_S_LEVEL:	// Not yet implemented
-			return false;
+	case MSG_S_LEVEL:	// Not yet implemented
+		return false;
 
-		case MSG_S_PAUSESEL:
-			packet << PauseSelection;
-			local.system.PauseSelection = PauseSelection;
-			return true;
+	case MSG_S_PAUSESEL:
+		packet << PauseSelection;
+		local.system.PauseSelection = PauseSelection;
+		return true;
 
-		case MSG_S_RINGS:
-			packet << RingCount[0];
-			local.game.RingCount[0] = RingCount[0];
-			return true;
+	case MSG_S_RINGS:
+		packet << RingCount[0];
+		local.game.RingCount[0] = RingCount[0];
+		return true;
 
-		case MSG_S_TIME:
-			packet << TimerMinutes << TimerSeconds << TimerFrames;
-			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-			return true;
+	case MSG_S_TIME:
+		packet << TimerMinutes << TimerSeconds << TimerFrames;
+		memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
+		return true;
 
-		case MSG_S_TIMESTOP:
-			cout << "<< Sending Time Stop [";
+	case MSG_S_TIMESTOP:
+		cout << "<< Sending Time Stop [";
 
-			// Swap the Time Stop value, as this is connected to player number,
-			// and Player 1 and 2 are relative to the game instance.
+		// Swap the Time Stop value, as this is connected to player number,
+		// and Player 1 and 2 are relative to the game instance.
 
-			packet << (char)(TimeStopMode * 5 % 3);
+		packet << (char)(TimeStopMode * 5 % 3);
 
-			cout << ']' << endl;
-			local.game.TimeStopMode = TimeStopMode;
-			return true;
+		cout << ']' << endl;
+		local.game.TimeStopMode = TimeStopMode;
+		return true;
 
 
 #pragma endregion
@@ -778,12 +778,6 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 		default:
 			return false;
 
-			RECEIVED(MSG_P_HP);
-			packet >> recvPlayer.Data2.MechHP;
-			cout << ">> Received HP update. (" << recvPlayer.Data2.MechHP << ')' << endl;
-			writePlayer = true;
-			break;
-
 			RECEIVED(MSG_P_ACTION);
 			packet >> recvPlayer.Data1.Action;
 			writePlayer = true;
@@ -794,15 +788,9 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_SPINTIMER);
-			//case MSG_P_SPINTIMER:
-			packet >> recvPlayer.Sonic.SpindashTimer;
-			//cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
-			writePlayer = true;
-			break;
-
-			RECEIVED(MSG_P_ANIMATION);
-			packet >> recvPlayer.Data2.AnimInfo.Next;
+			RECEIVED(MSG_P_ROTATION);
+			//case MSG_P_ROTATION:
+			packet >> recvPlayer.Data1.Rotation;
 			writePlayer = true;
 			break;
 
@@ -812,23 +800,8 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 
-			RECEIVED(MSG_P_ROTATION);
-			//case MSG_P_ROTATION:
-			packet >> recvPlayer.Data1.Rotation;
-			writePlayer = true;
-			break;
-
 			RECEIVED(MSG_P_SCALE);
 			packet >> recvPlayer.Data1.Scale;
-			writePlayer = true;
-			break;
-
-			RECEIVED(MSG_P_SPEED);
-			//case MSG_P_SPEED:
-			packet >> recvPlayer.Data2.HSpeed;
-			packet >> recvPlayer.Data2.VSpeed;
-			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
-
 			writePlayer = true;
 			break;
 
@@ -849,6 +822,33 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 				writePlayer = true;
 				break;
 			}
+
+			RECEIVED(MSG_P_HP);
+			packet >> recvPlayer.Data2.MechHP;
+			cout << ">> Received HP update. (" << recvPlayer.Data2.MechHP << ')' << endl;
+			writePlayer = true;
+			break;
+
+			RECEIVED(MSG_P_SPEED);
+			//case MSG_P_SPEED:
+			packet >> recvPlayer.Data2.HSpeed;
+			packet >> recvPlayer.Data2.VSpeed;
+			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
+
+			writePlayer = true;
+			break;
+
+			RECEIVED(MSG_P_ANIMATION);
+			packet >> recvPlayer.Data2.AnimInfo.Next;
+			writePlayer = true;
+			break;
+
+			RECEIVED(MSG_P_SPINTIMER);
+			//case MSG_P_SPINTIMER:
+			packet >> recvPlayer.Sonic.SpindashTimer;
+			//cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
+			writePlayer = true;
+			break;
 		}
 
 		//if (writePlayer)
