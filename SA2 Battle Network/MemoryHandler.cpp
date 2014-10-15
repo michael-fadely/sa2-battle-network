@@ -299,7 +299,7 @@ void MemoryHandler::SendInput()
 		While B is held:
 		* If (any) last special was 1 but now 0, send button press and then specials.
 		* [Potentially problematic] If (any) last special was 0 but now 1, send specials first and then button press.
-	*/
+		*/
 	PacketEx safe(true), fast(false);
 
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
@@ -309,11 +309,7 @@ void MemoryHandler::SendInput()
 
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
 		{
-			if (CheckAndAdd(MSG_I_BUTTONS, fast, safe))
-			{
-				safe << ControllersRaw[0].HeldButtons;
-				sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
-			}
+			RequestPacket(MSG_I_BUTTONS, safe, fast);
 		}
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
@@ -321,23 +317,9 @@ void MemoryHandler::SendInput()
 			if (/*Duration(analogTimer) >= 125 && */GameState == GameState::INGAME)
 			{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
-				{
-					if (CheckAndAdd(MSG_I_ANALOG, fast, safe))
-					{
-						safe << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-					}
-				}
+					RequestPacket(MSG_I_ANALOG, safe, fast);
 				else
-				{
-					if (CheckAndAdd(MSG_I_ANALOG, safe, fast))
-					{
-						fast << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-						sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-						sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-					}
-				}
+					RequestPacket(MSG_I_ANALOG, fast, safe);
 
 				analogTimer = millisecs();
 			}
@@ -355,31 +337,18 @@ void MemoryHandler::SendPlayer()
 
 		if (CheckTeleport())
 		{
-			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
-			{
-				positionTimer = millisecs();
-				safe << Player1->Data1->Position;
-			}
-			if (CheckAndAdd(MSG_P_SPEED, fast, safe))
-				safe << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+			RequestPacket(MSG_P_POSITION, safe, fast);
+			RequestPacket(MSG_P_SPEED, safe, fast);
 		}
 
 		if (PositionDelta(sendPlayer.Data1.Position, Player1->Data1->Position))
 		{
-			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
-			{
-				positionTimer = millisecs();
-				fast << Player1->Data1->Position;
-			}
+			RequestPacket(MSG_P_POSITION, fast, safe);
 		}
 
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 		{
-			if (CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
-			{
-				//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
-				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-			}
+			RequestPacket(MSG_P_SPINTIMER, safe, fast);
 		}
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
@@ -391,23 +360,15 @@ void MemoryHandler::SendPlayer()
 			if (sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15
 				|| sendPlayer.Data1.Action == 0x20)
 			{
-				if (CheckAndAdd(MSG_P_ACTION, fast, safe))
-					safe << Player1->Data1->Action;
-				if (CheckAndAdd(MSG_P_STATUS, fast, safe))
-					safe << Player1->Data1->Status;
+				RequestPacket(MSG_P_ACTION, safe, fast);
+				RequestPacket(MSG_P_STATUS, safe, fast);
 			}
-			if (CheckAndAdd(MSG_P_ANIMATION, fast, safe))
-				safe << Player1->Data2->AnimInfo.Next;
-			if (CheckAndAdd(MSG_P_POSITION, fast, safe))
-			{
-				positionTimer = millisecs();
-				safe << Player1->Data1->Position;
-			}
-			if (sendSpinTimer && CheckAndAdd(MSG_P_SPINTIMER, fast, safe))
-			{
-				//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
-				safe << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-			}
+
+			RequestPacket(MSG_P_ANIMATION, safe, fast);
+			RequestPacket(MSG_P_POSITION, safe, fast);
+
+			if (sendSpinTimer)
+				RequestPacket(MSG_P_SPINTIMER, safe, fast);
 		}
 
 		if (RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
@@ -419,47 +380,27 @@ void MemoryHandler::SendPlayer()
 			//	<< " || (" << SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) << " || " << SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)
 			//	<< ") || " << sendPlayer.Data2.PhysData.BaseSpeed << " != " << Player1->Data2->PhysData.BaseSpeed
 			//	<< endl;
-			rotateTimer = millisecs();
-			speedTimer = rotateTimer;
-			if (CheckAndAdd(MSG_P_ROTATION, safe, fast))
-				fast << Player1->Data1->Rotation;
-			if (CheckAndAdd(MSG_P_POSITION, safe, fast))
-			{
-				positionTimer = millisecs();
-				fast << Player1->Data1->Position;
-			}
-			if (CheckAndAdd(MSG_P_SPEED, safe, fast))
-				fast << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+
+			// These are set in AddRequestedPacket
+			//rotateTimer = millisecs();
+			//speedTimer = rotateTimer;
+
+			RequestPacket(MSG_P_ROTATION, fast, safe);
+			RequestPacket(MSG_P_POSITION, fast, safe);
+			RequestPacket(MSG_P_SPEED, fast, safe);
 		}
 
 		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(Vertex)) != 0)
-		{
-			if (CheckAndAdd(MSG_P_SCALE, fast, safe))
-				safe << Player1->Data1->Scale;
-		}
+			RequestPacket(MSG_P_SCALE, safe, fast);
 
 		if ((Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
-		{
-			if (CheckAndAdd(MSG_P_HP, fast, safe))
-				safe << Player1->Data2->MechHP;
-		}
+			RequestPacket(MSG_P_HP, safe, fast);
 
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
-		{
-			if (CheckAndAdd(MSG_P_POWERUPS, fast, safe))
-			{
-				cout << "<< Sending powerups" << endl;
-				safe << Player1->Data2->Powerups;
-			}
-		}
+			RequestPacket(MSG_P_POWERUPS, safe, fast);
+
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
-		{
-			if (CheckAndAdd(MSG_P_UPGRADES, fast, safe))
-			{
-				cout << "<< Sending upgrades" << endl;
-				safe << Player1->Data2->Upgrades;
-			}
-		}
+			RequestPacket(MSG_P_UPGRADES, safe, fast);
 
 		UpdateAbstractPlayer(&sendPlayer, Player1);
 
@@ -515,18 +456,14 @@ void MemoryHandler::SendMenu()
 		case SubMenu2P::S_BATTLEMODE:
 			if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
 			{
-				if (safe.addType(MSG_M_BATTLESEL))
-				{
-					safe << BattleSelection;
-					local.menu.BattleSelection = BattleSelection;
-				}
+				RequestPacket(MSG_M_BATTLESEL, safe);
 			}
 			break;
 
 		case SubMenu2P::S_CHARSEL:
 		case SubMenu2P::O_CHARSEL:
-			// Character select bug work-around
-			// When a button press is missed, but the character selected state is synchronized,
+			// HACK: Character select bug work-around. Details below.
+			// When a button press is missed but the character selected state is synchronized,
 			// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
 			if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
 			{
@@ -537,19 +474,11 @@ void MemoryHandler::SendMenu()
 
 			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
 			{
-				if (safe.addType(MSG_M_CHARSEL))
-				{
-					safe << CharacterSelection[0];
-					local.menu.CharacterSelection[0] = CharacterSelection[0];
-				}
+				RequestPacket(MSG_M_CHARSEL, safe);
 			}
 			if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
 			{
-				if (safe.addType(MSG_M_CHARCHOSEN))
-				{
-					safe << CharacterSelected[0];
-					local.menu.CharacterSelected[0] = CharacterSelected[0];
-				}
+				RequestPacket(MSG_M_CHARCHOSEN, safe);
 			}
 
 			// I hate this so much
@@ -560,19 +489,7 @@ void MemoryHandler::SendMenu()
 				|| (local.menu.AltCharacterKnuckles != AltCharacterKnuckles)
 				|| (local.menu.AltCharacterRouge != AltCharacterRouge))
 			{
-				if (safe.addType(MSG_M_ALTCHAR))
-				{
-					safe << AltCharacterSonic << AltCharacterShadow
-						<< AltCharacterTails << AltCharacterEggman
-						<< AltCharacterKnuckles << AltCharacterRouge;
-
-					local.menu.AltCharacterSonic = AltCharacterSonic;
-					local.menu.AltCharacterShadow = AltCharacterShadow;
-					local.menu.AltCharacterTails = AltCharacterTails;
-					local.menu.AltCharacterEggman = AltCharacterEggman;
-					local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
-					local.menu.AltCharacterRouge = AltCharacterRouge;
-				}
+				RequestPacket(MSG_M_ALTCHAR, safe);
 			}
 
 			break;
@@ -582,30 +499,168 @@ void MemoryHandler::SendMenu()
 				|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
 				|| local.menu.BattleOptionsButton != BattleOptionsButton)
 			{
-				if (safe.addType(MSG_M_STAGESEL))
-				{
-					safe << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
-					local.menu.StageSelection2P[0] = StageSelection2P[0];
-					local.menu.StageSelection2P[1] = StageSelection2P[1];
-					local.menu.BattleOptionsButton = BattleOptionsButton;
-				}
+				RequestPacket(MSG_M_STAGESEL, safe);
 			}
 			break;
 
 		case SubMenu2P::S_BATTLEOPT:
 			if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
 			{
-				if (safe.addType(MSG_M_BATTLEOPTSEL))
-				{
-					safe << BattleOptionsSelection << BattleOptionsBack;
-					local.menu.BattleOptionsSelection = BattleOptionsSelection;
-					local.menu.BattleOptionsBack = BattleOptionsBack;
-				}
+				RequestPacket(MSG_M_BATTLEOPTSEL, safe);
 			}
 			break;
 		}
 
 		Globals::Networking->Send(safe);
+	}
+}
+
+const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+{
+	if (packetType >= MSG_DISCONNECT && CheckAndAdd(packetType, packetIsIn, packetAddTo))
+		return AddRequestedPacket(packetType, packetAddTo);
+
+	return false;
+}
+const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo)
+{
+	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
+		return AddRequestedPacket(packetType, packetAddTo);
+
+	return false;
+}
+const bool MemoryHandler::AddRequestedPacket(const uchar packetType, PacketEx& packet)
+{
+	switch (packetType)
+	{
+	default:
+		return false;
+
+#pragma region Input
+
+	case MSG_I_ANALOG:
+		packet << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+		sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+		sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+		return true;
+
+	case MSG_I_BUTTONS:
+		packet << ControllersRaw[0].HeldButtons;
+		sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
+		return true;
+
+#pragma endregion
+
+#pragma region Menu
+
+	case MSG_M_ALTCHAR:
+		packet << AltCharacterSonic << AltCharacterShadow
+			<< AltCharacterTails << AltCharacterEggman
+			<< AltCharacterKnuckles << AltCharacterRouge;
+
+		local.menu.AltCharacterSonic = AltCharacterSonic;
+		local.menu.AltCharacterShadow = AltCharacterShadow;
+		local.menu.AltCharacterTails = AltCharacterTails;
+		local.menu.AltCharacterEggman = AltCharacterEggman;
+		local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
+		local.menu.AltCharacterRouge = AltCharacterRouge;
+		return true;
+
+	case MSG_M_ATMENU:	// Deprecated
+		return false;
+
+	case MSG_M_BATTLESEL:
+		packet << BattleSelection;
+		local.menu.BattleSelection = BattleSelection;
+		return true;
+
+	case MSG_M_BATTLEOPTSEL:
+		packet << BattleOptionsSelection << BattleOptionsBack;
+		local.menu.BattleOptionsSelection = BattleOptionsSelection;
+		local.menu.BattleOptionsBack = BattleOptionsBack;
+		return true;
+
+	case MSG_M_CHARCHOSEN:
+		packet << CharacterSelected[0];
+		local.menu.CharacterSelected[0] = CharacterSelected[0];
+		return true;
+
+	case MSG_M_CHARSEL:
+		packet << CharacterSelection[0];
+		local.menu.CharacterSelection[0] = CharacterSelection[0];
+		return true;
+
+	case MSG_M_STAGESEL:
+		packet << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+		local.menu.StageSelection2P[0] = StageSelection2P[0];
+		local.menu.StageSelection2P[1] = StageSelection2P[1];
+		local.menu.BattleOptionsButton = BattleOptionsButton;
+		return true;
+
+#pragma endregion
+
+#pragma region Player
+
+		// BEFORE YOU FORGET:
+		// The reason sendPlayer is not updated here is because it's done in a separate function all at once.
+		// Don't freak out!
+
+	case MSG_P_ACTION:
+		packet << Player1->Data1->Action;
+		return true;
+
+	case MSG_P_ANIMATION:
+		packet << Player1->Data2->AnimInfo.Next;
+		return true;
+
+	case MSG_P_CHARACTER:	// Not yet implemented.
+		return false;
+
+	case MSG_P_HP:
+		packet << Player1->Data2->MechHP;
+		return true;
+
+	case MSG_P_POSITION:
+		// Informs other conditions that it shouldn't request
+		// another position packet so soon...
+		positionTimer = millisecs();
+		packet << Player1->Data1->Position;
+		return true;
+
+	case MSG_P_POWERUPS:
+		cout << "<< Sending powerups" << endl;
+		packet << Player1->Data2->Powerups;
+		return true;
+
+	case MSG_P_ROTATION:
+		rotateTimer = millisecs();
+		packet << Player1->Data1->Rotation;
+		return true;
+
+	case MSG_P_SCALE:
+		speedTimer = millisecs();
+		packet << Player1->Data1->Scale;
+		return true;
+
+	case MSG_P_SPEED:
+		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+		return true;
+
+	case MSG_P_SPINTIMER:
+		//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+		return true;
+
+	case MSG_P_STATUS:
+		packet << Player1->Data1->Status;
+		return true;
+
+	case MSG_P_UPGRADES:
+		cout << "<< Sending upgrades" << endl;
+		packet << Player1->Data2->Upgrades;
+		return true;
+
+#pragma endregion
 	}
 }
 
@@ -799,7 +854,7 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 		default:
 			return false;
 
-			RECEIVED(MSG_M_ATMENU);
+			RECEIVED(MSG_M_ATMENU);	// Deprecated
 			packet >> cAt2PMenu[1];
 			if (cAt2PMenu[1])
 				cout << ">> Player 2 is ready on the 2P menu!" << endl;

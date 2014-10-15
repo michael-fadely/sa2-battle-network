@@ -43,10 +43,17 @@ public:
 	// mid-operation. Used by class Program
 	const unsigned int GetCurrentMenu();
 
+	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
+	const bool RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	// Requests that the packet type packetType is added to packetAddTo.
+	const bool RequestPacket(const uchar packetType, PacketEx& packetAddTo);
+
 private:
 	//
 	// Methods
 	//
+
+	const bool AddRequestedPacket(const uchar packetType, PacketEx& packet);
 
 	void Receive(sf::Packet& packet, const bool safe);
 
