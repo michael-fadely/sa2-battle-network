@@ -568,7 +568,7 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_ROTATION:
-		rotateTimer = millisecs();
+		speedTimer = rotateTimer = millisecs();
 		packet << Player1->Data1->Rotation;
 		return true;
 
@@ -580,7 +580,6 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_SCALE:
-		speedTimer = millisecs();
 		packet << Player1->Data1->Scale;
 		return true;
 
@@ -602,6 +601,7 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_SPEED:
+		rotateTimer = speedTimer = millisecs();
 		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		return true;
 
