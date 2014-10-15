@@ -53,7 +53,9 @@ private:
 	// Methods
 	//
 
-	const bool AddRequestedPacket(const uchar packetType, PacketEx& packet);
+	// Called by RequestPacket
+	// Adds the packet template for packetType to packet
+	const bool AddPacket(const uchar packetType, PacketEx& packet);
 
 	void Receive(sf::Packet& packet, const bool safe);
 

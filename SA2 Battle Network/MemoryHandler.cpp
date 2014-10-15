@@ -226,64 +226,32 @@ void MemoryHandler::SendSystem()
 
 		if (local.system.GameState != GameState)
 		{
-			if (CheckAndAdd(MSG_S_GAMESTATE, fast, safe))
-			{
-				safe << GameState;
-				cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
-				local.system.GameState = GameState;
-			}
+			RequestPacket(MSG_S_GAMESTATE, safe, fast);
 		}
 
 		if (GameState == GameState::PAUSE && local.system.PauseSelection != PauseSelection)
 		{
-			if (CheckAndAdd(MSG_S_PAUSESEL, fast, safe))
-			{
-				safe << PauseSelection;
-				local.system.PauseSelection = PauseSelection;
-			}
+			RequestPacket(MSG_S_PAUSESEL, safe, fast);
 		}
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
 		{
-			if (CheckAndAdd(MSG_S_TIME, safe, fast))
-			{
-				fast << TimerMinutes << TimerSeconds << TimerFrames;
-				memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-			}
+			RequestPacket(MSG_S_TIME, fast, safe);
 		}
 
 		if (local.game.TimeStopMode != TimeStopMode)
 		{
-			if (CheckAndAdd(MSG_S_TIMESTOP, fast, safe))
-			{
-				cout << "<< Sending Time Stop [";
-
-				// Swap the Time Stop value, as this is connected to player number,
-				// and Player 1 and 2 are relative to the game instance.
-
-				safe << (char)(TimeStopMode * 5 % 3);
-
-				cout << ']' << endl;
-				local.game.TimeStopMode = TimeStopMode;
-			}
+			RequestPacket(MSG_S_TIMESTOP, safe, fast);
 		}
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
 		{
-			if (CheckAndAdd(MSG_S_2PSPECIALS, fast, safe))
-			{
-				safe.append(P1SpecialAttacks, sizeof(char) * 3);
-				memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
-			}
+			RequestPacket(MSG_S_2PSPECIALS, safe, fast);
 		}
 
 		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::INGAME)
 		{
-			if (CheckAndAdd(MSG_S_RINGS, fast, safe))
-			{
-				safe << RingCount[0];
-				local.game.RingCount[0] = RingCount[0];
-			}
+			RequestPacket(MSG_S_RINGS, safe, fast);
 		}
 
 		Globals::Networking->Send(fast);
@@ -381,7 +349,7 @@ void MemoryHandler::SendPlayer()
 			//	<< ") || " << sendPlayer.Data2.PhysData.BaseSpeed << " != " << Player1->Data2->PhysData.BaseSpeed
 			//	<< endl;
 
-			// These are set in AddRequestedPacket
+			// These are set in AddPacket
 			//rotateTimer = millisecs();
 			//speedTimer = rotateTimer;
 
@@ -424,11 +392,7 @@ void MemoryHandler::SendMenu()
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
 		{
-			if (safe.addType(MSG_S_BATTLEOPT))
-			{
-				safe.append(BattleOptions, BattleOptions_Length);
-				memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
-			}
+			RequestPacket(MSG_S_BATTLEOPT, safe);
 		}
 
 		// Always send information about the menu you enter,
@@ -445,19 +409,14 @@ void MemoryHandler::SendMenu()
 		case SubMenu2P::O_READY:
 			if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
 			{
-				if (safe.addType(MSG_S_2PREADY))
-				{
-					safe << PlayerReady[0];
-					local.menu.PlayerReady[0] = PlayerReady[0];
-				}
+				RequestPacket(MSG_S_2PREADY, safe);
 			}
 			break;
 
 		case SubMenu2P::S_BATTLEMODE:
 			if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
-			{
 				RequestPacket(MSG_M_BATTLESEL, safe);
-			}
+
 			break;
 
 		case SubMenu2P::S_CHARSEL:
@@ -473,13 +432,9 @@ void MemoryHandler::SendMenu()
 			}
 
 			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
-			{
 				RequestPacket(MSG_M_CHARSEL, safe);
-			}
 			if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
-			{
 				RequestPacket(MSG_M_CHARCHOSEN, safe);
-			}
 
 			// I hate this so much
 			if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
@@ -505,9 +460,8 @@ void MemoryHandler::SendMenu()
 
 		case SubMenu2P::S_BATTLEOPT:
 			if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
-			{
 				RequestPacket(MSG_M_BATTLEOPTSEL, safe);
-			}
+
 			break;
 		}
 
@@ -518,18 +472,18 @@ void MemoryHandler::SendMenu()
 const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
 	if (packetType >= MSG_DISCONNECT && CheckAndAdd(packetType, packetIsIn, packetAddTo))
-		return AddRequestedPacket(packetType, packetAddTo);
+		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
 const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo)
 {
 	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
-		return AddRequestedPacket(packetType, packetAddTo);
+		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
-const bool MemoryHandler::AddRequestedPacket(const uchar packetType, PacketEx& packet)
+const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 {
 	switch (packetType)
 	{
@@ -661,6 +615,66 @@ const bool MemoryHandler::AddRequestedPacket(const uchar packetType, PacketEx& p
 		return true;
 
 #pragma endregion
+
+#pragma region System
+
+		case MSG_S_2PMODE:	// Not yet implemented.
+			return false;
+
+		case MSG_S_2PREADY:
+			packet << PlayerReady[0];
+			local.menu.PlayerReady[0] = PlayerReady[0];
+			return true;
+
+		case MSG_S_2PSPECIALS:
+			packet.append(P1SpecialAttacks, sizeof(char) * 3);
+			memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
+			return true;
+
+		case MSG_S_BATTLEOPT:
+			packet.append(BattleOptions, BattleOptions_Length);
+			memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
+			return true;
+
+		case MSG_S_GAMESTATE:
+			packet << GameState;
+			cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
+			local.system.GameState = GameState;
+			return true;
+
+		case MSG_S_LEVEL:	// Not yet implemented
+			return false;
+
+		case MSG_S_PAUSESEL:
+			packet << PauseSelection;
+			local.system.PauseSelection = PauseSelection;
+			return true;
+
+		case MSG_S_RINGS:
+			packet << RingCount[0];
+			local.game.RingCount[0] = RingCount[0];
+			return true;
+
+		case MSG_S_TIME:
+			packet << TimerMinutes << TimerSeconds << TimerFrames;
+			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
+			return true;
+
+		case MSG_S_TIMESTOP:
+			cout << "<< Sending Time Stop [";
+
+			// Swap the Time Stop value, as this is connected to player number,
+			// and Player 1 and 2 are relative to the game instance.
+
+			packet << (char)(TimeStopMode * 5 % 3);
+
+			cout << ']' << endl;
+			local.game.TimeStopMode = TimeStopMode;
+			return true;
+
+
+#pragma endregion
+
 	}
 }
 
