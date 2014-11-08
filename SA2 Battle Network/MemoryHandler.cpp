@@ -143,6 +143,7 @@ void MemoryHandler::SendLoop()
 	// SetFrame() is called from outside this function.
 }
 
+// TODO: Fix scale bug (player writing, but scale being overwritten with 1 again)
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 {
 	Socket::Status status = Socket::Status::NotReady;
@@ -203,8 +204,6 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 #pragma region Send
 
-// TODO: Make a function that takes in a message type and adds that "template" to the socket.
-
 void MemoryHandler::SendSystem()
 {
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
@@ -262,8 +261,6 @@ void MemoryHandler::SendInput()
 {
 	// TODO: Dynamic sending of specials. Explanation below.
 	/*
-		It can be done now with some copy-pasting, but it should honestly wait for the packet request system.
-
 		While B is held:
 		* If (any) last special was 1 but now 0, send button press and then specials.
 		* [Potentially problematic] If (any) last special was 0 but now 1, send specials first and then button press.
