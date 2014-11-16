@@ -29,7 +29,7 @@ struct MemStruct
 
 		uint StageSelection2P[2];
 		uchar BattleSelection;
-		uint  CharacterSelection[2];
+		uint CharacterSelection[2];
 
 		char CharacterSelected[2];
 

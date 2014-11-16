@@ -1,6 +1,3 @@
-// Makes sure TYPE isn't in ISIN and adds it to ADDTO
-#define CheckAndAdd(TYPE, ISIN, ADDTO) !ISIN.isInPacket(TYPE) && ADDTO.addType(TYPE)
-
 #define WIN32_LEAN_AND_MEAN
 
 // Standard Includes
@@ -73,6 +70,8 @@ const bool SpeedDelta(const float last, const float current)
 /*
 //	Memory Handler Class
 */
+
+// TODO: Consider using one large packet as opposed to several per-group packets.
 
 MemoryHandler::MemoryHandler()
 {
@@ -229,34 +228,22 @@ void MemoryHandler::SendSystem()
 		}
 
 		if (local.system.GameState != GameState)
-		{
 			RequestPacket(MSG_S_GAMESTATE, safe, fast);
-		}
 
 		if (GameState == GameState::PAUSE && local.system.PauseSelection != PauseSelection)
-		{
 			RequestPacket(MSG_S_PAUSESEL, safe, fast);
-		}
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
-		{
 			RequestPacket(MSG_S_TIME, fast, safe);
-		}
 
 		if (local.game.TimeStopMode != TimeStopMode)
-		{
 			RequestPacket(MSG_S_TIMESTOP, safe, fast);
-		}
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
-		{
 			RequestPacket(MSG_S_2PSPECIALS, safe, fast);
-		}
 
 		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::INGAME)
-		{
 			RequestPacket(MSG_S_RINGS, safe, fast);
-		}
 
 		Globals::Networking->Send(fast);
 		Globals::Networking->Send(safe);
@@ -278,9 +265,7 @@ void MemoryHandler::SendInput()
 			ToggleSplitscreen();
 
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
-		{
 			RequestPacket(MSG_I_BUTTONS, safe, fast);
-		}
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
@@ -312,14 +297,10 @@ void MemoryHandler::SendPlayer()
 		}
 
 		if (PositionDelta(sendPlayer.Data1.Position, Player1->Data1->Position))
-		{
 			RequestPacket(MSG_P_POSITION, fast, safe);
-		}
 
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
-		{
 			RequestPacket(MSG_P_SPINTIMER, safe, fast);
-		}
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
@@ -393,9 +374,7 @@ void MemoryHandler::SendMenu()
 
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
-		{
 			RequestPacket(MSG_S_BATTLEOPT, safe);
-		}
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
@@ -410,9 +389,7 @@ void MemoryHandler::SendMenu()
 		case SubMenu2P::S_READY:
 		case SubMenu2P::O_READY:
 			if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
-			{
 				RequestPacket(MSG_S_2PREADY, safe);
-			}
 			break;
 
 		case SubMenu2P::S_BATTLEMODE:
@@ -473,7 +450,7 @@ void MemoryHandler::SendMenu()
 
 const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
-	if (packetType >= MSG_DISCONNECT && CheckAndAdd(packetType, packetIsIn, packetAddTo))
+	if (packetType >= MSG_DISCONNECT && !packetIsIn.isInPacket(packetType) && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
