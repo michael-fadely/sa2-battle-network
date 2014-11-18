@@ -251,12 +251,6 @@ void MemoryHandler::SendSystem()
 }
 void MemoryHandler::SendInput()
 {
-	// TODO: Dynamic sending of specials. Explanation below.
-	/*
-		While B is held:
-		* If (any) last special was 1 but now 0, send button press and then specials.
-		* [Potentially problematic] If (any) last special was 0 but now 1, send specials first and then button press.
-		*/
 	PacketEx safe(true), fast(false);
 
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
@@ -265,11 +259,35 @@ void MemoryHandler::SendInput()
 			ToggleSplitscreen();
 
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
-			RequestPacket(MSG_I_BUTTONS, safe, fast);
+		{
+			// If the Action Button is pressed, then check the specials.
+			if (ControllersRaw[0].PressedButtons & (Buttons_B | Buttons_X))
+			{
+				// If a special has been used, send buttons followed immediately by specials.
+				if ((P1SpecialAttacks[0] == 0 && local.game.P1SpecialAttacks[0] != 0) || (P1SpecialAttacks[1] == 0 && local.game.P1SpecialAttacks[1] != 0) || (P1SpecialAttacks[2] == 0 && local.game.P1SpecialAttacks[2] != 0))
+				{
+					// TODO: Consider killing off the specials in local.game.P1SpecialAttacks after sending this to avoid redundant packets.
+					// As it stands now, the special will rarely be 0 before we send it over, so if we set the local copy to 0,
+					// it has a lower chance of sending redundant packets later, as SendSystem is behind a frame-sync barrier, whereas this is not.
+					RequestPacket(MSG_I_BUTTONS, safe, fast);
+					RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+				}
+				// Otherwise, if a special has been gained, send specials first followed immediately by buttons.
+				else if ((P1SpecialAttacks[0] == 1 && local.game.P1SpecialAttacks[0] != 1) || (P1SpecialAttacks[1] == 1 && local.game.P1SpecialAttacks[1] != 1) || (P1SpecialAttacks[2] == 1 && local.game.P1SpecialAttacks[2] != 1))
+				{
+					RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+					RequestPacket(MSG_I_BUTTONS, safe, fast);
+				}
+			}
+			else
+			{
+				RequestPacket(MSG_I_BUTTONS, safe, fast);
+			}
+		}
 
 		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
 		{
-			if (/*Duration(analogTimer) >= 125 && */GameState == GameState::INGAME)
+			if (GameState == GameState::INGAME /*&& Duration(analogTimer) >= 125*/)
 			{
 				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
 					RequestPacket(MSG_I_ANALOG, safe, fast);
@@ -304,7 +322,6 @@ void MemoryHandler::SendPlayer()
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
-
 			// IN CASE OF EMERGENCY, UNCOMMENT
 			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
 
@@ -553,7 +570,7 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 
 	case MSG_P_POSITION:
 		// Informs other conditions that it shouldn't request
-		// another position packet so soon...
+		// another position packet so soon
 		positionTimer = millisecs();
 		packet << Player1->Data1->Position;
 		return true;
