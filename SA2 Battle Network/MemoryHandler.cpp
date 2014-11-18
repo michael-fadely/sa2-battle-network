@@ -278,6 +278,10 @@ void MemoryHandler::SendInput()
 					RequestPacket(MSG_S_2PSPECIALS, safe, fast);
 					RequestPacket(MSG_I_BUTTONS, safe, fast);
 				}
+				else
+				{
+					RequestPacket(MSG_I_BUTTONS, safe, fast);
+				}
 			}
 			else
 			{
