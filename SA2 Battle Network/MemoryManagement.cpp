@@ -151,6 +151,7 @@ void MemManage::waitInputInit()
 	return;
 }
 
+// TODO: Rewrite to use DataPointer from the SA2 Mod Loader instead of Read/WriteMemory
 void MemManage::swapInput(const bool doNop)
 {
 	cout << "<> Swapping input devices..." << endl;
