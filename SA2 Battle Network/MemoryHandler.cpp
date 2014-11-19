@@ -969,8 +969,6 @@ void MemoryHandler::PreReceive()
 		ControllersRaw[1].LeftStickX = 0;
 		ControllersRaw[1].LeftStickY = 0;
 	}
-
-	return;
 }
 void MemoryHandler::PostReceive()
 {
@@ -979,8 +977,6 @@ void MemoryHandler::PostReceive()
 
 	writeRings();
 	writeSpecials();
-
-	return;
 }
 
 #pragma endregion
