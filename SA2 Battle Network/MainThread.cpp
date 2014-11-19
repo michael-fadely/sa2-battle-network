@@ -23,7 +23,7 @@ using namespace chrono;
 int argc = 0;
 wchar_t** argv = nullptr;
 
-void __cdecl Init_t(const char *path)
+void __cdecl ThreadInit(const char *path)
 {
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
 		abort();

@@ -93,7 +93,7 @@
     <ClInclude Include="CommonEnums.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="LazyMemory.h" />
-    <ClInclude Include="Initialize.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="MemoryHandler.h" />
     <ClInclude Include="MemoryManagement.h" />
     <ClInclude Include="MemoryStruct.h" />
@@ -118,7 +118,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Globals.cpp" />
-    <ClCompile Include="Initialize.cpp" />
+    <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="ModLoaderExtensions.cpp" />
@@ -126,7 +126,7 @@
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketExtensions.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
-    <ClCompile Include="SA2 Battle Network.cpp" />
+    <ClCompile Include="Mod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mod.ini" />

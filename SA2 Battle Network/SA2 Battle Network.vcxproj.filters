@@ -39,9 +39,6 @@
     <ClInclude Include="Networking.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
-    <ClInclude Include="Initialize.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
@@ -90,18 +87,15 @@
     <ClInclude Include="nop.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="SA2 Battle Network.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
-    <ClCompile Include="Initialize.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="Globals.cpp">
@@ -132,6 +126,12 @@
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
     <ClCompile Include="nop.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
   </ItemGroup>
