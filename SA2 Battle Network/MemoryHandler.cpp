@@ -263,25 +263,36 @@ void MemoryHandler::SendInput()
 			// If the Action Button is pressed, then check the specials.
 			if (ControllersRaw[0].PressedButtons & (Buttons_B | Buttons_X))
 			{
-				// If a special has been used, send buttons followed immediately by specials.
-				if ((P1SpecialAttacks[0] == 0 && local.game.P1SpecialAttacks[0] != 0) || (P1SpecialAttacks[1] == 0 && local.game.P1SpecialAttacks[1] != 0) || (P1SpecialAttacks[2] == 0 && local.game.P1SpecialAttacks[2] != 0))
+				bool failsafe = false;
+
+				for (uint8 i = 0; i < 3; i++)
 				{
-					// TODO: Consider killing off the specials in local.game.P1SpecialAttacks after sending this to avoid redundant packets.
-					// As it stands now, the special will rarely be 0 before we send it over, so if we set the local copy to 0,
-					// it has a lower chance of sending redundant packets later, as SendSystem is behind a frame-sync barrier, whereas this is not.
-					RequestPacket(MSG_I_BUTTONS, safe, fast);
-					RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+					// If a special has been used, send buttons followed immediately by specials.
+					if (P1SpecialAttacks[i] == 0 && local.game.P1SpecialAttacks[i] != 0)
+					{
+						//cout << "<> \aUSED" << endl;
+						// As it stands now, the special will rarely be 0 before we send it over, so if we set the local copy to 0,
+						// it has a lower chance of sending redundant packets later, as SendSystem is behind a frame-sync barrier, whereas this is not.
+						failsafe = true;
+						RequestPacket(MSG_I_BUTTONS, safe, fast);
+						RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+						local.game.P1SpecialAttacks[i] = 0;
+						break;
+					}
+					// Otherwise, if a special has been gained, send specials first followed immediately by buttons.
+					else if (P1SpecialAttacks[i] == 1 && local.game.P1SpecialAttacks[i] != 1)
+					{
+						//cout << "<> \aGAINED" << endl;
+						failsafe = true;
+						RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+						RequestPacket(MSG_I_BUTTONS, safe, fast);
+						local.game.P1SpecialAttacks[i] = 1;
+						break;
+					}
 				}
-				// Otherwise, if a special has been gained, send specials first followed immediately by buttons.
-				else if ((P1SpecialAttacks[0] == 1 && local.game.P1SpecialAttacks[0] != 1) || (P1SpecialAttacks[1] == 1 && local.game.P1SpecialAttacks[1] != 1) || (P1SpecialAttacks[2] == 1 && local.game.P1SpecialAttacks[2] != 1))
-				{
-					RequestPacket(MSG_S_2PSPECIALS, safe, fast);
+
+				if (!failsafe)
 					RequestPacket(MSG_I_BUTTONS, safe, fast);
-				}
-				else
-				{
-					RequestPacket(MSG_I_BUTTONS, safe, fast);
-				}
 			}
 			else
 			{
