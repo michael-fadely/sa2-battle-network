@@ -150,8 +150,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
-	// HACK: This isn't really a sufficient fix.
-	// (the !writePlayer thing)
+	// HACK: This isn't really a sufficient fix for the scale bug.
 	// I suspect it's causing some weird side effects like "falling" while going down a slope,
 	// usually interrupting spindashes. However, it fixes the scale issue.
 	// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
@@ -173,9 +172,6 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				break;
 			}
 
-			if (writePlayer)
-				writeP2Memory();
-
 			//cout << (ushort)id << endl;
 			switch (id)
 			{
@@ -195,14 +191,16 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			default:
 				ReceiveInput(id, packet);
 				ReceiveSystem(id, packet);
-				ReceivePlayer(id, packet);
+				
+				if (ReceivePlayer(id, packet))
+					writeP2Memory();
+
 				ReceiveMenu(id, packet);
 				break;
 			}
 
 			lastID = id;
 		}
-
 	}
 }
 
@@ -861,9 +859,6 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 			writePlayer = true;
 			break;
 		}
-
-		//if (writePlayer)
-		//	writeP2Memory();
 
 		return writePlayer;
 	}
