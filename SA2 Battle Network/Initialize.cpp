@@ -4,8 +4,6 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
-#include <vector>
 
 #include <Windows.h>
 #include <ShellAPI.h>		// for CommandLinetoArgvW
@@ -114,10 +112,8 @@ void MainThread(int argc, wchar_t** argv)
 	while (true)
 	{
 		if (Program->Connect() != Application::ExitCode::NotReady)
-		{
-			Program->ApplySettings();
 			Program->RunLoop();
-		}
+
 		SleepFor((milliseconds)250);
 	}
 

@@ -21,7 +21,7 @@ public:
 	const bool isSafe;
 
 	// Static stuff
-	// Set the global message count to beused by all packets
+	// Set the global message count to be used by all packets
 	static void SetMessageTypeCount(const unsigned char msgCount);
 
 private:

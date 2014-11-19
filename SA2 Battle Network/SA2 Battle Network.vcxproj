@@ -99,6 +99,7 @@
     <ClInclude Include="MemoryStruct.h" />
     <ClInclude Include="ModLoaderExtensions.h" />
     <ClInclude Include="Networking.h" />
+    <ClInclude Include="nop.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="PacketExtensions.h" />
     <ClInclude Include="PacketHandler.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="ModLoaderExtensions.cpp" />
+    <ClCompile Include="nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketExtensions.cpp" />
     <ClCompile Include="PacketHandler.cpp" />

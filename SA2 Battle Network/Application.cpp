@@ -51,25 +51,26 @@ isServer(host),
 Address(address),
 setMusic(false)
 {
-	AbstractMemory = new MemoryHandler();
+	memory = new MemoryHandler();
 }
 
 Program::~Program()
 {
-	delete AbstractMemory;
+	delete memory;
 }
 
 
 ExitCode Program::Connect()
 {
-	// Used only for connection loops.
-	bool connected = false;
-	sf::Packet packet;
-	sf::Socket::Status status = sf::Socket::Status::Error;
 
 
-	if (AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
+	if (memory->GetCurrentMenu() >= Menu::BATTLE)
 	{
+		// Used only for connection loops.
+		sf::Packet packet;
+		sf::Socket::Status status = sf::Socket::Status::Error;
+		bool connected = false;
+		
 		if (!setMusic)
 		{
 			ChangeMusic("chao_k_net_connect.adx");
@@ -80,7 +81,7 @@ ExitCode Program::Connect()
 		{
 #pragma region Server
 			if (!Globals::Networking->isBound())
-				cout << "\aHosting server on port " << Address.port << "..." << endl;
+				cout << "Hosting server on port " << Address.port << "..." << endl;
 
 			if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
 			{
@@ -95,7 +96,7 @@ ExitCode Program::Connect()
 				}
 			}
 
-			while (!connected && AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && memory->GetCurrentMenu() >= Menu::BATTLE)
 			{
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
@@ -137,7 +138,7 @@ ExitCode Program::Connect()
 				}
 
 				system("cls");
-				cout << "\a>> Connected!" << endl;
+				cout << ">> Connected!" << endl;
 
 				connected = true;
 				return ExitCode::None;
@@ -148,7 +149,7 @@ ExitCode Program::Connect()
 		{
 #pragma region Client
 			if (!Globals::Networking->isBound())
-				cout << "\a\a<< Connecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
+				cout << "<< Connecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
 
 			if ((status = Globals::Networking->Connect(Address, false)) != sf::Socket::Done)
 			{
@@ -164,7 +165,7 @@ ExitCode Program::Connect()
 			}
 
 
-			while (!connected && AbstractMemory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && memory->GetCurrentMenu() >= Menu::BATTLE)
 			{
 				packet << (uchar)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 				uchar id;
@@ -199,7 +200,7 @@ ExitCode Program::Connect()
 
 				case MSG_VERSION_OK:
 					system("cls");
-					cout << "\a<< Connected!" << endl;
+					cout << "<< Connected!" << endl;
 					connected = true;
 					return ExitCode::None;
 				}
@@ -215,55 +216,56 @@ ExitCode Program::Connect()
 }
 
 
-void Program::ApplySettings()
+void Program::ApplySettings(const bool apply)
 {
-	MemManage::nopP2Input(true);
+	MemManage::nopP2Input(apply);
+
+	if (apply)
+		cout << "<> Applying code changes..." << endl;
+	else
+		cout << "<> Reverting code changes..." << endl;
 
 	if (clientSettings.noSpecials)
-		MemManage::nop2PSpecials();
+		MemManage::nop2PSpecials(apply);
 	if (clientSettings.isLocal)
-		MemManage::swapInput(true);
+		MemManage::swapInput(apply);
 	if (clientSettings.KeepWindowActive)
-		MemManage::keepActive();
+		MemManage::keepActive(apply);
 
 	if (!isServer)
 	{
-		MemManage::swapSpawn(true);
-		MemManage::swapCharsel(true);
+		MemManage::swapSpawn(apply);
+		MemManage::swapCharsel(apply);
 	}
 	else
 	{
-		MemManage::swapSpawn(false);
-		MemManage::swapCharsel(false);
+		MemManage::swapSpawn(!apply);
+		MemManage::swapCharsel(!apply);
 	}
 }
 
 const ExitCode Program::RunLoop()
 {
-	AbstractMemory->Initialize();
+	memory->Initialize();
 	if (Globals::Networking->isConnected())
 	{
+		ApplySettings(true);
+
 		PlayMusic("btl_sel.adx");
 		PlayJingle(0, "chao_k_net_fine.adx");
 
 		exitCode = ExitCode::None;
 
-		//uint sendElapsed, recvElapsed;
-		//uint titleTimer = millisecs();
-		//stringstream title;
-
-		//uint frame, framecount;
-
 		while (Globals::Networking->isConnected())
 		{
-			AbstractMemory->RecvLoop();
-			AbstractMemory->SendLoop();
+			memory->RecvLoop();
+			memory->SendLoop();
 
 			// Check to see if we should disconnect
-			if (!(AbstractMemory->GetCurrentMenu() >= Menu::BATTLE))
+			if (!(memory->GetCurrentMenu() >= Menu::BATTLE))
 				break;
 
-			AbstractMemory->SetFrame();
+			memory->SetFrame();
 
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);
@@ -279,32 +281,11 @@ void Program::Disconnect(bool received, ExitCode code)
 
 	cout << "<> Disconnecting..." << endl;
 	Globals::Networking->Disconnect();
+
+	ApplySettings(false);
+
 	if (received)
-	{
-		cout << "<> Reverting swaps..." << endl;
-
-		MemManage::nopP2Input(false);
-
-		if (clientSettings.noSpecials)
-			MemManage::nop2PSpecials();
-		if (clientSettings.isLocal)
-			MemManage::swapInput(false);
-		if (clientSettings.KeepWindowActive)
-			MemManage::keepActive();
-
-		if (!isServer)
-		{
-			MemManage::swapSpawn(false);
-			MemManage::swapCharsel(false);
-		}
-		else
-		{
-			MemManage::swapSpawn(true);
-			MemManage::swapCharsel(true);
-		}
-
 		exitCode = code;
-	}
 
 	MemManage::waitFrame();
 	PlayJingle(0, "chao_k_net_fault.adx");

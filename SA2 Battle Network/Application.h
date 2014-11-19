@@ -35,20 +35,14 @@ namespace Application
 	class Program
 	{
 	public:
-		// De/Constructor
 		Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
 		~Program();
-
-		// Methods
-		//bool isProcessRunning();
 
 		ExitCode Connect();
 		void Disconnect(const bool received, const ExitCode code = ExitCode::ClientDisconnect);
 
-		void ApplySettings();
 		const ExitCode RunLoop();
 
-		// Members
 		bool isServer;
 		static Version versionNum;
 		static const std::string version;
@@ -56,15 +50,17 @@ namespace Application
 		Version remoteVersion;
 
 	private:
-
-		// Members
 		ExitCode exitCode;
 
-		MemoryHandler* AbstractMemory;
+		MemoryHandler* memory;
 
 		Settings clientSettings;
 		PacketHandler::RemoteAddress Address;
 
 		bool setMusic;
+
+		// Applies code and other changes to memory.
+		// If apply is false, then the changes are reverted.
+		void ApplySettings(const bool apply);
 	};
 }

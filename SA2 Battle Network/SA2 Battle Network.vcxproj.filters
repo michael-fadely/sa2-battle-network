@@ -87,6 +87,9 @@
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
+    <ClInclude Include="nop.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -127,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="PlayerObject.cpp">
       <Filter>Source Files\Game Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="nop.cpp">
+      <Filter>Source Files\Program</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

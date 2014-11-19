@@ -10,6 +10,7 @@
 #include "LazyMemory.h"
 
 #include "MemoryStruct.h"
+#include "nop.h"
 #include "MemoryManagement.h"
 
 using namespace std;
@@ -21,7 +22,7 @@ inline const uint MemManage::getElapsedFrames(const uint lastFrameCount) { retur
 const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint frameCount)
 {
 	uint result = getElapsedFrames(currentFrameCount);
-	
+
 	if (result > frameCount)
 		cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
 
@@ -30,7 +31,7 @@ const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint fra
 
 void MemManage::waitFrame(const uint frameCount, const uint lastFrame)
 {
-	uint frames	= 0;
+	uint frames = 0;
 	uint last = 0;
 
 	if (lastFrame == 0)
@@ -50,50 +51,43 @@ void MemManage::waitFrame(const uint frameCount, const uint lastFrame)
 	return;
 }
 
-void MemManage::nop(const uint baseAddress, const uint size)
+void MemManage::keepActive(const bool doNop)
 {
-	char* nop = new char[size];
-	memset(nop, 0x90, size);
-	WriteMemory(baseAddress, nop, size);	
-	delete[] nop;
+	if (doNop)
+		nop::apply(ADDR_WINDOWACTIVE, 15);
+	else
+		nop::restore(ADDR_WINDOWACTIVE);
 }
 
-void MemManage::keepActive()
+void MemManage::nop2PSpecials(const bool doNop)
 {
-	nop(ADDR_WINDOWACTIVE, 15);
-	return;
-}
-
-void MemManage::nop2PSpecials()
-{
-	cout << "<> Disabling specials..." << endl;
-	nop(0x00724257, 2);
-	nop(0x00736207, 2);
-	nop(0x00749917, 2);
+	if (doNop)
+	{
+		cout << "<> Disabling specials..." << endl;
+		nop::apply(0x00724257, 2);
+		nop::apply(0x00736207, 2);
+		nop::apply(0x00749917, 2);
+	}
+	else
+	{
+		cout << "<> Enabling specials..." << endl;
+		nop::restore(0x00724257);
+		nop::restore(0x00736207);
+		nop::restore(0x00749917);
+	}
 }
 
 void MemManage::nopP2Input(const bool doNop)
 {
+	waitInputInit();
 	if (doNop)
 	{
-		waitInputInit();
-		nop(ADDR_P2INOP, 6);
+		nop::apply(ADDR_P2INOP, 6);
 	}
 	else
 	{
-		waitInputInit();
 		waitFrame(5);
-
-		uchar buffer[6] = {
-			0x0F,
-			0x8C,
-			0x16,
-			0xFF,
-			0xFF,
-			0xFF
-		};
-
-		WriteMemory(ADDR_P2INOP, &buffer, (sizeof(char)*6));
+		nop::restore(ADDR_P2INOP);
 	}
 
 	return;
@@ -131,12 +125,6 @@ void MemManage::swapCharsel(const bool swapcharsel)
 // Returns true if both input structures have been initalized.
 const bool MemManage::InputInitalized()
 {
-	//uint p1 = 0;
-	//uint p2 = 0;
-
-	//ReadMemory(ADDR_P1INPUT, &p1, sizeof(int));
-	//ReadMemory(ADDR_P2INPUT, &p2, sizeof(int));
-
 	return (P1InputPtr != nullptr && P2InputPtr != nullptr);
 }
 
@@ -157,35 +145,22 @@ void MemManage::swapInput(const bool doNop)
 	cout << "<> Swapping input devices..." << endl;
 
 	if (doNop)
-		nop(0x00441BCA, 7);
+		nop::apply(0x00441BCA, 7);
 	else
-	{
-		uchar buffer[7] = {
-			0x89,
-			0x04,
-			0xB5,
-			0x60,
-			0xFB,
-			0xDE,
-			0x01
-		};
-
-		WriteMemory(0x00441BCA, &buffer, (sizeof(char) * 7));
-	}
-
+		nop::restore(0x00441BCA);
 
 	waitInputInit();
 
-	uint p1 = 0;
-	uint p2 = 0;
+	uint32 p1ptr = 0;
+	uint32 p2ptr = 0;
 
-	ReadMemory(ADDR_P1INPUT, &p1, sizeof(int));
-	ReadMemory(ADDR_P2INPUT, &p2, sizeof(int));
+	ReadMemory(ADDR_P1INPUT, &p1ptr, sizeof(int));
+	ReadMemory(ADDR_P2INPUT, &p2ptr, sizeof(int));
 
-	cout << hex << "<> " << p1 << " " << p2 << dec << endl;
+	cout << hex << "<> " << p1ptr << " " << p2ptr << dec << endl;
 
-	WriteMemory(ADDR_P1INPUT, &p2, sizeof(int));
-	WriteMemory(ADDR_P2INPUT, &p1, sizeof(int));
+	WriteMemory(ADDR_P1INPUT, &p2ptr, sizeof(int));
+	WriteMemory(ADDR_P2INPUT, &p1ptr, sizeof(int));
 
 	cout << "<> Swap complete." << endl;
 }

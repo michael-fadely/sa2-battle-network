@@ -21,7 +21,7 @@ namespace MemManage
 	const bool elapsedFrames(const unsigned int lastFrame, const unsigned int frameCount = 1);
 	// Blocking
 	// Waits for frameCount frames to pass (since lastFrame, if not 0) before continuing
-	void waitFrame(const unsigned int frameCount=1, const unsigned int lastFrame=0);
+	void waitFrame(const unsigned int frameCount = 1, const unsigned int lastFrame = 0);
 
 	// Returns true if both input structures have been initalized.
 	const bool InputInitalized();
@@ -34,10 +34,10 @@ namespace MemManage
 	*/
 
 	void nop(const unsigned int baseAddress, const unsigned int size);
-	void keepActive();
-	void nop2PSpecials();
-	void nopP2Input(const bool doNop=true);
+	void keepActive(const bool doNop);
+	void nop2PSpecials(const bool doNop);
+	void nopP2Input(const bool doNop);
 	void swapSpawn(const bool swapstart);
 	void swapCharsel(const bool swapcharsel);
-	void swapInput(const bool doNop=true);
+	void swapInput(const bool doNop);
 };
