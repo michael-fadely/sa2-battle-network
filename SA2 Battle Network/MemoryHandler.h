@@ -60,13 +60,13 @@ private:
 	void Receive(sf::Packet& packet, const bool safe);
 
 	// Read and send System variables
-	void SendSystem();
+	void SendSystem(PacketEx& safe, PacketEx& fast);
 	// Read and send Input
-	void SendInput();
+	void SendInput(PacketEx& safe, PacketEx& fast);
 	// Read and send Player varaibles
-	void SendPlayer();
+	void SendPlayer(PacketEx& safe, PacketEx& fast);
 	// Read and send Menu variables
-	void SendMenu();
+	void SendMenu(PacketEx& safe, PacketEx& fast);
 
 	// Receive and write Input
 	bool ReceiveInput(uchar type, sf::Packet& packet);

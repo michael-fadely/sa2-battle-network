@@ -131,13 +131,18 @@ void MemoryHandler::SendLoop()
 		CurrentLevel = 0;
 	}
 
-	SendInput();
+	PacketEx safe(true), fast(false);
+
+	SendInput(safe, fast);
 	if (!CheckFrame())
 	{
-		SendSystem();
-		SendPlayer();
-		SendMenu();
+		SendSystem(safe, fast);
+		SendPlayer(safe, fast);
+		SendMenu(safe, fast);
 	}
+
+	Globals::Networking->Send(safe);
+	Globals::Networking->Send(fast);
 
 	// SetFrame() is called from outside this function.
 }
@@ -206,12 +211,10 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 #pragma region Send
 
-void MemoryHandler::SendSystem()
+void MemoryHandler::SendSystem(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
-		PacketEx safe(true), fast(false);
-
 		if (local.game.CurrentLevel != CurrentLevel)
 		{
 			RingCount[0] = 0;
@@ -242,15 +245,10 @@ void MemoryHandler::SendSystem()
 
 		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::INGAME)
 			RequestPacket(MSG_S_RINGS, safe, fast);
-
-		Globals::Networking->Send(fast);
-		Globals::Networking->Send(safe);
 	}
 }
-void MemoryHandler::SendInput()
+void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 {
-	PacketEx safe(true), fast(false);
-
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
 		if (!CheckFrame())
@@ -311,16 +309,11 @@ void MemoryHandler::SendInput()
 			}
 		}
 	}
-
-	Globals::Networking->Send(fast);
-	Globals::Networking->Send(safe);
 }
-void MemoryHandler::SendPlayer()
+void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
 	{
-		PacketEx safe(true), fast(false);
-
 		if (CheckTeleport())
 		{
 			RequestPacket(MSG_P_POSITION, safe, fast);
@@ -384,17 +377,12 @@ void MemoryHandler::SendPlayer()
 			RequestPacket(MSG_P_UPGRADES, safe, fast);
 
 		UpdateAbstractPlayer(&sendPlayer, Player1);
-
-		Globals::Networking->Send(fast);
-		Globals::Networking->Send(safe);
 	}
 }
-void MemoryHandler::SendMenu()
+void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
 	{
-		PacketEx safe(true);
-
 		// Skip the Press Start screen straight to "Ready" screen
 		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2 && !wroteP2Start)
 		{
@@ -473,8 +461,6 @@ void MemoryHandler::SendMenu()
 
 			break;
 		}
-
-		Globals::Networking->Send(safe);
 	}
 }
 
