@@ -71,8 +71,6 @@ const bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-// TODO: Consider using one large packet as opposed to several per-group packets.
-
 MemoryHandler::MemoryHandler()
 {
 	Initialize();
@@ -196,7 +194,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			default:
 				ReceiveInput(id, packet);
 				ReceiveSystem(id, packet);
-				
+
 				if (ReceivePlayer(id, packet))
 					writeP2Memory();
 
@@ -331,12 +329,10 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 			// IN CASE OF EMERGENCY, UNCOMMENT
 			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
 
-			if (sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15
-				|| sendPlayer.Data1.Action == 0x20)
-			{
-				RequestPacket(MSG_P_ACTION, safe, fast);
-				RequestPacket(MSG_P_STATUS, safe, fast);
-			}
+			// This "pickup crash fix" only fixed it by NEVER SENDING THE ACTION! Good job, me!
+			// sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15 || sendPlayer.Data1.Action == 0x20
+			RequestPacket(MSG_P_ACTION, safe, fast);
+			RequestPacket(MSG_P_STATUS, safe, fast);
 
 			RequestPacket(MSG_P_ANIMATION, safe, fast);
 			RequestPacket(MSG_P_POSITION, safe, fast);
