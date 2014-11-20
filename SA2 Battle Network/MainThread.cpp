@@ -13,7 +13,7 @@
 #include "PacketHandler.h"	// for RemoteAddress
 #include "Application.h"	// for Application
 
-#include "Initialize.h"
+#include "MainThread.h"
 
 // Namespaces
 using namespace std;
