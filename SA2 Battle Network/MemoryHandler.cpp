@@ -125,7 +125,7 @@ void MemoryHandler::SendLoop()
 	if (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
 		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y))
 	{
-		cout << "Warping to test level!" << endl;
+		cout << "<> Warping to test level!" << endl;
 		CurrentLevel = 0;
 	}
 
@@ -874,13 +874,13 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 			RECEIVED(MSG_M_CHARSEL);
 			packet >> local.menu.CharacterSelection[1];
 			CharacterSelection[1] = local.menu.CharacterSelection[1];
-			cout << (ushort)local.menu.CharacterSelection[1] << ' ' << (ushort)CharacterSelection[1] << endl;
+			//cout << (ushort)local.menu.CharacterSelection[1] << ' ' << (ushort)CharacterSelection[1] << endl;
 			return true;
 
 			RECEIVED(MSG_M_CHARCHOSEN);
 			packet >> local.menu.CharacterSelected[1];
 			CharacterSelected[1] = local.menu.CharacterSelected[1];
-			cout << (ushort)CharacterSelected[1] << ' ' << (ushort)local.menu.CharacterSelected[1] << endl;
+			//cout << (ushort)CharacterSelected[1] << ' ' << (ushort)local.menu.CharacterSelected[1] << endl;
 			return true;
 
 			RECEIVED(MSG_M_ALTCHAR);
