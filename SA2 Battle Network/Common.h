@@ -5,7 +5,6 @@
 #include <LazySleepFor.h>
 #include "Globals.h"
 
-// Useful inline stuff:
 // Returns millisecs (lazy description is lazy)
 const unsigned int millisecs();
 
