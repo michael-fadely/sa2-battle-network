@@ -16,16 +16,13 @@
 #include "ModLoaderExtensions.h"
 #include "CommonEnums.h"
 
-#include "Application.h"
+#include "Program.h"
 
 // TODO: Replace music filename strings with constants or read them from a file.
 
 using namespace std;
 using namespace chrono;
-
-using namespace Application;
 using namespace sa2bn;
-
 
 void ChangeMusic(const char* song)
 {
@@ -34,10 +31,10 @@ void ChangeMusic(const char* song)
 	ResetMusic();
 }
 
-Version Program::versionNum = { 3, 0 };
+Program::Version Program::versionNum = { 3, 0 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
-const std::string Version::str()
+const std::string Program::Version::str()
 {
 	return to_string(major) + "." + to_string(minor);
 }
@@ -60,7 +57,7 @@ Program::~Program()
 }
 
 
-ExitCode Program::Connect()
+Program::ExitCode Program::Connect()
 {
 
 
@@ -245,7 +242,7 @@ void Program::ApplySettings(const bool apply)
 	}
 }
 
-const ExitCode Program::RunLoop()
+Program::ExitCode Program::RunLoop()
 {
 	memory->Initialize();
 

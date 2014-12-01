@@ -11,7 +11,7 @@
 #include "Common.h"			// for LazyTypedefs, SleepFor, Globals
 #include "Networking.h"		// for MSG_COUNT
 #include "PacketHandler.h"	// for RemoteAddress
-#include "Application.h"	// for Application
+#include "Program.h"		// for Program
 
 #include "MainThread.h"
 
@@ -43,8 +43,8 @@ void MainThread(int argc, wchar_t** argv)
 	uint timeout = 15000;
 
 	PacketHandler::RemoteAddress Address;
-	Application::Program* Program = nullptr;
-	Application::Settings Settings = {};
+	Program* program = nullptr;
+	Program::Settings Settings = {};
 
 #pragma region Command line arguments
 	if (argc > 2)
@@ -107,16 +107,16 @@ void MainThread(int argc, wchar_t** argv)
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	sa2bn::Globals::ProcessID = GetCurrentProcess();
 	sa2bn::Globals::Networking = new PacketHandler();
-	Program = new Application::Program(Settings, isServer, Address);
+	program = new Program(Settings, isServer, Address);
 
 	while (true)
 	{
-		if (Program->Connect() != Application::ExitCode::NotReady)
-			Program->RunLoop();
+		if (program->Connect() != Program::ExitCode::NotReady)
+			program->RunLoop();
 
 		SleepFor((milliseconds)250);
 	}
 
-	delete Program;
+	delete program;
 	delete sa2bn::Globals::Networking;
 }

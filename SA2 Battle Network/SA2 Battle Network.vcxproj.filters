@@ -45,9 +45,6 @@
     <ClInclude Include="Globals.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
     <ClInclude Include="CommonEnums.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
@@ -90,6 +87,9 @@
     <ClInclude Include="MainThread.h">
       <Filter>Header Files\Program</Filter>
     </ClInclude>
+    <ClInclude Include="Program.h">
+      <Filter>Header Files\Program</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -119,9 +119,6 @@
     <ClCompile Include="PacketExtensions.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerObject.cpp">
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
@@ -132,6 +129,9 @@
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="Mod.cpp">
+      <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="Program.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
   </ItemGroup>
