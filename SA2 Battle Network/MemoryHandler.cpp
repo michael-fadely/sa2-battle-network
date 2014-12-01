@@ -1,6 +1,5 @@
 // Standard Includes
 #include <iostream>
-#include <Windows.h>
 #include <cmath>	// for abs
 
 // Global Includes
@@ -29,7 +28,7 @@ using namespace std;
 using namespace sf;
 using namespace sa2bn;
 
-// The very manifestation of science
+#pragma region science
 
 const float positionDelta = 16;
 uint positionTimer = 0;
@@ -64,6 +63,7 @@ const bool SpeedDelta(const float last, const float current)
 		);
 }
 
+#pragma endregion
 
 /*
 //	Memory Handler Class

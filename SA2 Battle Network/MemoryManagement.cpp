@@ -1,7 +1,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <Windows.h>
 
 #include "Common.h"
 #include "AddressList.h"

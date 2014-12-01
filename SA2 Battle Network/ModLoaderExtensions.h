@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "SA2ModLoader.h"
 
 // Sonic's Obj2Base

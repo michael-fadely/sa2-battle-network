@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <Windows.h>
 
 #include <SFML\Network.hpp>
 

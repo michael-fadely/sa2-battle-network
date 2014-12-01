@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include "SA2ModLoader.h"
 
 #include "MainThread.h"

@@ -1,5 +1,6 @@
 #ifndef SA2MODLOADER_H
 #define SA2MODLOADER_H
+#include <WTypes.h>
 #include <cstdint>
 #include "ninja.h"
 

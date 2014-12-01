@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include <Windows.h>
+#include <Windows.h> // For GetCommandLIneW(), GetCurrentProcess()
 #include <ShellAPI.h>		// for CommandLinetoArgvW
 
 #include "Common.h"			// for LazyTypedefs, SleepFor, Globals
