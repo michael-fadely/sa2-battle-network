@@ -83,15 +83,10 @@ void MemoryHandler::Initialize()
 
 	analogTimer = 0;
 
-	cAt2PMenu[0] = false;
-	cAt2PMenu[1] = false;
-	lAt2PMenu[0] = false;
-	lAt2PMenu[1] = false;
-
 	firstMenuEntry = false;
 	wroteP2Start = false;
 	splitToggled = false;
-	Teleported = false;
+	teleported = false;
 	writePlayer = false;
 	sendSpinTimer = false;
 
@@ -101,22 +96,19 @@ void MemoryHandler::Initialize()
 
 void MemoryHandler::RecvLoop()
 {
-	if (Globals::Networking->isConnected())
-	{
-		// Grab the current frame before continuing.
-		// This is for frame synchronization.
-		GetFrame();
-		PreReceive();
+	// Grab the current frame before continuing.
+	// This is for frame synchronization.
+	GetFrame();
+	PreReceive();
 
-		sf::Packet packet;
-		Receive(packet, true);
-		Receive(packet, false);
+	sf::Packet packet;
+	Receive(packet, true);
+	Receive(packet, false);
 
-		PostReceive();
+	PostReceive();
 
-		// TODO: Consider moving the main logic loop to this class. See comment below.
-		// SetFrame() is called from outside this function.
-	}
+	// TODO: Consider moving the main logic loop to this class. See comment below.
+	// SetFrame() is called from outside this function.
 }
 void MemoryHandler::SendLoop()
 {
@@ -164,8 +156,8 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 	if (status == sf::Socket::Status::Done)
 	{
-		uchar id = MSG_NULL;
-		uchar lastID = MSG_NULL;
+		uint8 id = MSG_NULL;
+		uint8 lastID = MSG_NULL;
 
 		while (!packet.endOfPacket())
 		{
@@ -314,7 +306,7 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
 	{
-		if (CheckTeleport())
+		if (Teleport())
 		{
 			RequestPacket(MSG_P_POSITION, safe, fast);
 			RequestPacket(MSG_P_SPEED, safe, fast);
@@ -462,21 +454,21 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 	}
 }
 
-const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+const bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
 	if (packetType >= MSG_DISCONNECT && !packetIsIn.isInPacket(packetType) && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
-const bool MemoryHandler::RequestPacket(const uchar packetType, PacketEx& packetAddTo)
+const bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
 {
 	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
-const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
+const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 {
 	switch (packetType)
 	{
@@ -512,9 +504,6 @@ const bool MemoryHandler::AddPacket(const uchar packetType, PacketEx& packet)
 		local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
 		local.menu.AltCharacterRouge = AltCharacterRouge;
 		return true;
-
-	case MSG_M_ATMENU:	// Deprecated
-		return false;
 
 	case MSG_M_BATTLESEL:
 		packet << BattleSelection;
@@ -683,7 +672,7 @@ inline void MemoryHandler::writeP2Memory()
 	}
 }
 
-bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
@@ -708,7 +697,7 @@ bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 
 	return false;
 }
-bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -726,7 +715,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_S_GAMESTATE);
 			{
-				uchar recvGameState;
+				uint8 recvGameState;
 				packet >> recvGameState;
 				if (GameState >= GameState::NORMAL_RESTART && recvGameState > GameState::LOAD_FINISHED)
 					GameState = local.system.GameState = recvGameState;
@@ -761,7 +750,7 @@ bool MemoryHandler::ReceiveSystem(uchar type, sf::Packet& packet)
 	}
 	return false;
 }
-bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -849,7 +838,7 @@ bool MemoryHandler::ReceivePlayer(uchar type, sf::Packet& packet)
 
 	return false;
 }
-bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
+bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 {
 	if (GameState == GameState::INACTIVE)
 	{
@@ -857,14 +846,6 @@ bool MemoryHandler::ReceiveMenu(uchar type, sf::Packet& packet)
 		{
 		default:
 			return false;
-
-			RECEIVED(MSG_M_ATMENU);	// Deprecated
-			packet >> cAt2PMenu[1];
-			if (cAt2PMenu[1])
-				cout << ">> Player 2 is ready on the 2P menu!" << endl;
-			else
-				cout << ">> Player 2 is no longer on the 2P menu." << endl;
-			return true;
 
 			RECEIVED(MSG_S_2PREADY);
 			packet >> local.menu.PlayerReady[1];
@@ -1011,23 +992,23 @@ void MemoryHandler::ToggleSplitscreen()
 
 	return;
 }
-bool MemoryHandler::CheckTeleport()
+bool MemoryHandler::Teleport()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
 		if ((sendInput.HeldButtons & Buttons_Y) && (sendInput.HeldButtons & Buttons_Up))
 		{
-			if (!Teleported)
+			if (!teleported)
 			{
 				// Teleport to recvPlayer
 				cout << "<> Teleporting to other player..." << endl;;
 				PlayerObject::Teleport(&recvPlayer, Player1);
 
-				return Teleported = true;
+				return teleported = true;
 			}
 		}
-		else if (Teleported)
-			return Teleported = false;
+		else if (teleported)
+			return teleported = false;
 	}
 
 	return false;

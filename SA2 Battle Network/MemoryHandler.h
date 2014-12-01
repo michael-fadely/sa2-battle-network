@@ -36,15 +36,15 @@ public:
 	inline void GetFrame() { thisFrame = FrameCount; }
 	// Sets lastFrame to thisFrame
 	inline void SetFrame() { lastFrame = thisFrame; }
-	// Returns the current menu. Designed exclusively to be used externally.
+	// Designed exclusively to be used externally. Returns the current menu.
 	// This function does frame synchronization to ensure you don't catch the value
 	// mid-operation. Used by class Program
 	const unsigned int GetCurrentMenu();
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
-	const bool RequestPacket(const uchar packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	const bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
 	// Requests that the packet type packetType is added to packetAddTo.
-	const bool RequestPacket(const uchar packetType, PacketEx& packetAddTo);
+	const bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
 
 private:
 	//
@@ -53,7 +53,7 @@ private:
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet
-	const bool AddPacket(const uchar packetType, PacketEx& packet);
+	const bool AddPacket(const uint8 packetType, PacketEx& packet);
 
 	void Receive(sf::Packet& packet, const bool safe);
 
@@ -67,13 +67,13 @@ private:
 	void SendMenu(PacketEx& safe, PacketEx& fast);
 
 	// Receive and write Input
-	bool ReceiveInput(uchar type, sf::Packet& packet);
+	bool ReceiveInput(uint8 type, sf::Packet& packet);
 	// Receive game/system variables
-	bool ReceiveSystem(uchar type, sf::Packet& packet);
+	bool ReceiveSystem(uint8 type, sf::Packet& packet);
 	// Receive and queue write of Player variables
-	bool ReceivePlayer(uchar type, sf::Packet& packet);
+	bool ReceivePlayer(uint8 type, sf::Packet& packet);
 	// Receive and write Menu variables
-	bool ReceiveMenu(uchar type, sf::Packet& packet);
+	bool ReceiveMenu(uint8 type, sf::Packet& packet);
 
 	// Populates a local player object (destination) with data from an ingame player (source).
 	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
@@ -87,7 +87,8 @@ private:
 	void writeSpecials();
 	void writeTimeStop();
 	void ToggleSplitscreen();
-	bool CheckTeleport();
+	// Returns true if the player has been teleported.
+	bool Teleport();
 
 	// Returns true if one or more frames have passed since lastFrame
 	inline const bool isNewFrame() { return (thisFrame != lastFrame); }
@@ -109,16 +110,11 @@ private:
 	// Prevents it from spamming packets.
 	uint analogTimer;
 
-	// Used to determine whether or not Player 1 ([0]) and/or Player 2 ([1])
-	// are at the 2P Battle Menu. I'm really not sure if I should do this some other way.
-	bool cAt2PMenu[2];
-	bool lAt2PMenu[2];
-
 	// Toggles and things
 	bool firstMenuEntry;
 	bool wroteP2Start;
 	bool splitToggled;
-	bool Teleported;
+	bool teleported;
 	bool writePlayer;
 	bool sendSpinTimer;
 };

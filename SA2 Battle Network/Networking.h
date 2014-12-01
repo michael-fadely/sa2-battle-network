@@ -13,7 +13,6 @@ enum MsgTypes : unsigned char
 	MSG_I_BUTTONS,
 
 	MSG_M_ALTCHAR,
-	MSG_M_ATMENU,	// Deprecated
 	MSG_M_BATTLESEL,
 	MSG_M_BATTLEOPTSEL,
 	MSG_M_CHARCHOSEN,
