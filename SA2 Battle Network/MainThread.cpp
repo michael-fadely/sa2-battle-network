@@ -1,6 +1,5 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
-#define WIN32_LEAN_AND_MEAN
 
 #include <iostream>
 #include <string>

@@ -1,5 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-
 // Standard Includes
 #include <iostream>
 #include <Windows.h>

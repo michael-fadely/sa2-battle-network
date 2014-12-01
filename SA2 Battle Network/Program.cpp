@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 #include <SFML\Network.hpp>
