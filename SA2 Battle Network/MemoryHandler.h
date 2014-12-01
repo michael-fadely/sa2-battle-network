@@ -36,8 +36,6 @@ public:
 	inline void GetFrame() { thisFrame = FrameCount; }
 	// Sets lastFrame to thisFrame
 	inline void SetFrame() { lastFrame = thisFrame; }
-	// Returns true if thisFrame is the same as lastFrame
-	inline const bool CheckFrame() { return (thisFrame == lastFrame); }
 	// Returns the current menu. Designed exclusively to be used externally.
 	// This function does frame synchronization to ensure you don't catch the value
 	// mid-operation. Used by class Program
@@ -77,6 +75,9 @@ private:
 	// Receive and write Menu variables
 	bool ReceiveMenu(uchar type, sf::Packet& packet);
 
+	// Populates a local player object (destination) with data from an ingame player (source).
+	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
+
 	void PreReceive();
 	void PostReceive();
 
@@ -85,11 +86,11 @@ private:
 	void writeRings();
 	void writeSpecials();
 	void writeTimeStop();
-
-	// Populates a local player object (destination) with data from an ingame player (source).
-	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
 	void ToggleSplitscreen();
 	bool CheckTeleport();
+
+	// Returns true if one or more frames have passed since lastFrame
+	inline const bool isNewFrame() { return (thisFrame != lastFrame); }
 
 	//
 	// Members

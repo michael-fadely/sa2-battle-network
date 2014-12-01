@@ -113,6 +113,8 @@ void MemoryHandler::RecvLoop()
 		Receive(packet, false);
 
 		PostReceive();
+
+		// TODO: Consider moving the main logic loop to this class. See comment below.
 		// SetFrame() is called from outside this function.
 	}
 }
@@ -132,7 +134,7 @@ void MemoryHandler::SendLoop()
 	PacketEx safe(true), fast(false);
 
 	SendInput(safe, fast);
-	if (!CheckFrame())
+	if (isNewFrame())
 	{
 		SendSystem(safe, fast);
 		SendPlayer(safe, fast);
@@ -153,7 +155,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
-	// HACK: This isn't really a sufficient fix for the scale bug.
+	// HACK: This isn't really a sufficient fix for the scale bug. Consider frame sync wall.
 	// I suspect it's causing some weird side effects like "falling" while going down a slope,
 	// usually interrupting spindashes. However, it fixes the scale issue.
 	// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
@@ -249,7 +251,7 @@ void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
-		if (!CheckFrame())
+		if (isNewFrame())
 			ToggleSplitscreen();
 
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
@@ -692,7 +694,7 @@ bool MemoryHandler::ReceiveInput(uchar type, sf::Packet& packet)
 
 			RECEIVED(MSG_I_BUTTONS);
 			packet >> recvInput.HeldButtons;
-			if (CheckFrame())
+			if (!isNewFrame())
 				MemManage::waitFrame();
 			recvInput.WriteButtons(ControllersRaw[1]);
 
@@ -1038,7 +1040,7 @@ const unsigned int MemoryHandler::GetCurrentMenu()
 	if (!Globals::Networking->isConnected())
 		GetFrame();
 
-	if (CheckFrame())
+	if (!isNewFrame())
 		return local.menu.main;
 	else
 		return local.menu.main = CurrentMenu[0];

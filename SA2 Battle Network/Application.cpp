@@ -70,7 +70,7 @@ ExitCode Program::Connect()
 		sf::Packet packet;
 		sf::Socket::Status status = sf::Socket::Status::Error;
 		bool connected = false;
-		
+
 		if (!setMusic)
 		{
 			ChangeMusic("chao_k_net_connect.adx");
@@ -212,6 +212,7 @@ ExitCode Program::Connect()
 	{
 		setMusic = false;
 	}
+
 	return ExitCode::NotReady;
 }
 
@@ -247,6 +248,7 @@ void Program::ApplySettings(const bool apply)
 const ExitCode Program::RunLoop()
 {
 	memory->Initialize();
+
 	if (Globals::Networking->isConnected())
 	{
 		ApplySettings(true);
@@ -270,8 +272,10 @@ const ExitCode Program::RunLoop()
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);
 		}
+
 		Disconnect(false, ExitCode::NotReady);
 	}
+
 	return exitCode;
 }
 
