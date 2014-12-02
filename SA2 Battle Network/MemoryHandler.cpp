@@ -69,6 +69,9 @@ const bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
+// TODO: Re-evaluate when the best time is to read and write player data. Right now, it sucks.
+// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop and SendLoop.
+
 MemoryHandler::MemoryHandler()
 {
 	Initialize();
@@ -91,8 +94,6 @@ void MemoryHandler::Initialize()
 	thisFrame = 0;
 	lastFrame = 0;
 }
-
-// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop and SendLoop.
 
 void MemoryHandler::RecvLoop()
 {
