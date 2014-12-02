@@ -1,20 +1,61 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SA2 Battle Network", "SA2 Battle Network\SA2 Battle Network.vcxproj", "{3F122E9B-E722-461F-9DCE-4A82957736B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD} = {9358C107-BEFD-4C09-A54E-F5474A7594DD}
+		{9147395B-6AFB-471A-BA21-2FAF037F5978} = {9147395B-6AFB-471A-BA21-2FAF037F5978}
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009} = {EE9A4285-9443-41F2-AD64-A22AB59F8009}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml-main", "G:\Libraries\SFML-2.1_VC2013x86_STATIC\src\SFML\Main\sfml-main.vcxproj", "{EE9A4285-9443-41F2-AD64-A22AB59F8009}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml-network", "G:\Libraries\SFML-2.1_VC2013x86_STATIC\src\SFML\Network\sfml-network.vcxproj", "{9358C107-BEFD-4C09-A54E-F5474A7594DD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml-system", "G:\Libraries\SFML-2.1_VC2013x86_STATIC\src\SFML\System\sfml-system.vcxproj", "{9147395B-6AFB-471A-BA21-2FAF037F5978}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		MinSizeRel|Win32 = MinSizeRel|Win32
 		Release|Win32 = Release|Win32
+		RelWithDebInfo|Win32 = RelWithDebInfo|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3F122E9B-E722-461F-9DCE-4A82957736B0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3F122E9B-E722-461F-9DCE-4A82957736B0}.Debug|Win32.Build.0 = Debug|Win32
+		{3F122E9B-E722-461F-9DCE-4A82957736B0}.MinSizeRel|Win32.ActiveCfg = Release|Win32
+		{3F122E9B-E722-461F-9DCE-4A82957736B0}.MinSizeRel|Win32.Build.0 = Release|Win32
 		{3F122E9B-E722-461F-9DCE-4A82957736B0}.Release|Win32.ActiveCfg = Release|Win32
 		{3F122E9B-E722-461F-9DCE-4A82957736B0}.Release|Win32.Build.0 = Release|Win32
+		{3F122E9B-E722-461F-9DCE-4A82957736B0}.RelWithDebInfo|Win32.ActiveCfg = Release|Win32
+		{3F122E9B-E722-461F-9DCE-4A82957736B0}.RelWithDebInfo|Win32.Build.0 = Release|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.Debug|Win32.Build.0 = Debug|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.MinSizeRel|Win32.ActiveCfg = MinSizeRel|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.MinSizeRel|Win32.Build.0 = MinSizeRel|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.Release|Win32.ActiveCfg = Release|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.Release|Win32.Build.0 = Release|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.RelWithDebInfo|Win32.ActiveCfg = RelWithDebInfo|Win32
+		{EE9A4285-9443-41F2-AD64-A22AB59F8009}.RelWithDebInfo|Win32.Build.0 = RelWithDebInfo|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.Debug|Win32.Build.0 = Debug|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.MinSizeRel|Win32.ActiveCfg = MinSizeRel|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.MinSizeRel|Win32.Build.0 = MinSizeRel|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.Release|Win32.ActiveCfg = Release|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.Release|Win32.Build.0 = Release|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.RelWithDebInfo|Win32.ActiveCfg = RelWithDebInfo|Win32
+		{9358C107-BEFD-4C09-A54E-F5474A7594DD}.RelWithDebInfo|Win32.Build.0 = RelWithDebInfo|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.Debug|Win32.Build.0 = Debug|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.MinSizeRel|Win32.ActiveCfg = MinSizeRel|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.MinSizeRel|Win32.Build.0 = MinSizeRel|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.Release|Win32.ActiveCfg = Release|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.Release|Win32.Build.0 = Release|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.RelWithDebInfo|Win32.ActiveCfg = RelWithDebInfo|Win32
+		{9147395B-6AFB-471A-BA21-2FAF037F5978}.RelWithDebInfo|Win32.Build.0 = RelWithDebInfo|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
