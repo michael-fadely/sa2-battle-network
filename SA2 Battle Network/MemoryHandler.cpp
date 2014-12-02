@@ -40,7 +40,7 @@ inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 1250);
 }
 
-const uint rotateDelta = (uint)(5.625 * (65536 / 360));
+const uint rotateDelta = toBAMS(5.625);
 uint rotateTimer = 0;
 inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 {
