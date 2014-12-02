@@ -37,9 +37,10 @@ inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 	return (abs(last.x - current.x) >= positionDelta
 		|| abs(last.y - current.y) >= positionDelta
 		|| abs(last.z - current.z) >= positionDelta
-		|| memcmp(&last, &current, sizeof(Vertex)) != 0 && Duration(positionTimer) >= 1250);
+		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
+// TODO: Consider adjusting this yet again. 11.25?
 const uint rotateDelta = toBAMS(5.625);
 uint rotateTimer = 0;
 inline const bool RotationDelta(const Rotation& last, const Rotation& current)
@@ -52,15 +53,10 @@ inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 
 const float speedDelta = 0.1F;
 uint speedTimer = 0;
-const bool SpeedDelta(const float last, const float current)
+inline const bool SpeedDelta(const float last, const float current)
 {
-	return (
-		//last != current // <- Old behavior for testing purposes.
-		//abs(last - current) >= max((speedDelta * current), 0.01)
-		abs(last - current) >= speedDelta
-		//|| last != current && current <= speedDelta
-		|| last != current && Duration(speedTimer) >= 125
-		);
+	return last != current && (Duration(speedTimer) >= 125 || abs(last - current) >= speedDelta);
+	//abs(last - current) >= max((speedDelta * current), 0.01)
 }
 
 #pragma endregion
@@ -69,7 +65,6 @@ const bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-// TODO: Re-evaluate when the best time is to read and write player data. Right now, it sucks.
 // TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop and SendLoop.
 
 MemoryHandler::MemoryHandler()
@@ -148,13 +143,6 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
-	// HACK: This isn't really a sufficient fix for the scale bug.
-	// I suspect it's causing some weird side effects like "falling" while going down a slope,
-	// usually interrupting spindashes. However, it fixes the scale issue.
-	// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
-	if (!writePlayer)
-		UpdateAbstractPlayer(&recvPlayer, Player2);
-
 	if (status == sf::Socket::Status::Done)
 	{
 		uint8 id = MSG_NULL;
@@ -187,11 +175,25 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				break;
 
 			default:
+
 				ReceiveInput(id, packet);
 				ReceiveSystem(id, packet);
 
+				// HACK: This isn't really a sufficient fix for the scale bug.
+				// I suspect it's causing some weird side effects like "falling" while going down a slope,
+				// usually interrupting spindashes. However, it fixes the scale issue.
+				// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
+				if (!writePlayer)
+					recvPlayer.Set(Player2);
+
 				if (ReceivePlayer(id, packet))
-					writeP2Memory();
+				{
+					if (GameState >= GameState::INGAME)
+					{
+						writePlayer = false;
+						PlayerObject::WritePlayer(Player2, &recvPlayer);
+					}
+				}
 
 				ReceiveMenu(id, packet);
 				break;
@@ -363,7 +365,7 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
 			RequestPacket(MSG_P_UPGRADES, safe, fast);
 
-		UpdateAbstractPlayer(&sendPlayer, Player1);
+		sendPlayer.Set(Player1);
 	}
 }
 void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
@@ -660,15 +662,6 @@ const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma endregion
 #pragma region Receive
 
-inline void MemoryHandler::writeP2Memory()
-{
-	if (GameState >= GameState::INGAME)
-	{
-		writePlayer = false;
-		PlayerObject::WritePlayer(Player2, &recvPlayer);
-	}
-}
-
 bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
@@ -916,48 +909,47 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 	return false;
 }
 
+
+#pragma endregion
+#pragma region Crap
+
 void MemoryHandler::PreReceive()
 {
 	writeRings();
 	writeSpecials();
 
-	if (GameState == GameState::PAUSE &&
-		(recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0 || ControllersRaw[1].LeftStickX != 0 || ControllersRaw[1].LeftStickY != 0))
+	// HACK: This entire section
+	if (GameState >= GameState::INGAME && Player2 != nullptr)
 	{
-		recvInput.LeftStickX = 0;
-		recvInput.LeftStickY = 0;
-		ControllersRaw[1].LeftStickX = 0;
-		ControllersRaw[1].LeftStickY = 0;
+		// HACK: Upgrade/Powerup failsafe
+		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
+		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
+
+		// HACK: Mech HP synchronization fix. This REALLY sucks.
+		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
+			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
+
+		// HACK Analog failsafe
+		if (GameState == GameState::PAUSE &&
+			(recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0 ||
+			ControllersRaw[1].LeftStickX != 0 || ControllersRaw[1].LeftStickY != 0))
+		{
+			recvInput.LeftStickX = 0;
+			recvInput.LeftStickY = 0;
+			ControllersRaw[1].LeftStickX = 0;
+			ControllersRaw[1].LeftStickY = 0;
+		}
 	}
 }
 void MemoryHandler::PostReceive()
 {
-	writeP2Memory();
 	writeRings();
 	writeSpecials();
 }
 
-#pragma endregion
-#pragma region Crap
-
 inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
 inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
-
-// TODO: Get rid of this function and just call destination->Set like a sane person.
-void MemoryHandler::UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
-{
-	// HACK: Mech HP synchronization fix. This REALLY sucks.
-	if (GameState >= GameState::INGAME && Player2 != nullptr)
-	{
-		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
-			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
-		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
-		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
-	}
-
-	destination->Set(source);
-}
 
 #pragma endregion
 #pragma region Toggles

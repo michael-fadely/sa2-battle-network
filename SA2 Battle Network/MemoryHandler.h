@@ -75,14 +75,10 @@ private:
 	// Receive and write Menu variables
 	bool ReceiveMenu(uint8 type, sf::Packet& packet);
 
-	// Populates a local player object (destination) with data from an ingame player (source).
-	void UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source);
-
 	void PreReceive();
 	void PostReceive();
 
 	// Pretty much all of these are just so I can be lazy
-	void writeP2Memory();
 	void writeRings();
 	void writeSpecials();
 	void writeTimeStop();
