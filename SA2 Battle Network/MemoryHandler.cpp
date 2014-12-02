@@ -343,10 +343,6 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 			//	<< ") || " << sendPlayer.Data2.PhysData.BaseSpeed << " != " << Player1->Data2->PhysData.BaseSpeed
 			//	<< endl;
 
-			// These are set in AddPacket
-			//rotateTimer = millisecs();
-			//speedTimer = rotateTimer;
-
 			RequestPacket(MSG_P_ROTATION, fast, safe);
 			RequestPacket(MSG_P_POSITION, fast, safe);
 			RequestPacket(MSG_P_SPEED, fast, safe);

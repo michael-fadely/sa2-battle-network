@@ -4,47 +4,48 @@
 struct MemStruct
 {
 	// System variables are global game settings
-	struct SystemVars {
+	struct SystemVars
+	{
 		// The current Game State (loading, ingame, paused, etc)
-		uchar GameState;
+		uint8 GameState;
 		// The player number that last paused the game
-		uchar PlayerPaused;
+		uint8 PlayerPaused;
 		// The current 2Player mode.
 		// 0 is single player, 1 is three battles, 2 is one battle.
-		uchar TwoPlayerMode;
+		uint8 TwoPlayerMode;
 		// Split screen mode.
 		// The number indicates the number of screens rendered.
-		uchar SplitscreenMode;
+		uint8 SplitscreenMode;
 		// The current pause menu selection
-		uchar PauseSelection;
+		uint8 PauseSelection;
 	} system;
 
 	// Menu varaibles are for ingame menus of any description
 	struct MenuVars
 	{
 		// The current parent menu and its sub menu
-		uint main, sub;
-		uchar P2Start;
-		int PlayerReady[2];
+		uint32 main, sub;
+		uint8 P2Start;
+		int32 PlayerReady[2];
 
-		uint StageSelection2P[2];
-		uchar BattleSelection;
-		uint CharacterSelection[2];
+		uint32 StageSelection2P[2];
+		uint8 BattleSelection;
+		uint32 CharacterSelection[2];
 
-		char CharacterSelected[2];
+		int8 CharacterSelected[2];
 
-		char AltCharacterSonic, AltCharacterShadow;
-		char AltCharacterTails, AltCharacterEggman;
-		char AltCharacterKnuckles, AltCharacterRouge;
+		int8 AltCharacterSonic, AltCharacterShadow;
+		int8 AltCharacterTails, AltCharacterEggman;
+		int8 AltCharacterKnuckles, AltCharacterRouge;
 
 		// Battle Options button selected on stage select
-		char BattleOptionsButton;
+		int8 BattleOptionsButton;
 		// Battle Options array
-		char BattleOptions[4];
+		int8 BattleOptions[4];
 		// Battle Options menu selection
-		char BattleOptionsSelection;
+		int8 BattleOptionsSelection;
 		// Battle Options back button is selected
-		char BattleOptionsBack;
+		int8 BattleOptionsBack;
 	} menu;
 
 	// Gameplay variables for things only seen within the stage
@@ -52,16 +53,16 @@ struct MemStruct
 	{
 		// Ingame time.
 		// First index is minutes, followed by seconds and centiseconds.
-		char TimerMinutes, TimerSeconds, TimerFrames;
+		int8 TimerMinutes, TimerSeconds, TimerFrames;
 		// Ring count.
 		// First index is Player 1, second index is Player 2.
-		ushort RingCount[2];
+		uint16 RingCount[2];
 		// Current stage.
-		uchar CurrentLevel;
+		uint8 CurrentLevel;
 
-		char P1SpecialAttacks[3];
-		char P2SpecialAttacks[3];
+		int8 P1SpecialAttacks[3];
+		int8 P2SpecialAttacks[3];
 
-		char TimeStopMode;
+		int8 TimeStopMode;
 	} game;
 };
