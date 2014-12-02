@@ -92,6 +92,8 @@ void MemoryHandler::Initialize()
 	lastFrame = 0;
 }
 
+// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop and SendLoop.
+
 void MemoryHandler::RecvLoop()
 {
 	// Grab the current frame before continuing.
@@ -145,7 +147,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
-	// HACK: This isn't really a sufficient fix for the scale bug. Consider frame sync wall.
+	// HACK: This isn't really a sufficient fix for the scale bug.
 	// I suspect it's causing some weird side effects like "falling" while going down a slope,
 	// usually interrupting spindashes. However, it fixes the scale issue.
 	// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
@@ -915,8 +917,6 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 
 void MemoryHandler::PreReceive()
 {
-	//UpdateAbstractPlayer(&recvPlayer, Player2);
-
 	writeRings();
 	writeSpecials();
 
@@ -931,9 +931,7 @@ void MemoryHandler::PreReceive()
 }
 void MemoryHandler::PostReceive()
 {
-	//UpdateAbstractPlayer(&recvPlayer, Player2);
 	writeP2Memory();
-
 	writeRings();
 	writeSpecials();
 }
@@ -945,6 +943,7 @@ inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]
 inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
 inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
 
+// TODO: Get rid of this function and just call destination->Set like a sane person.
 void MemoryHandler::UpdateAbstractPlayer(PlayerObject* destination, ObjectMaster* source)
 {
 	// HACK: Mech HP synchronization fix. This REALLY sucks.

@@ -56,8 +56,6 @@ Program::~Program()
 
 Program::ExitCode Program::Connect()
 {
-
-
 	if (memory->GetCurrentMenu() >= Menu::BATTLE)
 	{
 		// Used only for connection loops.
