@@ -1,10 +1,13 @@
+#include <SFML\Network.hpp>
+#include <LazyTypedefs.h>
+
 #include "PacketExtensions.h"
 
 // Static variables
-unsigned char PacketEx::MessageTypeCount = 0xFF;
-void PacketEx::SetMessageTypeCount(const unsigned char msgCount) { MessageTypeCount = msgCount; }
+uint8 PacketEx::MessageTypeCount = 0xFF;
+void PacketEx::SetMessageTypeCount(const uint8 msgCount) { MessageTypeCount = msgCount; }
 
-PacketEx::PacketEx(const unsigned char msgCount, const bool safe) : sf::Packet(), isSafe(safe)
+PacketEx::PacketEx(const uint8 msgCount, const bool safe) : sf::Packet(), isSafe(safe)
 {
 	SetMessageTypeCount(msgCount);
 	Initialize();
@@ -25,12 +28,12 @@ void PacketEx::Initialize()
 	MessageTypes = new bool[MessageTypeCount]();
 }
 
-const bool PacketEx::isInPacket(const unsigned char type)
+const bool PacketEx::isInPacket(const uint8 type)
 {
 	return MessageTypes[type];
 }
 
-const bool PacketEx::addType(unsigned char type)
+const bool PacketEx::addType(uint8 type)
 {
 	empty = false;
 	if (isInPacket(type))
@@ -43,4 +46,14 @@ const bool PacketEx::addType(unsigned char type)
 		messageCount++;
 		return MessageTypes[type] = true;
 	}
+}
+
+
+sf::Packet& operator <<(sf::Packet& packet, const char& data)
+{
+	return packet << (signed char)data;
+}
+sf::Packet& operator >>(sf::Packet& packet, char& data)
+{
+	return packet >> (signed char&)data;
 }
