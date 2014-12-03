@@ -55,7 +55,7 @@ static inline bool RotationDelta(const Rotation& last, const Rotation& current)
 
 static inline bool SpeedDelta(const float last, const float current)
 {
-	return last != current && (Duration(speedTimer) >= 125 || abs(last - current) >= speedDelta);
+	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= speedDelta);
 	//abs(last - current) >= max((speedDelta * current), 0.01)
 }
 
@@ -65,7 +65,7 @@ static inline bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop and SendLoop.
+// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop
 
 MemoryHandler::MemoryHandler()
 {
@@ -104,7 +104,7 @@ void MemoryHandler::RecvLoop()
 	PostReceive();
 
 	// TODO: Consider moving the main logic loop to this class. See comment below.
-	// SetFrame() is called from outside this function.
+	// HACK: SetFrame() is called from outside this function.
 }
 void MemoryHandler::SendLoop()
 {
@@ -112,8 +112,8 @@ void MemoryHandler::SendLoop()
 	// This is for frame synchronization.
 	GetFrame();
 
-	if (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
-		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y))
+	if (isNewFrame() && (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
+		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y)))
 	{
 		cout << "<> Warping to test level!" << endl;
 		CurrentLevel = 0;
@@ -132,7 +132,7 @@ void MemoryHandler::SendLoop()
 	Globals::Networking->Send(safe);
 	Globals::Networking->Send(fast);
 
-	// SetFrame() is called from outside this function.
+	// HACK: SetFrame() is called from outside this function.
 }
 
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
