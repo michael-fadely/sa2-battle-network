@@ -1,4 +1,4 @@
-// Main header of DOOM:
+// TODO: DESTROY!
 #pragma once
 
 #include <LazyTypedefs.h>

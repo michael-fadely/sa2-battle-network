@@ -31,8 +31,13 @@ using namespace sa2bn;
 #pragma region science
 
 const float positionDelta = 16;
+const uint rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
+const float speedDelta = 0.1F;
 uint positionTimer = 0;
-inline const bool PositionDelta(const Vertex& last, const Vertex& current)
+uint rotateTimer = 0;
+uint speedTimer = 0;
+
+static inline bool PositionDelta(const Vertex& last, const Vertex& current)
 {
 	return (abs(last.x - current.x) >= positionDelta
 		|| abs(last.y - current.y) >= positionDelta
@@ -40,10 +45,7 @@ inline const bool PositionDelta(const Vertex& last, const Vertex& current)
 		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
-// TODO: Consider adjusting this yet again. 11.25?
-const uint rotateDelta = toBAMS(5.625);
-uint rotateTimer = 0;
-inline const bool RotationDelta(const Rotation& last, const Rotation& current)
+static inline bool RotationDelta(const Rotation& last, const Rotation& current)
 {
 	return (abs(last.x - current.x) >= rotateDelta
 		|| abs(last.y - current.y) >= rotateDelta
@@ -51,9 +53,7 @@ inline const bool RotationDelta(const Rotation& last, const Rotation& current)
 		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
 }
 
-const float speedDelta = 0.1F;
-uint speedTimer = 0;
-inline const bool SpeedDelta(const float last, const float current)
+static inline bool SpeedDelta(const float last, const float current)
 {
 	return last != current && (Duration(speedTimer) >= 125 || abs(last - current) >= speedDelta);
 	//abs(last - current) >= max((speedDelta * current), 0.01)
