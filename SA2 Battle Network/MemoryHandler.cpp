@@ -31,7 +31,7 @@ using namespace sa2bn;
 #pragma region science
 
 const float positionDelta = 16;
-const uint rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
+const int rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
 const float speedDelta = 0.1F;
 uint positionTimer = 0;
 uint rotateTimer = 0;
