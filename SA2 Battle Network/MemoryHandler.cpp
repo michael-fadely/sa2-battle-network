@@ -30,9 +30,13 @@ using namespace sa2bn;
 
 #pragma region science
 
+// TODO: Re-evaluate all this science.
+// TODO: Consider using the same timer for all three.
+
 const float positionDelta = 16;
 const int rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
 const float speedDelta = 0.1F;
+
 uint positionTimer = 0;
 uint rotateTimer = 0;
 uint speedTimer = 0;
@@ -50,7 +54,7 @@ static inline bool RotationDelta(const Rotation& last, const Rotation& current)
 	return (abs(last.x - current.x) >= rotateDelta
 		|| abs(last.y - current.y) >= rotateDelta
 		|| abs(last.z - current.z) >= rotateDelta
-		|| memcmp(&last, &current, sizeof(Rotation)) != 0 && Duration(rotateTimer) >= 125);
+		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
 static inline bool SpeedDelta(const float last, const float current)
