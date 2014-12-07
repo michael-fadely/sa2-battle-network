@@ -30,13 +30,13 @@ public:
 	// Socket lock.
 	// Used to enable use of mod loader hooks without
 	// worrying about threads.
-	std::mutex safeLock, fastLock;
+	std::mutex lockSafe, lockFast;
 	// TCP socket.
 	// Used to initiate connections and send order/context-sensitive data.
-	sf::TcpSocket safeSocket;
+	sf::TcpSocket socketSafe;
 	// UDP socket.
 	// Used to quickly send frequently changing data.
-	sf::UdpSocket fastSocket;
+	sf::UdpSocket socketFast;
 
 	//
 	//	Methods	

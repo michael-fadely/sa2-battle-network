@@ -24,8 +24,8 @@ void PacketHandler::Initialize()
 	cout << "<> Initializing packet handler..." << endl;
 	//recvTimer = sendTimer = 0;
 	listener.setBlocking(false);
-	safeSocket.setBlocking(false);
-	fastSocket.setBlocking(false);
+	socketSafe.setBlocking(false);
+	socketFast.setBlocking(false);
 }
 
 const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool block)
@@ -58,7 +58,7 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 	// Now attempt to accept the connection.
 	do
 	{
-		result = listener.accept(safeSocket);
+		result = listener.accept(socketSafe);
 	} while (block && result == Socket::Status::NotReady);
 
 	// Once again, throw an exception if necessary,
@@ -70,7 +70,7 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 
 	// Pull the remote address out of the socket
 	// and store it for later use with UDP.
-	Address.ip = safeSocket.getRemoteAddress();
+	Address.ip = socketSafe.getRemoteAddress();
 
 	// Set connection state to true to allow use of communication functions
 	connected = true;
@@ -129,7 +129,7 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 		// If blocking is enabled, we wait until something happens.
 		do
 		{
-			result = safeSocket.connect(ip, port);
+			result = socketSafe.connect(ip, port);
 		} while (block && result == Socket::Status::NotReady);
 
 		// If there was an error, throw an exception.
@@ -149,7 +149,7 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 
 		// Now we populate the packet with the ID and the port,
 		// and send it off, retreiving the status.
-		packet << (uint8)MSG_BIND << fastSocket.getLocalPort();
+		packet << (uint8)MSG_BIND << socketFast.getLocalPort();
 		result = sendSafe(packet);
 
 		// Same deal as last time...
@@ -176,13 +176,13 @@ const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 
 		do
 		{
-			result = safeSocket.send(disconnect);
+			result = socketSafe.send(disconnect);
 		} while (result == Socket::Status::NotReady);
 
 	}
 
-	safeSocket.disconnect();
-	fastSocket.unbind();
+	socketSafe.disconnect();
+	socketFast.unbind();
 	listener.close();
 
 	bound = false;
@@ -194,7 +194,7 @@ const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bo
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
 
-	if ((result = fastSocket.bind((isServer) ? port : Socket::AnyPort)) != Socket::Status::Done)
+	if ((result = socketFast.bind((isServer) ? port : Socket::AnyPort)) != Socket::Status::Done)
 	{
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
@@ -240,17 +240,17 @@ const sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
 	{
 		int error = 0;
 
-		safeLock.lock();
+		lockSafe.lock();
 
 		do
 		{
-			result = safeSocket.send(packet);
+			result = socketSafe.send(packet);
 		} while (result == Socket::Status::NotReady);
 
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
 
-		safeLock.unlock();
+		lockSafe.unlock();
 	}
 	return result;
 }
@@ -261,17 +261,17 @@ const sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool bloc
 	{
 		int error = 0;
 
-		safeLock.lock();
+		lockSafe.lock();
 
 		do
 		{
-			result = safeSocket.receive(packet);
+			result = socketSafe.receive(packet);
 		} while (block && result == Socket::Status::NotReady);
 
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
 
-		safeLock.unlock();
+		lockSafe.unlock();
 	}
 	return result;
 }
@@ -281,17 +281,17 @@ const sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 	if (connected)
 	{
 		int error = 0;
-		fastLock.lock();
+		lockFast.lock();
 
 		do
 		{
-			result = fastSocket.send(packet, Address.ip, Address.port);
+			result = socketFast.send(packet, Address.ip, Address.port);
 		} while (result == Socket::Status::NotReady);
 
 		if (result == Socket::Status::Error)
 			throw error = WSAGetLastError();
 
-		fastLock.unlock();
+		lockFast.unlock();
 	}
 	return result;
 }
@@ -303,11 +303,11 @@ const sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool bloc
 		RemoteAddress recvaddr = {};
 		int error = 0;
 
-		fastLock.lock();
+		lockFast.lock();
 
 		do
 		{
-			result = fastSocket.receive(packet, recvaddr.ip, recvaddr.port);
+			result = socketFast.receive(packet, recvaddr.ip, recvaddr.port);
 		} while (block && result == Socket::Status::NotReady);
 
 		if (result == Socket::Status::Error)
@@ -315,7 +315,7 @@ const sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool bloc
 		else if (recvaddr.ip != Address.ip)
 			result = Socket::Status::NotReady;
 
-		fastLock.unlock();
+		lockFast.unlock();
 	}
 	return result;
 }
