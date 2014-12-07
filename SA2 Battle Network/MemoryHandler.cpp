@@ -327,9 +327,6 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
 		{
-			// IN CASE OF EMERGENCY, UNCOMMENT
-			//cout << (ushort)sendPlayer.Data1.Action << " != " << (ushort)Player1->Data1->Action << " || " << sendPlayer.Data1.Status << " != " << Player1->Data1->Status << endl;
-
 			// This "pickup crash fix" only fixed it by NEVER SENDING THE ACTION! Good job, me!
 			// sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15 || sendPlayer.Data1.Action == 0x20
 			RequestPacket(MSG_P_ACTION, safe, fast);
@@ -346,12 +343,6 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 			|| (SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
 			|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 		{
-			// IN CASE OF EMERGENCY, UNCOMMENT
-			//cout << RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
-			//	<< " || (" << SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) << " || " << SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed)
-			//	<< ") || " << sendPlayer.Data2.PhysData.BaseSpeed << " != " << Player1->Data2->PhysData.BaseSpeed
-			//	<< endl;
-
 			RequestPacket(MSG_P_ROTATION, fast, safe);
 			RequestPacket(MSG_P_POSITION, fast, safe);
 			RequestPacket(MSG_P_SPEED, fast, safe);
@@ -360,8 +351,11 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(Vertex)) != 0)
 			RequestPacket(MSG_P_SCALE, safe, fast);
 
-		if ((Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman) && (sendPlayer.Data2.MechHP != Player1->Data2->MechHP))
-			RequestPacket(MSG_P_HP, safe, fast);
+		if (Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman)
+		{
+			if (sendPlayer.Data2.MechHP != Player1->Data2->MechHP)
+				RequestPacket(MSG_P_HP, safe, fast);
+		}
 
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
 			RequestPacket(MSG_P_POWERUPS, safe, fast);
@@ -742,13 +736,15 @@ bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 			return true;
 		}
 	}
+
 	return false;
 }
 bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
-		//writePlayer = false;
+		writePlayer = (type > MSG_P_START && type < MSG_P_END);
+
 		switch (type)
 		{
 		default:
@@ -756,29 +752,22 @@ bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_ACTION);
 			packet >> recvPlayer.Data1.Action;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_STATUS);
 			packet >> recvPlayer.Data1.Status;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_ROTATION);
-			//case MSG_P_ROTATION:
 			packet >> recvPlayer.Data1.Rotation;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_POSITION);
-			//case MSG_P_POSITION:
 			packet >> recvPlayer.Data1.Position;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_SCALE);
 			packet >> recvPlayer.Data1.Scale;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_POWERUPS);
@@ -786,7 +775,6 @@ bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 				int powerups;
 				packet >> powerups;
 				recvPlayer.Data2.Powerups = (Powerups)powerups;
-				writePlayer = true;
 				break;
 			}
 
@@ -795,35 +783,26 @@ bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 				int upgrades;
 				packet >> upgrades;
 				recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
-				writePlayer = true;
 				break;
 			}
 
 			RECEIVED(MSG_P_HP);
 			packet >> recvPlayer.Data2.MechHP;
 			cout << ">> Received HP update. (" << recvPlayer.Data2.MechHP << ')' << endl;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_SPEED);
-			//case MSG_P_SPEED:
 			packet >> recvPlayer.Data2.HSpeed;
 			packet >> recvPlayer.Data2.VSpeed;
 			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
-
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_ANIMATION);
 			packet >> recvPlayer.Data2.AnimInfo.Next;
-			writePlayer = true;
 			break;
 
 			RECEIVED(MSG_P_SPINTIMER);
-			//case MSG_P_SPINTIMER:
 			packet >> recvPlayer.Sonic.SpindashTimer;
-			//cout << ">> [" << millisecs() << "]\t\tSPIN TIMER: " << recvPlayer.Sonic.SpindashTimer << endl;
-			writePlayer = true;
 			break;
 		}
 

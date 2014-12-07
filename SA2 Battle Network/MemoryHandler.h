@@ -22,7 +22,7 @@ class MemoryHandler
 {
 public:
 	MemoryHandler();
-	
+
 	//
 	// Methods
 	//
@@ -96,8 +96,8 @@ private:
 	// Used for frame synchronization.
 	uint thisFrame, lastFrame;
 
-	PlayerObject	recvPlayer, sendPlayer;
-	InputStruct		recvInput, sendInput;
+	PlayerObject recvPlayer, sendPlayer;
+	InputStruct recvInput, sendInput;
 
 	// Used for comparison to determine what to send.
 	MemStruct local;
@@ -111,6 +111,11 @@ private:
 	bool wroteP2Start;
 	bool splitToggled;
 	bool teleported;
+
+	// Set in ReceivePlayer to true upon receival of a valid player message.
 	bool writePlayer;
+
+	// Set in SendSystem on level change to true if playing a relevant character.
+	// (Sonic, Shadow, Amy, Metalsonic)
 	bool sendSpinTimer;
 };

@@ -9,9 +9,16 @@ enum MsgTypes : unsigned char
 	MSG_BIND,				// UDP bind request/confirm
 	MSG_DISCONNECT,			// Request disconnect
 
+	MSG_I_START,
+	
 	MSG_I_ANALOG,
 	MSG_I_BUTTONS,
+	
+	MSG_I_END,
 
+	
+	MSG_M_START,
+	
 	MSG_M_ALTCHAR,
 	MSG_M_BATTLESEL,
 	MSG_M_BATTLEOPTSEL,
@@ -19,6 +26,11 @@ enum MsgTypes : unsigned char
 	MSG_M_CHARSEL,
 	MSG_M_STAGESEL,
 
+	MSG_M_END,
+
+	
+	MSG_P_START,
+	
 	// CharObj1
 	MSG_P_ACTION,
 	MSG_P_STATUS,
@@ -34,7 +46,12 @@ enum MsgTypes : unsigned char
 	MSG_P_ANIMATION,
 	// Sonic
 	MSG_P_SPINTIMER,
+	
+	MSG_P_END,
 
+	
+	MSG_S_START,
+	
 	MSG_S_2PMODE,
 	MSG_S_2PREADY,
 	MSG_S_2PSPECIALS,
@@ -45,6 +62,9 @@ enum MsgTypes : unsigned char
 	MSG_S_RINGS,
 	MSG_S_TIME,
 	MSG_S_TIMESTOP,
+	
+	MSG_S_END,
 
+	
 	MSG_COUNT
 };
