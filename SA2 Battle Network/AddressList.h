@@ -49,13 +49,16 @@ DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #pragma region Input
 
 #pragma region Defines
-#define ADDR_P1INPUT		0x01DEFB60
-#define ADDR_P2INPUT		0x01DEFB64
+#define ADDR_INPUT_PTRS		0x01DEFB60
 #define ADDR_P2INOP			0x0077E88C
 #pragma endregion
 
-DataPointer(ControllerData*, P1InputPtr, 0x01DEFB60);
-DataPointer(ControllerData*, P2InputPtr, 0x01DEFB64);
+DataArray(ControllerData*, ControllerPtr, ADDR_INPUT_PTRS, 4);
+
+DataPointer(ControllerData*, ControllerPtr1, &ControllerPtr[0]);
+DataPointer(ControllerData*, ControllerPtr2, &ControllerPtr[1]);
+DataPointer(ControllerData*, ControllerPtr3, &ControllerPtr[2]);
+DataPointer(ControllerData*, ControllerPtr4, &ControllerPtr[3]);
 
 #pragma endregion
 

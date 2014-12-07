@@ -42,7 +42,6 @@ void MainThread(int argc, wchar_t** argv)
 	uint timeout = 15000;
 
 	PacketHandler::RemoteAddress Address;
-	Program* program = nullptr;
 	Program::Settings Settings = {};
 
 #pragma region Command line arguments
@@ -106,7 +105,7 @@ void MainThread(int argc, wchar_t** argv)
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	sa2bn::Globals::ProcessID = GetCurrentProcess();
 	sa2bn::Globals::Networking = new PacketHandler();
-	program = new Program(Settings, isServer, Address);
+	Program* program = new Program(Settings, isServer, Address);
 
 	while (true)
 	{

@@ -142,6 +142,7 @@ void MemoryHandler::SendLoop()
 void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 {
 	Socket::Status status = Socket::Status::NotReady;
+
 	if (safe)
 		status = Globals::Networking->recvSafe(packet);
 	else
@@ -149,21 +150,21 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 	if (status == sf::Socket::Status::Done)
 	{
-		uint8 id = MSG_NULL;
-		uint8 lastID = MSG_NULL;
+		uint8 newType = MSG_NULL;
+		uint8 lastType = MSG_NULL;
 
 		while (!packet.endOfPacket())
 		{
-			packet >> id;
+			packet >> newType;
 
-			if (lastID == id)
+			if (newType == lastType)
 			{
-				cout << "\a<> Packet read loop failsafe! [LAST " << (ushort)lastID << " - RECV " << (ushort)id << ']' << endl;
+				cout << "\a<> Packet read loop failsafe! [LAST " << (ushort)lastType << " - RECV " << (ushort)newType << ']' << endl;
 				break;
 			}
 
-			//cout << (ushort)id << endl;
-			switch (id)
+			//cout << (ushort)newType << endl;
+			switch (newType)
 			{
 			case MSG_NULL:
 				cout << "\a>> Reached end of packet." << endl;
@@ -180,8 +181,8 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 			default:
 
-				ReceiveInput(id, packet);
-				ReceiveSystem(id, packet);
+				ReceiveInput(newType, packet);
+				ReceiveSystem(newType, packet);
 
 				// HACK: This isn't really a sufficient fix for the scale bug.
 				// I suspect it's causing some weird side effects like "falling" while going down a slope,
@@ -190,7 +191,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 				if (!writePlayer)
 					recvPlayer.Set(Player2);
 
-				if (ReceivePlayer(id, packet))
+				if (ReceivePlayer(newType, packet))
 				{
 					if (GameState >= GameState::INGAME)
 					{
@@ -199,11 +200,11 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 					}
 				}
 
-				ReceiveMenu(id, packet);
+				ReceiveMenu(newType, packet);
 				break;
 			}
 
-			lastID = id;
+			lastType = newType;
 		}
 	}
 }

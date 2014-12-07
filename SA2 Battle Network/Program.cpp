@@ -28,7 +28,7 @@ void ChangeMusic(const char* song)
 	ResetMusic();
 }
 
-Program::Version Program::versionNum = { 3, 0 };
+Program::Version Program::versionNum = { 3, 1 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 
 const std::string Program::Version::str()
@@ -40,7 +40,7 @@ const std::string Program::Version::str()
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 exitCode(ExitCode::None),
 clientSettings(settings),
-remoteVersion({ 3, 0 }),
+remoteVersion(Program::versionNum),
 isServer(host),
 Address(address),
 setMusic(false)
@@ -56,6 +56,7 @@ Program::~Program()
 
 Program::ExitCode Program::Connect()
 {
+	// TODO: Abort network operation when the sub menu changes to allow local multiplayer without lingering connection.
 	if (memory->GetCurrentMenu() >= Menu::BATTLE)
 	{
 		// Used only for connection loops.
@@ -73,13 +74,13 @@ Program::ExitCode Program::Connect()
 		{
 #pragma region Server
 			if (!Globals::Networking->isBound())
-				cout << "Hosting server on port " << Address.port << "..." << endl;
+				cout << "<> Hosting server on port " << Address.port << "..." << endl;
 
 			if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
 			{
 				if (status == sf::Socket::Error)
 				{
-					cout << "An error occurred while trying to listen for connections on port " << Address.port << endl;
+					cout << "<> An error occurred while trying to listen for connections on port " << Address.port << endl;
 					return exitCode = ExitCode::ClientTimeout;
 				}
 				else if (status == sf::Socket::NotReady)
@@ -96,7 +97,7 @@ Program::ExitCode Program::Connect()
 					continue;
 				}
 
-				uchar id;
+				uint8 id;
 				packet >> id;
 				if (id != MSG_VERSION_CHECK)
 				{
@@ -114,14 +115,14 @@ Program::ExitCode Program::Connect()
 					cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
 
 
-					packet << (uchar)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
+					packet << (uint8)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
 					Globals::Networking->sendSafe(packet);
 					packet.clear();
 
 					continue;
 				}
 
-				packet << (uchar)MSG_VERSION_OK << versionNum.major << versionNum.minor;
+				packet << (uint8)MSG_VERSION_OK << versionNum.major << versionNum.minor;
 
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 				{
@@ -159,8 +160,8 @@ Program::ExitCode Program::Connect()
 
 			while (!connected && memory->GetCurrentMenu() >= Menu::BATTLE)
 			{
-				packet << (uchar)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
-				uchar id;
+				packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
+				uint8 id;
 
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 				{

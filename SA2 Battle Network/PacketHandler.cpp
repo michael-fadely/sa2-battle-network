@@ -78,7 +78,7 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 	host = true;
 
 	// The message ID to confirm we get the right packet.
-	uchar ID = MSG_NULL;
+	uint8 ID = MSG_NULL;
 	// Create a packet for receiving the local UDP port from the client.
 	// Yeah, I'm doing it over TCP. Screw the rules.
 	sf::Packet packet;
@@ -149,7 +149,7 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 
 		// Now we populate the packet with the ID and the port,
 		// and send it off, retreiving the status.
-		packet << (uchar)MSG_BIND << fastSocket.getLocalPort();
+		packet << (uint8)MSG_BIND << fastSocket.getLocalPort();
 		result = sendSafe(packet);
 
 		// Same deal as last time...
@@ -172,7 +172,7 @@ const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 	if (!received && connected)
 	{
 		Packet disconnect;
-		disconnect << (uchar)MSG_DISCONNECT;
+		disconnect << (uint8)MSG_DISCONNECT;
 
 		do
 		{

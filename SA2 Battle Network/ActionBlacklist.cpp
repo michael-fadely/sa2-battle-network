@@ -1,7 +1,7 @@
 #include "Common.h"
 #include "ActionBlacklist.h"
 
-const bool isHoldAction(const uchar action)
+const bool isHoldAction(const uint8 action)
 {
 	switch(action)
 	{

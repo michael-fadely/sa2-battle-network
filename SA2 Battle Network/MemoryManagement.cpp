@@ -98,7 +98,7 @@ void MemManage::swapSpawn(const bool swapstart)
 
 void MemManage::swapCharsel(const bool swapcharsel)
 {
-	uchar E4, E0;
+	uint8 E4, E0;
 	E4 = 0xE4;
 	E0 = 0xE0;
 
@@ -122,7 +122,7 @@ void MemManage::swapCharsel(const bool swapcharsel)
 // Returns true if both input structures have been initalized.
 const bool MemManage::InputInitalized()
 {
-	return (P1InputPtr != nullptr && P2InputPtr != nullptr);
+	return (ControllerPtr1 != nullptr && ControllerPtr2 != nullptr);
 }
 
 void MemManage::waitInputInit()
@@ -136,7 +136,6 @@ void MemManage::waitInputInit()
 	return;
 }
 
-// TODO: Rewrite to use DataPointer from the SA2 Mod Loader instead of Read/WriteMemory
 void MemManage::swapInput(const bool doNop)
 {
 	cout << "<> Swapping input devices..." << endl;
@@ -148,16 +147,13 @@ void MemManage::swapInput(const bool doNop)
 
 	waitInputInit();
 
-	uint32 p1ptr = 0;
-	uint32 p2ptr = 0;
-
-	ReadMemory(ADDR_P1INPUT, &p1ptr, sizeof(int));
-	ReadMemory(ADDR_P2INPUT, &p2ptr, sizeof(int));
+	ControllerData* p1ptr = ControllerPtr1;
+	ControllerData* p2ptr = ControllerPtr2;
 
 	cout << hex << "<> " << p1ptr << " " << p2ptr << dec << endl;
 
-	WriteMemory(ADDR_P1INPUT, &p2ptr, sizeof(int));
-	WriteMemory(ADDR_P2INPUT, &p1ptr, sizeof(int));
+	ControllerPtr1 = p2ptr;
+	ControllerPtr2 = p1ptr;
 
 	cout << "<> Swap complete." << endl;
 }
