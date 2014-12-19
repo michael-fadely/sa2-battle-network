@@ -70,7 +70,7 @@ public:
 	const bool isServer() { return host; }
 	// Returns the time in milliseconds that the last successful connection was established.
 	// Returns 0 if none have been established yet.
-	const unsigned int ConnectStartTime() { return start_time; }
+	const unsigned long long ConnectStartTime() { return start_time; }
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function (safe/fast).
@@ -105,7 +105,7 @@ protected:
 	bool host;
 	// The time in milliseconds that the last successful connection was established.
 	// Value is 0 if none have been established yet.
-	unsigned int start_time;
+	unsigned long long start_time;
 	// The listener used to establish a connection
 	sf::TcpListener listener;
 	// The address/port to connect to,

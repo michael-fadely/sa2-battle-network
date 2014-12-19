@@ -104,7 +104,7 @@ private:
 
 	// Analog throttle timer.
 	// Prevents it from spamming packets.
-	uint analogTimer;
+	uint64 analogTimer;
 
 	// Toggles and things
 	bool firstMenuEntry;
