@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML\Network.hpp>
+#include <SFML/Network.hpp>
 #include <LazyTypedefs.h>
 
 class PacketEx : public sf::Packet

@@ -7,7 +7,7 @@
 	* Single-protocol modes (TCP/UDP)
 */
 
-#include <SFML\Network.hpp>
+#include <SFML/Network.hpp>
 #include <mutex>
 #include "PacketExtensions.h"
 

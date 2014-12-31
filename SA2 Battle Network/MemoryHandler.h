@@ -15,7 +15,7 @@
 #include "PlayerObject.h"
 #include "MemoryStruct.h"
 
-#include <SFML\Network.hpp>
+#include <SFML/Network.hpp>
 #include "PacketExtensions.h"
 
 class MemoryHandler

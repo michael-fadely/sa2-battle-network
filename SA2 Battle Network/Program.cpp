@@ -2,7 +2,7 @@
 #include <string>
 #include <chrono>
 
-#include <SFML\Network.hpp>
+#include <SFML/Network.hpp>
 
 #include "Common.h"
 #include "Networking.h"
