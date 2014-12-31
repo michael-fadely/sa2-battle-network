@@ -51,15 +51,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.2\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sfml-network-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.1_VC2013x86_STATIC\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;sfml-network-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.2\build\MSVC2013-32\static\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -71,7 +71,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;NDEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>G:\Libraries;G:\Libraries\SFML-2.2\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
@@ -80,8 +80,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>sfml-network-s.lib;sfml-system-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.1_VC2013x86_STATIC\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;sfml-network-s.lib;sfml-system-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>G:\Libraries\SFML-2.2\build\MSVC2013-32\static\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
