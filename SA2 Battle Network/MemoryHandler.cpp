@@ -15,7 +15,8 @@
 #include "AdventurePacketOverloads.h"
 #include "PacketHandler.h"
 
-#include "SA2ModLoader.h"
+#include <SA2ModLoader.h>
+#include "BAMS.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 #include "ActionBlacklist.h"

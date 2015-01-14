@@ -21,13 +21,6 @@ using namespace std;
 using namespace chrono;
 using namespace sa2bn;
 
-void ChangeMusic(const char* song)
-{
-	StopMusic();
-	PlayMusic(song);
-	ResetMusic();
-}
-
 Program::Version Program::versionNum = { 3, 1 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 

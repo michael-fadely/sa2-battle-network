@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SA2ModLoader.h"
+#include <SA2ModLoader.h>
 
 #pragma region Gameplay
 

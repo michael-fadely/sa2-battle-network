@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Network.hpp>
-#include "SA2ModLoader.h"
+#include <SA2ModLoader.h>
 
 sf::Packet& operator <<(sf::Packet& packet, const Rotation& data)
 {

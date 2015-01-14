@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SA2ModLoader.h"
+#include <SA2ModLoader.h>
 
 // Sonic's Obj2Base
 // Shared with: Shadow, Amy, MetalSonic
@@ -80,47 +80,3 @@ struct InputStruct : ControllerData
 
 DataPointer(ObjectMaster*, Player1, &MainCharacter[0]);
 DataPointer(ObjectMaster*, Player2, &MainCharacter[1]);
-
-// Stops music playback
-VoidFunc(StopMusic, 0x00442F50);
-// Resets music playback to the last song as specified
-// by PlayMusic
-VoidFunc(ResetMusic, 0x00442D90);
-
-static const void *const PlayJinglePtr = (void*)0x00443480;
-// Plays specified song once, then restores previous song
-// as set by PlayMusic.
-static inline void PlayJingle(int a1, const char *song)
-{
-	__asm
-	{
-		mov ecx, [a1]
-		mov ebx, [song]
-		call PlayJinglePtr
-	}
-}
-
-static const void *const PlayOncePtr = (void*)0x00442EF0;
-// Plays the specified song once.
-// Takes effect immediately.
-static inline void PlayOnce(void *a1, const char *a2)
-{
-	__asm
-	{
-		mov ecx, [a1]
-		mov edi, [a2]
-		call PlayOncePtr
-	}
-}
-
-static const void *const _PlayOncePtr = (void*)0x00442E60;
-// Plays the specified song once.
-// Requires StopMusic and ResetMusic to be called.
-static inline void _PlayOnce(const char *a1)
-{
-	__asm
-	{
-		mov edi, [a1]
-		call _PlayOncePtr
-	}
-}

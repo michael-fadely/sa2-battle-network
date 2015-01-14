@@ -66,9 +66,6 @@
     <ClInclude Include="MemoryStruct.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
-    <ClInclude Include="SA2ModLoader.h">
-      <Filter>Header Files\Game Memory</Filter>
-    </ClInclude>
     <ClInclude Include="PacketExtensions.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
@@ -89,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="Program.h">
       <Filter>Header Files\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="BAMS.h">
+      <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
