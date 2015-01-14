@@ -37,9 +37,9 @@ const float positionDelta = 16;
 const int rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
 const float speedDelta = 0.1F;
 
-uint64 positionTimer = 0;
-uint64 rotateTimer = 0;
-uint64 speedTimer = 0;
+uint positionTimer = 0;
+uint rotateTimer = 0;
+uint speedTimer = 0;
 
 static inline bool PositionDelta(const Vertex& last, const Vertex& current)
 {

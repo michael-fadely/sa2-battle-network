@@ -6,7 +6,7 @@
 #include "Globals.h"
 
 // Returns millisecs (lazy description is lazy)
-const uint64 millisecs();
+const unsigned int millisecs();
 
 // Returns the amount of time passed since TIMER
-const uint64 Duration(uint64 timer);
+const unsigned int Duration(const unsigned int timer);
