@@ -36,12 +36,13 @@ bool nop::apply(size_t address, size_t length, bool skipBackup)
 
 bool nop::restore(size_t address, bool skipErase)
 {
+	auto it = backupData.find(address);
 	// If no backup data was found for this address, return false.
-	if (backupData.find(address) == backupData.end())
+	if (it == backupData.end())
 		return false;
 
 	// Otherwise, restore the backup data to memory.
-	WriteMemory(address, backupData[address].data(), backupData[address].size());
+	WriteMemory(address, it->second.data(), it->second.size());
 
 	// If skipErase enabled, do not erase the backup data.
 	if (!skipErase)
