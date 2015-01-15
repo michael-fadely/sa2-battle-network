@@ -7,12 +7,12 @@
 uint8 PacketEx::MessageTypeCount = 0xFF;
 void PacketEx::SetMessageTypeCount(const uint8 msgCount) { MessageTypeCount = msgCount; }
 
-PacketEx::PacketEx(const uint8 msgCount, const bool safe) : sf::Packet(), isSafe(safe)
+PacketEx::PacketEx(const uint8 msgCount, const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
 {
 	SetMessageTypeCount(msgCount);
 	Initialize();
 }
-PacketEx::PacketEx(const bool safe) : isSafe(safe)
+PacketEx::PacketEx(const bool safe) : isSafe(safe), MessageTypes(nullptr)
 {
 	Initialize();
 }
@@ -25,23 +25,26 @@ void PacketEx::Initialize()
 {
 	empty = true;
 	messageCount = 0;
+	
+	if (MessageTypes != nullptr)
+		delete[] MessageTypes;
 	MessageTypes = new bool[MessageTypeCount]();
 }
 
-const bool PacketEx::isInPacket(const uint8 type)
+bool PacketEx::isInPacket(const uint8 type) const
 {
 	return MessageTypes[type];
 }
 
-const bool PacketEx::addType(uint8 type)
+bool PacketEx::addType(uint8 type)
 {
-	empty = false;
 	if (isInPacket(type))
 	{
 		return false;
 	}
 	else
 	{
+		empty = false;
 		*this << type;
 		messageCount++;
 		return MessageTypes[type] = true;

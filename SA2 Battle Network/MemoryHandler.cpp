@@ -17,6 +17,7 @@
 
 #include <SA2ModLoader.h>
 #include "BAMS.h"
+#include "MemoryManagement.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 #include "ActionBlacklist.h"
@@ -306,7 +307,7 @@ void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 				else
 					RequestPacket(MSG_I_ANALOG, fast, safe);
 
-				analogTimer = millisecs();
+				analogTimer = Millisecs();
 			}
 		}
 	}
@@ -453,21 +454,21 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 	}
 }
 
-const bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
 	if (packetType >= MSG_DISCONNECT && !packetIsIn.isInPacket(packetType) && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
-const bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
+bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
 {
 	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
 }
-const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
+bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 {
 	switch (packetType)
 	{
@@ -549,14 +550,14 @@ const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_ROTATION:
-		speedTimer = rotateTimer = millisecs();
+		speedTimer = rotateTimer = Millisecs();
 		packet << Player1->Data1->Rotation;
 		return true;
 
 	case MSG_P_POSITION:
 		// Informs other conditions that it shouldn't request
 		// another position packet so soon
-		positionTimer = millisecs();
+		positionTimer = Millisecs();
 		packet << Player1->Data1->Position;
 		return true;
 
@@ -582,7 +583,7 @@ const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_SPEED:
-		rotateTimer = speedTimer = millisecs();
+		rotateTimer = speedTimer = Millisecs();
 		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		return true;
 
@@ -591,7 +592,7 @@ const bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		return true;
 
 	case MSG_P_SPINTIMER:
-		//cout << "<< [" << millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
+		//cout << "<< [" << Millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 		return true;
 
@@ -848,12 +849,11 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 				>> local.menu.AltCharacterEggman
 				>> local.menu.AltCharacterKnuckles
 				>> local.menu.AltCharacterRouge;
+
 			AltCharacterSonic = local.menu.AltCharacterSonic;
 			AltCharacterShadow = local.menu.AltCharacterShadow;
-
 			AltCharacterTails = local.menu.AltCharacterTails;
 			AltCharacterEggman = local.menu.AltCharacterEggman;
-
 			AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
 			AltCharacterRouge = local.menu.AltCharacterRouge;
 
@@ -878,6 +878,7 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			packet >> local.menu.StageSelection2P[0]
 				>> local.menu.StageSelection2P[1]
 				>> local.menu.BattleOptionsButton;
+
 			StageSelection2P[0] = local.menu.StageSelection2P[0];
 			StageSelection2P[1] = local.menu.StageSelection2P[1];
 			BattleOptionsButton = local.menu.BattleOptionsButton;
@@ -914,7 +915,7 @@ void MemoryHandler::PreReceive()
 		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
 			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
 
-		// HACK Analog failsafe
+		// HACK: Analog failsafe
 		if (GameState == GameState::PAUSE &&
 			(recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0 ||
 			ControllersRaw[1].LeftStickX != 0 || ControllersRaw[1].LeftStickY != 0))
@@ -953,6 +954,7 @@ void MemoryHandler::ToggleSplitscreen()
 					SplitscreenMode = 1;
 				else
 					return;
+
 				splitToggled = true;
 			}
 		}
@@ -987,7 +989,7 @@ bool MemoryHandler::Teleport()
 
 #pragma endregion
 
-const unsigned int MemoryHandler::GetCurrentMenu()
+uint32 MemoryHandler::GetCurrentMenu()
 {
 	if (!Globals::Networking->isConnected())
 		GetFrame();

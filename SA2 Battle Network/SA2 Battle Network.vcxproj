@@ -109,14 +109,6 @@
     <ClCompile Include="ActionBlacklist.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
-    <ClCompile Include="dllmain.cpp">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
@@ -126,7 +118,6 @@
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketExtensions.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
-    <ClCompile Include="Mod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mod.ini" />

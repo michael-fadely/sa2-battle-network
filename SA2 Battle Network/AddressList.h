@@ -19,8 +19,6 @@ DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
 #pragma endregion
 
 #pragma region System
-
-#pragma region Defines
 #define ADDR_PLYPAUSED		0x0174AFD7
 #define ADDR_2PMODE			0x0174AFDE	// TwoPlayerMode
 #define ADDR_PAUSESEL		0x01933EB1
@@ -33,9 +31,7 @@ DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
 #define ADDR_FRAMECOUNT		0x0174B038
 
 #define ADDR_TIME			0x0174AFDB	// TimerMinutes, TimerSeconds
-#pragma endregion
 
-#pragma region Pointers
 DataPointer(unsigned char, PlayerPaused, ADDR_PLYPAUSED);
 DataPointer(unsigned char, PauseSelection, ADDR_PAUSESEL);
 DataPointer(unsigned char, GameState, ADDR_GAMESTATE);
@@ -44,17 +40,12 @@ DataPointer(unsigned int, FrameCount, ADDR_FRAMECOUNT);
 DataPointer(unsigned char, TimerFrames, 0x0174AFDE); // ADDR_TIME + 0x03
 #pragma endregion
 
-#pragma endregion
-
 #pragma region Input
 
-#pragma region Defines
 #define ADDR_INPUT_PTRS		0x01DEFB60
 #define ADDR_P2INOP			0x0077E88C
-#pragma endregion
 
 DataArray(ControllerData*, ControllerPtr, ADDR_INPUT_PTRS, 4);
-
 DataPointer(ControllerData*, ControllerPtr1, &ControllerPtr[0]);
 DataPointer(ControllerData*, ControllerPtr2, &ControllerPtr[1]);
 DataPointer(ControllerData*, ControllerPtr3, &ControllerPtr[2]);
@@ -64,7 +55,7 @@ DataPointer(ControllerData*, ControllerPtr4, &ControllerPtr[3]);
 
 #pragma region Menu
 
-#pragma region Defines - _2P Battle
+#pragma region Battle
 #define ADDR_MENU			0x01D7BB10
 #define ADDR_SUBMENU		0x01D7BB14
 #define ADDR_P2START		0x01A557C4
@@ -78,9 +69,7 @@ DataPointer(ControllerData*, ControllerPtr4, &ControllerPtr[3]);
 #define ADDR_2PMENUSEL		0x01D1B9F4
 #define ADDR_STAGESELV		0x01D1C060
 #define ADDR_STAGESELH		0x01D1C064
-#pragma endregion
 
-#pragma region Pointers - _2P Battle
 DataArray(unsigned int, CurrentMenu, ADDR_MENU, 2);
 DataPointer(unsigned char, P2Start, ADDR_P2START);
 DataPointer(short, CharacterSelectTimer, ADDR_CHOSENTIMER);
@@ -91,30 +80,26 @@ DataPointer(unsigned char, BattleSelection, ADDR_2PMENUSEL);
 DataArray(int, StageSelection2P, ADDR_STAGESELV, 2);
 #pragma endregion
 
-#pragma region Defines - Battle Options
+#pragma region Battle Options
 #define ADDR_BATTOPT		0x01D1C080
 #define ADDR_BATTOPT_SEL	0x01D1C084
 #define ADDR_BATTOPT_BAK	0x01D1C085
 #define ADDR_BATTOPT_BTN	0x01D1C08C
-#pragma endregion
 
-#pragma region Pointers - Battle Options
 DataArray(char, BattleOptions, ADDR_BATTOPT, 4);
 DataPointer(unsigned char, BattleOptionsSelection, ADDR_BATTOPT_SEL);
 DataPointer(char, BattleOptionsBack, ADDR_BATTOPT_BAK);
 DataPointer(char, BattleOptionsButton, ADDR_BATTOPT_BTN);
 #pragma endregion
 
-#pragma region Defines - Alt Character Selection
+#pragma region Alt Character Selection
 #define ADDR_ALTSONIC		0x01D1B8C5
 #define ADDR_ALTSHADOW		0x01D1B8D9
 #define ADDR_ALTTAILS		0x01D1B8ED
 #define ADDR_ALTEGGMAN		0x01D1B901
 #define ADDR_ALTKNUX		0x01D1B915
 #define ADDR_ALTROUGE		0x01D1B929
-#pragma endregion
 
-#pragma region Pointers - Alt Character Selection
 DataPointer(char, AltCharacterSonic, ADDR_ALTSONIC);
 DataPointer(char, AltCharacterShadow, ADDR_ALTSHADOW);
 DataPointer(char, AltCharacterTails, ADDR_ALTTAILS);

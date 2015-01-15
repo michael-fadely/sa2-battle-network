@@ -1,3 +1,5 @@
 #pragma once
 
-const bool isHoldAction(const unsigned char action);
+#include <LazyTypedefs.h>
+
+const bool isHoldAction(const uint8 action);

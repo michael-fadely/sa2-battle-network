@@ -1,4 +1,4 @@
-#include "Common.h"
+#include <LazyTypedefs.h>
 #include "ActionBlacklist.h"
 
 const bool isHoldAction(const uint8 action)

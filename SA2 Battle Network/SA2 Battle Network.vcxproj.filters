@@ -95,9 +95,6 @@
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
     <ClCompile Include="Globals.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
@@ -126,9 +123,6 @@
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="MainThread.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
-    <ClCompile Include="Mod.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="Program.cpp">

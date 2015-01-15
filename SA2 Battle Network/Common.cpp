@@ -2,11 +2,11 @@
 
 #include "Common.h"
 
-const unsigned int millisecs()
+uint32 Millisecs()
 {
 	return GetTickCount();
 }
-const unsigned int Duration(unsigned int timer)
+uint32 Duration(uint32 timer)
 {
-	return (unsigned int)(GetTickCount() - timer);
+	return (GetTickCount() - timer);
 }

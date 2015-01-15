@@ -5,8 +5,8 @@
 #include <LazySleepFor.h>
 #include "Globals.h"
 
-// Returns millisecs (lazy description is lazy)
-const unsigned int millisecs();
+// GetTickCount() wrapper.
+uint32 Millisecs();
 
-// Returns the amount of time passed since TIMER
-const unsigned int Duration(const unsigned int timer);
+// Returns elapsed time since the parameter "timer"
+uint32 Duration(const uint32 timer);

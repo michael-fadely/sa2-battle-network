@@ -43,52 +43,52 @@ public:
 	//
 
 	// Listens for incoming connections and accepts them.
-	// This should be used for the server, not client.
+	// This should be used by the server, not the client.
 	// Blocks the calling thread if the parameter block is true.
-	const sf::Socket::Status Listen(const unsigned short port = 27015, const bool block = true);
+	sf::Socket::Status Listen(const unsigned short port = 27015, const bool block = true);
 	// Connects to the address and port in address.
-	// This should be used by the client, not server.
+	// This should be used by the client, not the server.
 	// Blocks the calling thread if the parameter block is true.
-	const sf::Socket::Status Connect(RemoteAddress address, const bool block = true);
+	sf::Socket::Status Connect(RemoteAddress address, const bool block = true);
 	// Connects to the address ip on the port port.
-	// This should be used by the client, not server.
+	// This should be used by the client, not the server.
 	// Blocks the calling thread if the parameter block is true.
-	const sf::Socket::Status Connect(sf::IpAddress ip, const unsigned short port, const bool block = true);
+	sf::Socket::Status Connect(sf::IpAddress ip, const unsigned short port, const bool block = true);
 	// Disconnects all sockets
 	// Returns NotReady if none are connected.
 	// If the parameter received is false (default), it sends a disconnect message,
 	// otherwise it does not, and simply closes all sockets.
-	const sf::Socket::Status Disconnect(const bool received = false);
+	sf::Socket::Status Disconnect(const bool received = false);
 
 	// Returns the state of bound ports.
-	const bool isBound() { return bound; }
+	bool isBound() { return bound; }
 	// Returns the connection state of the packet handler.
-	const bool isConnected() { return connected; }
+	bool isConnected() { return connected; }
 	// Returns the host state of the packet handler.
 	// Returns true if Listen() was called, and false otherwise
 	// or after Connect() has been called.
-	const bool isServer() { return host; }
+	bool isServer() { return host; }
 	// Returns the time in milliseconds that the last successful connection was established.
 	// Returns 0 if none have been established yet.
-	const unsigned int ConnectStartTime() { return start_time; }
+	unsigned int ConnectStartTime() { return start_time; }
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function (safe/fast).
-	const sf::Socket::Status Send(PacketEx& packet);
+	sf::Socket::Status Send(PacketEx& packet);
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate receive function (safe/fast).
-	const sf::Socket::Status Receive(PacketEx& packet, const bool block = false);
+	sf::Socket::Status Receive(PacketEx& packet, const bool block = false);
 
 	// Send packet via TCP (safe)
-	const sf::Socket::Status sendSafe(sf::Packet& packet);
+	sf::Socket::Status sendSafe(sf::Packet& packet);
 	// Receive packet via TCP (safe)
 	// Blocks thread if parameter block is true
-	const sf::Socket::Status recvSafe(sf::Packet& packet, const bool block = false);
+	sf::Socket::Status recvSafe(sf::Packet& packet, const bool block = false);
 	// Send packet via UDP (fast)
-	const sf::Socket::Status sendFast(sf::Packet& packet);
+	sf::Socket::Status sendFast(sf::Packet& packet);
 	// Receive packet via UDP (fast)
 	// Blocks thread if parameter block is true
-	const sf::Socket::Status recvFast(sf::Packet& packet, const bool block = false);
+	sf::Socket::Status recvFast(sf::Packet& packet, const bool block = false);
 
 protected:
 	//
@@ -120,7 +120,7 @@ protected:
 	// Would be used for constructor overloads... if there WERE any!
 	void Initialize();
 	// Binds the UDP socket to the specified port.
-	const sf::Socket::Status Bind(const unsigned short port, const bool isServer);
+	sf::Socket::Status Bind(const unsigned short port, const bool isServer);
 	// Sets the time in milliseconds that the last successful connection was established.
 	void SetConnectTime();
 };

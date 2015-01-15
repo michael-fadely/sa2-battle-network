@@ -8,17 +8,17 @@
 
 #include "MemoryStruct.h"
 #include "nop.h"
+
 #include "MemoryManagement.h"
 
 using namespace std;
 using namespace chrono;
 
+inline uint32 MemManage::getElapsedFrames(const uint32 lastFrameCount) { return (FrameCount - lastFrameCount); }
 
-inline const uint MemManage::getElapsedFrames(const uint lastFrameCount) { return (FrameCount - lastFrameCount); }
-
-const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint frameCount)
+bool MemManage::elapsedFrames(const uint32 currentFrameCount, const uint32 frameCount)
 {
-	uint result = getElapsedFrames(currentFrameCount);
+	uint32 result = getElapsedFrames(currentFrameCount);
 
 	if (result > frameCount)
 		cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
@@ -26,10 +26,10 @@ const bool MemManage::elapsedFrames(const uint currentFrameCount, const uint fra
 	return (result >= frameCount);
 }
 
-void MemManage::waitFrame(const uint frameCount, const uint lastFrame)
+void MemManage::waitFrame(const uint32 frameCount, const uint32 lastFrame)
 {
-	uint frames = 0;
-	uint last = 0;
+	uint32 frames = 0;
+	uint32 last = 0;
 
 	if (lastFrame == 0)
 		last = FrameCount;
@@ -116,11 +116,10 @@ void MemManage::swapCharsel(const bool swapcharsel)
 		WriteMemory(0x66A670, &E4, sizeof(char));
 		WriteMemory(0x66A687, &E0, sizeof(char));
 	}
-
 }
 
 // Returns true if both input structures have been initalized.
-const bool MemManage::InputInitalized()
+bool MemManage::InputInitalized()
 {
 	return (ControllerPtr1 != nullptr && ControllerPtr2 != nullptr);
 }
@@ -131,7 +130,7 @@ void MemManage::waitInputInit()
 		cout << "Waiting for input structures to initialize..." << endl;
 
 	while (!InputInitalized())
-		SleepFor((milliseconds)1);
+		std::this_thread::yield();
 
 	return;
 }

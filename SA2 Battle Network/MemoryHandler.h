@@ -1,22 +1,23 @@
 #pragma once
 
 // Defines
+#define RECV_VERBOSE(type) case type: cout << ">> [" << Millisecs() << "] " #type << endl
+#define RECV_CONCISE(type) case type:
+
 #ifndef RECEIVED
 #define RECEIVED RECV_CONCISE
 #endif
 
-#define RECV_VERBOSE(type) case type: cout << ">> [" << millisecs() << "] " #type << endl
-#define RECV_CONCISE(type) case type:
 
+#include <LazyTypedefs.h>
 
-#include "MemoryManagement.h"
-#include "ModLoaderExtensions.h"
-#include "AddressList.h"
-#include "PlayerObject.h"
-#include "MemoryStruct.h"
+#include "AddressList.h"			// for FrameCount
+#include "ModLoaderExtensions.h"	// for InputStruct
+#include "PlayerObject.h"			// for PlayerObject
+#include "MemoryStruct.h"			// for MemStruct
 
-#include <SFML/Network.hpp>
-#include "PacketExtensions.h"
+#include <SFML/Network.hpp>			// for sf::Packet
+#include "PacketExtensions.h"		// for PacketEx
 
 class MemoryHandler
 {
@@ -38,13 +39,13 @@ public:
 	inline void SetFrame() { lastFrame = thisFrame; }
 	// Designed exclusively to be used externally. Returns the current menu.
 	// This function does frame synchronization to ensure you don't catch the value
-	// mid-operation. Used by class Program
-	const unsigned int GetCurrentMenu();
+	// mid-operation. Used by the class Program
+	uint GetCurrentMenu();
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
-	const bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
 	// Requests that the packet type packetType is added to packetAddTo.
-	const bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
+	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
 
 private:
 	//
@@ -53,7 +54,7 @@ private:
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet
-	const bool AddPacket(const uint8 packetType, PacketEx& packet);
+	bool AddPacket(const uint8 packetType, PacketEx& packet);
 
 	void Receive(sf::Packet& packet, const bool safe);
 
@@ -87,7 +88,7 @@ private:
 	bool Teleport();
 
 	// Returns true if one or more frames have passed since lastFrame
-	inline const bool isNewFrame() { return (thisFrame != lastFrame); }
+	inline bool isNewFrame() { return (thisFrame != lastFrame); }
 
 	//
 	// Members

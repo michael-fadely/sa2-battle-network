@@ -1,5 +1,7 @@
 #pragma once
 
+#include <LazyTypedefs.h>
+
 struct MemStruct;
 
 // Functions
@@ -10,7 +12,7 @@ namespace MemManage
 	*/
 
 	// Returns the number of elapsed frames since lastFrame
-	const unsigned int getElapsedFrames(const unsigned int lastFrame);
+	uint32 getElapsedFrames(const uint32 lastFrame);
 
 	// To be run on own thread - determines framerate
 	void getFrameRate();
@@ -18,13 +20,13 @@ namespace MemManage
 	// Non-Blocking
 	// Returns true if frameCount frames has passed since lastFrame,
 	// otherwise false
-	const bool elapsedFrames(const unsigned int lastFrame, const unsigned int frameCount = 1);
+	bool elapsedFrames(const uint32 lastFrame, const uint32 frameCount = 1);
 	// Blocking
 	// Waits for frameCount frames to pass (since lastFrame, if not 0) before continuing
-	void waitFrame(const unsigned int frameCount = 1, const unsigned int lastFrame = 0);
+	void waitFrame(const uint32 frameCount = 1, const uint32 lastFrame = 0);
 
 	// Returns true if both input structures have been initalized.
-	const bool InputInitalized();
+	bool InputInitalized();
 	// Blocking
 	// Wait for input to be initialized before continuing
 	void waitInputInit();
@@ -33,7 +35,7 @@ namespace MemManage
 	// Static
 	*/
 
-	void nop(const unsigned int baseAddress, const unsigned int size);
+	void nop(const uint32 baseAddress, const uint32 size);
 	void keepActive(const bool doNop);
 	void nop2PSpecials(const bool doNop);
 	void nopP2Input(const bool doNop);

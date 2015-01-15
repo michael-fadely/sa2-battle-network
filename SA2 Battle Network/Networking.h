@@ -1,5 +1,13 @@
 #pragma once
 
+/*
+Message types with the naming convention MSG_<group>_<START/END> are never sent;
+they're used to verify that a received message is within that group's range.
+
+Example:
+When receiving player messages, we check if the type is > MSG_P_START and < MSG_P_END.
+*/
+
 enum MsgTypes : unsigned char
 {
 	MSG_NULL,				// No message
@@ -9,16 +17,15 @@ enum MsgTypes : unsigned char
 	MSG_BIND,				// UDP bind request/confirm
 	MSG_DISCONNECT,			// Request disconnect
 
-	MSG_I_START,
-	
+	MSG_I_START,			// Marker: Start of input messages
+
 	MSG_I_ANALOG,
 	MSG_I_BUTTONS,
-	
-	MSG_I_END,
 
-	
-	MSG_M_START,
-	
+	MSG_I_END,				// Marker: End of input messages
+
+	MSG_M_START,			// Marker: Start of menu messages
+
 	MSG_M_ALTCHAR,
 	MSG_M_BATTLESEL,
 	MSG_M_BATTLEOPTSEL,
@@ -26,11 +33,10 @@ enum MsgTypes : unsigned char
 	MSG_M_CHARSEL,
 	MSG_M_STAGESEL,
 
-	MSG_M_END,
+	MSG_M_END,				// Marker: End of menu messages
 
-	
-	MSG_P_START,
-	
+	MSG_P_START,			// Marker: Start of player messages
+
 	// CharObj1
 	MSG_P_ACTION,
 	MSG_P_STATUS,
@@ -46,12 +52,11 @@ enum MsgTypes : unsigned char
 	MSG_P_ANIMATION,
 	// Sonic
 	MSG_P_SPINTIMER,
-	
-	MSG_P_END,
 
-	
-	MSG_S_START,
-	
+	MSG_P_END,				// Marker: End of player messages
+
+	MSG_S_START,			// Marker: Start of system messages
+
 	MSG_S_2PMODE,
 	MSG_S_2PREADY,
 	MSG_S_2PSPECIALS,
@@ -62,9 +67,8 @@ enum MsgTypes : unsigned char
 	MSG_S_RINGS,
 	MSG_S_TIME,
 	MSG_S_TIMESTOP,
-	
-	MSG_S_END,
 
-	
+	MSG_S_END,				// Marker: End of system messages
+
 	MSG_COUNT
 };

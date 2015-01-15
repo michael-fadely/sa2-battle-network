@@ -1,8 +1,10 @@
 #include <iostream>
 #include <Winsock2.h>
 
-#include "Common.h"		// millisecs(), LazyTypedefs
+#include "Common.h"			// for Millisecs(), LazyTypedefs
 #include "Networking.h"
+
+// This class
 #include "PacketHandler.h"
 
 
@@ -28,7 +30,7 @@ void PacketHandler::Initialize()
 	socketFast.setBlocking(false);
 }
 
-const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool block)
+sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
@@ -107,7 +109,7 @@ const sf::Socket::Status PacketHandler::Listen(const unsigned short port, const 
 
 	return result;
 }
-const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port, const bool block)
+sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
@@ -165,7 +167,7 @@ const sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned
 	}
 	return result;
 }
-const sf::Socket::Status PacketHandler::Disconnect(const bool received)
+sf::Socket::Status PacketHandler::Disconnect(const bool received)
 {
 	Socket::Status result = Socket::Status::Disconnected;
 
@@ -189,7 +191,7 @@ const sf::Socket::Status PacketHandler::Disconnect(const bool received)
 	connected = false;
 	return result;
 }
-const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isServer)
+sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isServer)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
@@ -203,17 +205,17 @@ const sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bo
 	return result;
 }
 
-const sf::Socket::Status PacketHandler::Connect(RemoteAddress address, const bool block)
+sf::Socket::Status PacketHandler::Connect(RemoteAddress address, const bool block)
 {
 	return Connect(address.ip, address.port, block);
 }
 
 inline void PacketHandler::SetConnectTime()
 {
-	start_time = millisecs();
+	start_time = Millisecs();
 }
 
-const sf::Socket::Status PacketHandler::Send(PacketEx& packet)
+sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
 	if (!packet.isEmpty())
 	{
@@ -225,7 +227,7 @@ const sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 
 	return Socket::Status::NotReady;
 }
-const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
+sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
 {
 	if (packet.isSafe)
 		return recvSafe(packet, block);
@@ -233,7 +235,7 @@ const sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool blo
 		return recvFast(packet, block);
 }
 
-const sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
+sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)
@@ -254,7 +256,7 @@ const sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
 	}
 	return result;
 }
-const sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)
@@ -275,7 +277,7 @@ const sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool bloc
 	}
 	return result;
 }
-const sf::Socket::Status PacketHandler::sendFast(Packet& packet)
+sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)
@@ -295,7 +297,7 @@ const sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 	}
 	return result;
 }
-const sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	if (connected)

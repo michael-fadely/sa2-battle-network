@@ -4,8 +4,9 @@
 #include <iostream>
 #include <string>
 
-#include <Windows.h> // For GetCommandLIneW(), GetCurrentProcess()
+#include <Windows.h>		// for GetCommandLIneW(), GetCurrentProcess()
 #include <ShellAPI.h>		// for CommandLinetoArgvW
+#include <SA2ModLoader.h>
 
 #include "Common.h"			// for LazyTypedefs, SleepFor, Globals
 #include "Networking.h"		// for MSG_COUNT
@@ -17,6 +18,17 @@
 // Namespaces
 using namespace std;
 using namespace chrono;
+
+extern "C"				// Required for proper export
+__declspec(dllexport)	// This data is being exported from this DLL
+ModInfo SA2ModInfo = {
+	ModLoaderVer,		// Struct version
+	ThreadInit,			// Initialization function
+	NULL, 0,			// List of Patches & Patch Count
+	NULL, 0,			// List of Jumps & Jump Count
+	NULL, 0,			// List of Calls & Call Count
+	NULL, 0,			// List of Pointers & Pointer Count
+};
 
 // Globals
 int argc = 0;
@@ -72,6 +84,7 @@ void MainThread(int argc, wchar_t** argv)
 			{
 				if ((timeout = _wtoi(argv[++i])) < 1000)
 					timeout = 1000;
+
 				ValidArguments = true;
 			}
 
