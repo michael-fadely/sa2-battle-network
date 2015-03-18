@@ -87,8 +87,6 @@ void MemoryHandler::Initialize()
 
 	firstMenuEntry = false;
 	wroteP2Start = false;
-	splitToggled = false;
-	teleported = false;
 	writePlayer = false;
 	sendSpinTimer = false;
 
@@ -944,44 +942,28 @@ void MemoryHandler::ToggleSplitscreen()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.HeldButtons & Buttons_L) && (sendInput.HeldButtons & Buttons_R))
+		if ((ControllersRaw[0].HeldButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R) ||
+			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].HeldButtons & Buttons_R) ||
+			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R))
 		{
-			if (!splitToggled)
-			{
-				if (SplitscreenMode == 1)
-					SplitscreenMode = 2;
-				else if (SplitscreenMode == 2)
-					SplitscreenMode = 1;
-				else
-					return;
-
-				splitToggled = true;
-			}
+			if (SplitscreenMode == 1)
+				SplitscreenMode = 2;
+			else if (SplitscreenMode == 2)
+				SplitscreenMode = 1;
 		}
-
-		else if (splitToggled)
-			splitToggled = false;
 	}
-
-	return;
 }
 bool MemoryHandler::Teleport()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
-		if ((sendInput.HeldButtons & Buttons_Y) && (sendInput.HeldButtons & Buttons_Up))
+		if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
 		{
-			if (!teleported)
-			{
-				// Teleport to recvPlayer
-				cout << "<> Teleporting to other player..." << endl;;
-				PlayerObject::Teleport(&recvPlayer, Player1);
-
-				return teleported = true;
-			}
+			// Teleport to recvPlayer
+			cout << "<> Teleporting to other player..." << endl;;
+			PlayerObject::Teleport(&recvPlayer, Player1);
+			return true;
 		}
-		else if (teleported)
-			return teleported = false;
 	}
 
 	return false;
@@ -994,8 +976,5 @@ uint32 MemoryHandler::GetCurrentMenu()
 	if (!Globals::Networking->isConnected())
 		GetFrame();
 
-	if (!isNewFrame())
-		return local.menu.main;
-	else
-		return local.menu.main = CurrentMenu[0];
+	return (isNewFrame()) ? local.menu.main = CurrentMenu[0] : local.menu.main;
 }

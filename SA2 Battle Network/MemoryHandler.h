@@ -110,8 +110,6 @@ private:
 	// Toggles and things
 	bool firstMenuEntry;
 	bool wroteP2Start;
-	bool splitToggled;
-	bool teleported;
 
 	// Set in ReceivePlayer to true upon receival of a valid player message.
 	bool writePlayer;
