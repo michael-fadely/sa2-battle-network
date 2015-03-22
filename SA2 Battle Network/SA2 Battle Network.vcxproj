@@ -110,7 +110,7 @@
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Globals.cpp" />
-    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="mod.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="ModLoaderExtensions.cpp" />
