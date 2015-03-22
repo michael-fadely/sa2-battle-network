@@ -51,9 +51,6 @@
     <ClInclude Include="AddressList.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
-    <ClInclude Include="ActionBlacklist.h">
-      <Filter>Header Files\Game Memory</Filter>
-    </ClInclude>
     <ClInclude Include="LazyMemory.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
@@ -90,6 +87,9 @@
     <ClInclude Include="BAMS.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
+    <ClInclude Include="InputHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -99,9 +99,6 @@
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManagement.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionBlacklist.cpp">
       <Filter>Source Files\Game Memory</Filter>
     </ClCompile>
     <ClCompile Include="MemoryHandler.cpp">

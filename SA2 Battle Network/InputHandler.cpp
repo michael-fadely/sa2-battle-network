@@ -1,23 +1,30 @@
 #include <SA2ModLoader.h>
 #include <LazyTypedefs.h>
-
 #include "Globals.h"
 
-void InputHandler();
+#include "InputHandler.h"
 
-extern "C"
+void __cdecl OnInput()
 {
-	void __declspec(dllexport) __cdecl OnInput()
-	{
-		if (true)
-			InputHandler();
-	}
+	if (true)
+		InputHandler();
+}
+
+void* OnInput_Ptr = (void*)0x0077E897;
+
+void InitInputHandler()
+{
+	char* returns = new char[9];
+	memset(returns, 0xC3, 9);
+	WriteData(OnInput_Ptr, returns, 9);
+	WriteCall(OnInput_Ptr, OnInput);
 }
 
 // Placeholders for not-yet-implemented features.
 const uint MyPlayerID = 0;
 const uint PlayerCount = 2;
 
+// TODO: Send input from here.
 void InputHandler()
 {
 	using namespace sa2bn;
@@ -27,34 +34,25 @@ void InputHandler()
 
 	Globals::Memory->inputLock.lock();
 	ControllerData* network = &Globals::Memory->recvInput;
-	
-	for (uint i = 0; i < PlayerCount; i++)
-	{
-		// TODO: Send input from here.
-		if (i == MyPlayerID)
-			continue;
-	
-		ControllerData* local = &ControllersRaw[i];
+	ControllerData* pad = &ControllersRaw[1];
 
-		// Network input
-		local->LeftStickX = network->LeftStickX;
-		local->LeftStickY = network->LeftStickY;
+	pad->LeftStickX = network->LeftStickX;
+	pad->LeftStickY = network->LeftStickY;
 
-		local->RightStickX = network->RightStickX;
-		local->RightStickY = network->RightStickY;
+	pad->RightStickX = network->RightStickX;
+	pad->RightStickY = network->RightStickY;
 
-		local->LTriggerPressure = network->LTriggerPressure;
-		local->RTriggerPressure = network->RTriggerPressure;
+	pad->LTriggerPressure = network->LTriggerPressure;
+	pad->RTriggerPressure = network->RTriggerPressure;
 
-		local->HeldButtons = network->HeldButtons;
-		local->NotHeldButtons = ~local->HeldButtons;
+	pad->HeldButtons = network->HeldButtons;
+	pad->NotHeldButtons = ~pad->HeldButtons;
 
-		// Simulated button presses
-		local->ReleasedButtons = local->HeldButtons ^ local->Old;
-		local->PressedButtons = local->HeldButtons & ~local->Old;
+	pad->ReleasedButtons = pad->Old & (pad->HeldButtons ^ pad->Old);
 
-		local->Old = local->HeldButtons;
-	}
+	pad->PressedButtons = pad->HeldButtons & (pad->HeldButtons ^ pad->Old);
+
+	pad->Old = pad->HeldButtons;
 
 	Globals::Memory->inputLock.unlock();
 }

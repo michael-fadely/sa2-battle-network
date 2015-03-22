@@ -2,10 +2,10 @@
 
 #include "PacketHandler.h"
 #include "MemoryHandler.h"
+#include <WTypes.h>
 
 namespace sa2bn
 {
-	typedef void* HANDLE;
 	class Globals
 	{
 	public:

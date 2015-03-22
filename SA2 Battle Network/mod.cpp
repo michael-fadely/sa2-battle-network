@@ -1,8 +1,6 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
 
-#define MODEXPORT __declspec(dllexport)
-
 #include <iostream>
 #include <string>
 
@@ -17,30 +15,40 @@
 
 #include "MainThread.h"
 
+#include "InputHandler.h"
+
 // Namespaces
 using namespace std;
 using namespace chrono;
+
+extern "C"				// Required for proper export
+__declspec(dllexport)	// This data is being exported from this DLL
+ModInfo SA2ModInfo = {
+	ModLoaderVer,		// Struct version
+	ThreadInit,			// Initialization function
+	NULL, 0,			// List of Patches & Patch Count
+	NULL, 0,			// List of Jumps & Jump Count
+	NULL, 0,			// List of Calls & Call Count
+	NULL, 0,			// List of Pointers & Pointer Count
+};
 
 // Globals
 int argc = 0;
 wchar_t** argv = nullptr;
 
-extern "C"
+void __cdecl ThreadInit(const char *path)
 {
-	MODEXPORT ModInfo SA2ModInfo = { ModLoaderVer };
+	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
+		abort();
+	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
+		abort();
 
-	void MODEXPORT __cdecl Init(const char *path)
-	{
-		if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
-			abort();
-		if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
-			abort();
+	InitInputHandler();
 
-		argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-		thread mainThread(MainThread, argc, argv);
-		mainThread.detach();
-		return;
-	}
+	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	thread mainThread(MainThread, argc, argv);
+	mainThread.detach();
+	return;
 }
 
 void MainThread(int argc, wchar_t** argv)
