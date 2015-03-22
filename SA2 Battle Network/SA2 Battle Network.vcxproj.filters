@@ -122,10 +122,10 @@
     <ClCompile Include="nop.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
-    <ClCompile Include="MainThread.cpp">
+    <ClCompile Include="Program.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
-    <ClCompile Include="Program.cpp">
+    <ClCompile Include="mod.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
   </ItemGroup>
