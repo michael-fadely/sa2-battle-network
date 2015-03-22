@@ -454,8 +454,8 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 
 bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
-	if (packetType >= MSG_DISCONNECT && !packetIsIn.isInPacket(packetType) && packetAddTo.addType(packetType))
-		return AddPacket(packetType, packetAddTo);
+	if (!packetIsIn.isInPacket(packetType))
+		return RequestPacket(packetType, packetAddTo);
 
 	return false;
 }
