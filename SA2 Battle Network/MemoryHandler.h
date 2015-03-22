@@ -11,6 +11,8 @@
 
 #include <LazyTypedefs.h>
 
+#include <mutex>
+
 #include "AddressList.h"			// for FrameCount
 #include "ModLoaderExtensions.h"	// for InputStruct
 #include "PlayerObject.h"			// for PlayerObject
@@ -46,6 +48,10 @@ public:
 	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
 	// Requests that the packet type packetType is added to packetAddTo.
 	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
+
+	ControllerData recvInput, sendInput;
+	// Used for thread safety with received input (recvInput)
+	std::mutex inputLock;
 
 private:
 	//
@@ -98,7 +104,6 @@ private:
 	uint thisFrame, lastFrame;
 
 	PlayerObject recvPlayer, sendPlayer;
-	ControllerData recvInput, sendInput;
 
 	// Used for comparison to determine what to send.
 	MemStruct local;

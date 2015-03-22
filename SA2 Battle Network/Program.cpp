@@ -38,19 +38,19 @@ isServer(host),
 Address(address),
 setMusic(false)
 {
-	memory = new MemoryHandler();
+	Globals::Memory = new MemoryHandler();
 }
 
 Program::~Program()
 {
-	delete memory;
+	delete Globals::Memory;
 }
 
 
 Program::ExitCode Program::Connect()
 {
 	// TODO: Abort network operation when the sub menu changes to allow local multiplayer without lingering connection.
-	if (memory->GetCurrentMenu() >= Menu::BATTLE)
+	if (Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
 	{
 		// Used only for connection loops.
 		sf::Packet packet;
@@ -82,7 +82,7 @@ Program::ExitCode Program::Connect()
 				}
 			}
 
-			while (!connected && memory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
 			{
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
@@ -151,7 +151,7 @@ Program::ExitCode Program::Connect()
 			}
 
 
-			while (!connected && memory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
 			{
 				packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 				uint8 id;
@@ -233,7 +233,7 @@ void Program::ApplySettings(const bool apply)
 
 Program::ExitCode Program::RunLoop()
 {
-	memory->Initialize();
+	Globals::Memory->Initialize();
 
 	if (Globals::Networking->isConnected())
 	{
@@ -246,14 +246,14 @@ Program::ExitCode Program::RunLoop()
 
 		while (Globals::Networking->isConnected())
 		{
-			memory->RecvLoop();
-			memory->SendLoop();
+			Globals::Memory->RecvLoop();
+			Globals::Memory->SendLoop();
 
 			// Check to see if we should disconnect
-			if (!(memory->GetCurrentMenu() >= Menu::BATTLE))
+			if (!(Globals::Memory->GetCurrentMenu() >= Menu::BATTLE))
 				break;
 
-			memory->SetFrame();
+			Globals::Memory->SetFrame();
 
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);

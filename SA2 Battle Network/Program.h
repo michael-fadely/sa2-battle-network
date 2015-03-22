@@ -50,8 +50,6 @@ public:
 private:
 	ExitCode exitCode;
 
-	MemoryHandler* memory;
-
 	Settings clientSettings;
 	PacketHandler::RemoteAddress Address;
 

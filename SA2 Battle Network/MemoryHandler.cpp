@@ -672,11 +672,15 @@ bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
 			return false;
 
 			RECEIVED(MSG_I_BUTTONS);
+			inputLock.lock();
 			packet >> recvInput.HeldButtons;
+			inputLock.unlock();
 			break;
 
 			RECEIVED(MSG_I_ANALOG);
-			packet >> ControllersRaw[1].LeftStickX >> ControllersRaw[1].LeftStickY;
+			inputLock.lock();
+			packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
+			inputLock.unlock();
 			break;
 		}
 
@@ -918,14 +922,10 @@ void MemoryHandler::PreReceive()
 			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
 
 		// HACK: Analog failsafe
-		if (GameState == GameState::PAUSE &&
-			(recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0 ||
-			ControllersRaw[1].LeftStickX != 0 || ControllersRaw[1].LeftStickY != 0))
+		if (GameState == GameState::PAUSE && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))
 		{
 			recvInput.LeftStickX = 0;
 			recvInput.LeftStickY = 0;
-			ControllersRaw[1].LeftStickX = 0;
-			ControllersRaw[1].LeftStickY = 0;
 		}
 	}
 }

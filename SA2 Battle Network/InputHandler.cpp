@@ -14,28 +14,47 @@ extern "C"
 	}
 }
 
+// Placeholders for not-yet-implemented features.
+const uint MyPlayerID = 0;
+const uint PlayerCount = 2;
+
 void InputHandler()
 {
-	// Placeholder
-	ControllerData local = {};
-	ControllerData network = {};
+	using namespace sa2bn;
 
-	// Network input
-	local.LeftStickX = network.LeftStickX;
-	local.LeftStickY = network.LeftStickY;
+	if (!Globals::isConnected())
+		return;
 
-	local.RightStickX = network.RightStickX;
-	local.RightStickY = network.RightStickY;
-
-	local.LTriggerPressure = network.LTriggerPressure;
-	local.RTriggerPressure = network.RTriggerPressure;
-
-	local.HeldButtons = network.HeldButtons;
-	local.NotHeldButtons = ~local.HeldButtons;
+	Globals::Memory->inputLock.lock();
+	ControllerData* network = &Globals::Memory->recvInput;
 	
-	// Simulated button presses
-	local.ReleasedButtons = local.HeldButtons ^ local.Old;
-	local.PressedButtons = local.HeldButtons & ~local.Old;
+	for (uint i = 0; i < PlayerCount; i++)
+	{
+		// TODO: Send input from here.
+		if (i == MyPlayerID)
+			continue;
+	
+		ControllerData* local = &ControllersRaw[i];
 
-	local.Old = local.HeldButtons;
+		// Network input
+		local->LeftStickX = network->LeftStickX;
+		local->LeftStickY = network->LeftStickY;
+
+		local->RightStickX = network->RightStickX;
+		local->RightStickY = network->RightStickY;
+
+		local->LTriggerPressure = network->LTriggerPressure;
+		local->RTriggerPressure = network->RTriggerPressure;
+
+		local->HeldButtons = network->HeldButtons;
+		local->NotHeldButtons = ~local->HeldButtons;
+
+		// Simulated button presses
+		local->ReleasedButtons = local->HeldButtons ^ local->Old;
+		local->PressedButtons = local->HeldButtons & ~local->Old;
+
+		local->Old = local->HeldButtons;
+	}
+
+	Globals::Memory->inputLock.unlock();
 }
