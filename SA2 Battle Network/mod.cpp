@@ -62,14 +62,14 @@ void MainThread(int argc, wchar_t** argv)
 		for (int i = 1; i < argc; i++)
 		{
 			// Connection
-			if ((wcscmp(argv[i], L"--host") == 0 || wcscmp(argv[i], L"-h") == 0) && (i + 1) < argc)
+			if ((!wcscmp(argv[i], L"--host") || !wcscmp(argv[i], L"-h")) && (i + 1) < argc)
 			{
 				isServer = true;
 				//netMode = "server";
 				Address.port = _wtoi(argv[++i]);
 				ValidArguments = true;
 			}
-			else if ((wcscmp(argv[i], L"--connect") == 0 || wcscmp(argv[i], L"-c") == 0) && (i + 2) < argc)
+			else if ((!wcscmp(argv[i], L"--connect") || !wcscmp(argv[i], L"-c")) && (i + 2) < argc)
 			{
 				isServer = false;
 
@@ -80,7 +80,7 @@ void MainThread(int argc, wchar_t** argv)
 				Address.port = _wtoi(argv[++i]);
 				ValidArguments = true;
 			}
-			else if ((wcscmp(argv[i], L"--timeout") == 0 || wcscmp(argv[i], L"-t") == 0) && (i + 1) < argc)
+			else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
 			{
 				if ((timeout = _wtoi(argv[++i])) < 1000)
 					timeout = 1000;
@@ -89,17 +89,17 @@ void MainThread(int argc, wchar_t** argv)
 			}
 
 			// Configuration
-			else if (wcscmp(argv[i], L"--no-specials") == 0)
+			else if (!wcscmp(argv[i], L"--no-specials"))
 			{
 				Settings.noSpecials = true;
 				ValidArguments = true;
 			}
-			else if (wcscmp(argv[i], L"--local") == 0 || wcscmp(argv[i], L"-l") == 0)
+			else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 			{
 				Settings.isLocal = true;
 				ValidArguments = true;
 			}
-			else if (wcscmp(argv[i], L"--keep-active") == 0)
+			else if (!wcscmp(argv[i], L"--keep-active"))
 			{
 				Settings.KeepWindowActive = true;
 				ValidArguments = true;
