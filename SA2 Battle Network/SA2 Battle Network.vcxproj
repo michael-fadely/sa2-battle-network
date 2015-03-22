@@ -107,13 +107,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActionBlacklist.cpp" />
+    <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="mod.cpp" />
     <ClCompile Include="MemoryHandler.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
-    <ClCompile Include="ModLoaderExtensions.cpp" />
     <ClCompile Include="nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketExtensions.cpp" />

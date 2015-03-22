@@ -98,7 +98,7 @@ private:
 	uint thisFrame, lastFrame;
 
 	PlayerObject recvPlayer, sendPlayer;
-	InputStruct recvInput, sendInput;
+	ControllerData recvInput, sendInput;
 
 	// Used for comparison to determine what to send.
 	MemStruct local;

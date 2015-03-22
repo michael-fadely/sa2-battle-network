@@ -1,6 +1,8 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
 
+#define MODEXPORT __declspec(dllexport)
+
 #include <iostream>
 #include <string>
 
@@ -19,32 +21,26 @@
 using namespace std;
 using namespace chrono;
 
-extern "C"				// Required for proper export
-__declspec(dllexport)	// This data is being exported from this DLL
-ModInfo SA2ModInfo = {
-	ModLoaderVer,		// Struct version
-	ThreadInit,			// Initialization function
-	NULL, 0,			// List of Patches & Patch Count
-	NULL, 0,			// List of Jumps & Jump Count
-	NULL, 0,			// List of Calls & Call Count
-	NULL, 0,			// List of Pointers & Pointer Count
-};
-
 // Globals
 int argc = 0;
 wchar_t** argv = nullptr;
 
-void __cdecl ThreadInit(const char *path)
+extern "C"
 {
-	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
-		abort();
-	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
-		abort();
+	MODEXPORT ModInfo SA2ModInfo = { ModLoaderVer };
 
-	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	thread mainThread(MainThread, argc, argv);
-	mainThread.detach();
-	return;
+	void MODEXPORT __cdecl Init(const char *path)
+	{
+		if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
+			abort();
+		if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
+			abort();
+
+		argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+		thread mainThread(MainThread, argc, argv);
+		mainThread.detach();
+		return;
+	}
 }
 
 void MainThread(int argc, wchar_t** argv)
@@ -62,14 +58,14 @@ void MainThread(int argc, wchar_t** argv)
 		for (int i = 1; i < argc; i++)
 		{
 			// Connection
-			if ((wcscmp(argv[i], L"--host") == 0 || wcscmp(argv[i], L"-h") == 0) && (i + 1) < argc)
+			if ((!wcscmp(argv[i], L"--host") || !wcscmp(argv[i], L"-h")) && (i + 1) < argc)
 			{
 				isServer = true;
 				//netMode = "server";
 				Address.port = _wtoi(argv[++i]);
 				ValidArguments = true;
 			}
-			else if ((wcscmp(argv[i], L"--connect") == 0 || wcscmp(argv[i], L"-c") == 0) && (i + 2) < argc)
+			else if ((!wcscmp(argv[i], L"--connect") || !wcscmp(argv[i], L"-c")) && (i + 2) < argc)
 			{
 				isServer = false;
 
@@ -80,7 +76,7 @@ void MainThread(int argc, wchar_t** argv)
 				Address.port = _wtoi(argv[++i]);
 				ValidArguments = true;
 			}
-			else if ((wcscmp(argv[i], L"--timeout") == 0 || wcscmp(argv[i], L"-t") == 0) && (i + 1) < argc)
+			else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
 			{
 				if ((timeout = _wtoi(argv[++i])) < 1000)
 					timeout = 1000;
@@ -89,17 +85,17 @@ void MainThread(int argc, wchar_t** argv)
 			}
 
 			// Configuration
-			else if (wcscmp(argv[i], L"--no-specials") == 0)
+			else if (!wcscmp(argv[i], L"--no-specials"))
 			{
 				Settings.noSpecials = true;
 				ValidArguments = true;
 			}
-			else if (wcscmp(argv[i], L"--local") == 0 || wcscmp(argv[i], L"-l") == 0)
+			else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 			{
 				Settings.isLocal = true;
 				ValidArguments = true;
 			}
-			else if (wcscmp(argv[i], L"--keep-active") == 0)
+			else if (!wcscmp(argv[i], L"--keep-active"))
 			{
 				Settings.KeepWindowActive = true;
 				ValidArguments = true;

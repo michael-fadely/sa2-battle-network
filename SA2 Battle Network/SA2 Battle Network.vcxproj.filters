@@ -110,9 +110,6 @@
     <ClCompile Include="Common.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
-    <ClCompile Include="ModLoaderExtensions.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
     <ClCompile Include="PacketExtensions.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
@@ -127,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="mod.cpp">
       <Filter>Source Files\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="InputHandler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

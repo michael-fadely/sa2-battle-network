@@ -454,8 +454,8 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 
 bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
-	if (packetType >= MSG_DISCONNECT && !packetIsIn.isInPacket(packetType) && packetAddTo.addType(packetType))
-		return AddPacket(packetType, packetAddTo);
+	if (!packetIsIn.isInPacket(packetType))
+		return RequestPacket(packetType, packetAddTo);
 
 	return false;
 }
@@ -479,12 +479,12 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		packet << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
 		sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
 		sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-		return true;
+		break;
 
 	case MSG_I_BUTTONS:
 		packet << ControllersRaw[0].HeldButtons;
 		sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
-		return true;
+		break;
 
 #pragma endregion
 
@@ -501,35 +501,35 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		local.menu.AltCharacterEggman = AltCharacterEggman;
 		local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
 		local.menu.AltCharacterRouge = AltCharacterRouge;
-		return true;
+		break;
 
 	case MSG_M_BATTLESEL:
 		packet << BattleSelection;
 		local.menu.BattleSelection = BattleSelection;
-		return true;
+		break;
 
 	case MSG_M_BATTLEOPTSEL:
 		packet << BattleOptionsSelection << BattleOptionsBack;
 		local.menu.BattleOptionsSelection = BattleOptionsSelection;
 		local.menu.BattleOptionsBack = BattleOptionsBack;
-		return true;
+		break;
 
 	case MSG_M_CHARCHOSEN:
 		packet << CharacterSelected[0];
 		local.menu.CharacterSelected[0] = CharacterSelected[0];
-		return true;
+		break;
 
 	case MSG_M_CHARSEL:
 		packet << CharacterSelection[0];
 		local.menu.CharacterSelection[0] = CharacterSelection[0];
-		return true;
+		break;
 
 	case MSG_M_STAGESEL:
 		packet << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
 		local.menu.StageSelection2P[0] = StageSelection2P[0];
 		local.menu.StageSelection2P[1] = StageSelection2P[1];
 		local.menu.BattleOptionsButton = BattleOptionsButton;
-		return true;
+		break;
 
 #pragma endregion
 
@@ -541,27 +541,27 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 
 	case MSG_P_ACTION:
 		packet << Player1->Data1->Action;
-		return true;
+		break;
 
 	case MSG_P_STATUS:
 		packet << Player1->Data1->Status;
-		return true;
+		break;
 
 	case MSG_P_ROTATION:
 		speedTimer = rotateTimer = Millisecs();
 		packet << Player1->Data1->Rotation;
-		return true;
+		break;
 
 	case MSG_P_POSITION:
 		// Informs other conditions that it shouldn't request
 		// another position packet so soon
 		positionTimer = Millisecs();
 		packet << Player1->Data1->Position;
-		return true;
+		break;
 
 	case MSG_P_SCALE:
 		packet << Player1->Data1->Scale;
-		return true;
+		break;
 
 	case MSG_P_CHARACTER:	// Not yet implemented.
 		return false;
@@ -569,30 +569,30 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 	case MSG_P_POWERUPS:
 		cout << "<< Sending powerups" << endl;
 		packet << Player1->Data2->Powerups;
-		return true;
+		break;
 
 	case MSG_P_UPGRADES:
 		cout << "<< Sending upgrades" << endl;
 		packet << Player1->Data2->Upgrades;
-		return true;
+		break;
 
 	case MSG_P_HP:
 		packet << Player1->Data2->MechHP;
-		return true;
+		break;
 
 	case MSG_P_SPEED:
 		rotateTimer = speedTimer = Millisecs();
 		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
-		return true;
+		break;
 
 	case MSG_P_ANIMATION:
 		packet << Player1->Data2->AnimInfo.Next;
-		return true;
+		break;
 
 	case MSG_P_SPINTIMER:
 		//cout << "<< [" << Millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-		return true;
+		break;
 
 #pragma endregion
 
@@ -604,23 +604,23 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 	case MSG_S_2PREADY:
 		packet << PlayerReady[0];
 		local.menu.PlayerReady[0] = PlayerReady[0];
-		return true;
+		break;
 
 	case MSG_S_2PSPECIALS:
 		packet.append(P1SpecialAttacks, sizeof(char) * 3);
 		memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
-		return true;
+		break;
 
 	case MSG_S_BATTLEOPT:
 		packet.append(BattleOptions, BattleOptions_Length);
 		memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
-		return true;
+		break;
 
 	case MSG_S_GAMESTATE:
 		packet << GameState;
 		cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
 		local.system.GameState = GameState;
-		return true;
+		break;
 
 	case MSG_S_LEVEL:	// Not yet implemented
 		return false;
@@ -628,17 +628,17 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 	case MSG_S_PAUSESEL:
 		packet << PauseSelection;
 		local.system.PauseSelection = PauseSelection;
-		return true;
+		break;
 
 	case MSG_S_RINGS:
 		packet << RingCount[0];
 		local.game.RingCount[0] = RingCount[0];
-		return true;
+		break;
 
 	case MSG_S_TIME:
 		packet << TimerMinutes << TimerSeconds << TimerFrames;
 		memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-		return true;
+		break;
 
 	case MSG_S_TIMESTOP:
 		cout << "<< Sending Time Stop [";
@@ -650,12 +650,13 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 
 		cout << ']' << endl;
 		local.game.TimeStopMode = TimeStopMode;
-		return true;
-
+		break;
 
 #pragma endregion
 
 	}
+
+	return true;
 }
 
 #pragma endregion
@@ -672,16 +673,14 @@ bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
 
 			RECEIVED(MSG_I_BUTTONS);
 			packet >> recvInput.HeldButtons;
-			if (!isNewFrame())
-				MemManage::waitFrame();
-			recvInput.WriteButtons(ControllersRaw[1]);
-
-			return true;
+			break;
 
 			RECEIVED(MSG_I_ANALOG);
 			packet >> ControllersRaw[1].LeftStickX >> ControllersRaw[1].LeftStickY;
-			return true;
+			break;
 		}
+
+		return true;
 	}
 
 	return false;
@@ -700,7 +699,7 @@ bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 			TimerMinutes = local.game.TimerMinutes;
 			TimerSeconds = local.game.TimerSeconds;
 			TimerFrames = local.game.TimerFrames;
-			return true;
+			break;
 
 			RECEIVED(MSG_S_GAMESTATE);
 			{
@@ -709,33 +708,35 @@ bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 				if (GameState >= GameState::NORMAL_RESTART && recvGameState > GameState::LOAD_FINISHED)
 					GameState = local.system.GameState = recvGameState;
 
-				return true;
+				break;
 			}
 
 			RECEIVED(MSG_S_PAUSESEL);
 			packet >> local.system.PauseSelection;
 			PauseSelection = local.system.PauseSelection;
-			return true;
+			break;
 
 			RECEIVED(MSG_S_TIMESTOP);
 			packet >> local.game.TimeStopMode;
 			writeTimeStop();
-			return true;
+			break;
 
 			RECEIVED(MSG_S_2PSPECIALS);
 			for (int i = 0; i < 3; i++)
 				packet >> local.game.P2SpecialAttacks[i];
 
 			writeSpecials();
-			return true;
+			break;
 
 			RECEIVED(MSG_S_RINGS);
 			packet >> local.game.RingCount[1];
 			writeRings();
 
 			cout << ">> Ring Count Change " << local.game.RingCount[1] << endl;
-			return true;
+			break;
 		}
+
+		return true;
 	}
 
 	return false;
@@ -826,19 +827,19 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			PlayerReady[1] = local.menu.PlayerReady[1];
 
 			cout << ">> Player 2 ready state changed. " << (ushort)local.menu.PlayerReady[1] << endl;
-			return true;
+			break;
 
 			RECEIVED(MSG_M_CHARSEL);
 			packet >> local.menu.CharacterSelection[1];
 			CharacterSelection[1] = local.menu.CharacterSelection[1];
 			//cout << (ushort)local.menu.CharacterSelection[1] << ' ' << (ushort)CharacterSelection[1] << endl;
-			return true;
+			break;
 
 			RECEIVED(MSG_M_CHARCHOSEN);
 			packet >> local.menu.CharacterSelected[1];
 			CharacterSelected[1] = local.menu.CharacterSelected[1];
 			//cout << (ushort)CharacterSelected[1] << ' ' << (ushort)local.menu.CharacterSelected[1] << endl;
-			return true;
+			break;
 
 			RECEIVED(MSG_M_ALTCHAR);
 			packet >> local.menu.AltCharacterSonic
@@ -855,14 +856,14 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
 			AltCharacterRouge = local.menu.AltCharacterRouge;
 
-			return true;
+			break;
 
 			RECEIVED(MSG_S_BATTLEOPT);
 			for (int i = 0; i < 4; i++)
 				packet >> local.menu.BattleOptions[i];
 			memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
 
-			return true;
+			break;
 
 			RECEIVED(MSG_M_BATTLEOPTSEL);
 			packet >> local.menu.BattleOptionsSelection
@@ -870,7 +871,7 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			BattleOptionsSelection = local.menu.BattleOptionsSelection;
 			BattleOptionsBack = local.menu.BattleOptionsBack;
 
-			return true;
+			break;
 
 			RECEIVED(MSG_M_STAGESEL);
 			packet >> local.menu.StageSelection2P[0]
@@ -881,15 +882,18 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			StageSelection2P[1] = local.menu.StageSelection2P[1];
 			BattleOptionsButton = local.menu.BattleOptionsButton;
 
-			return true;
+			break;
 
 			RECEIVED(MSG_M_BATTLESEL);
 			packet >> local.menu.BattleSelection;
 			BattleSelection = local.menu.BattleSelection;
 
-			return true;
+			break;
 		}
+		
+		return true;
 	}
+
 	return false;
 }
 
