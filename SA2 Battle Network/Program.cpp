@@ -205,7 +205,7 @@ Program::ExitCode Program::Connect()
 
 void Program::ApplySettings(const bool apply)
 {
-	MemManage::nopP2Input(apply);
+	//MemManage::nopP2Input(apply);
 
 	if (apply)
 		cout << "<> Applying code changes..." << endl;
