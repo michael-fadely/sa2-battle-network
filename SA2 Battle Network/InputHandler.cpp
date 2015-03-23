@@ -16,6 +16,7 @@ void InitInputHandler()
 	memset(returns, 0xC3, 9);
 	WriteData(OnInput_Ptr, returns, 9);
 	WriteCall(OnInput_Ptr, OnInput);
+	delete[] returns;
 }
 
 // TODO: Send input from here.

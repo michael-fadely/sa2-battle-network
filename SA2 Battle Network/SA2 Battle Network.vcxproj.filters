@@ -90,6 +90,9 @@
     <ClInclude Include="InputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OnFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -123,6 +126,9 @@
       <Filter>Source Files\Program</Filter>
     </ClCompile>
     <ClCompile Include="InputHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OnFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

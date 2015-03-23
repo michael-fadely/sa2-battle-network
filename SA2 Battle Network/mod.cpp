@@ -16,6 +16,7 @@
 #include "MainThread.h"
 
 #include "InputHandler.h"
+#include "OnFrame.h"
 
 // Namespaces
 using namespace std;
@@ -44,6 +45,7 @@ void __cdecl ThreadInit(const char *path)
 		abort();
 
 	InitInputHandler();
+	InitOnFrame();
 
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	thread mainThread(MainThread, argc, argv);
