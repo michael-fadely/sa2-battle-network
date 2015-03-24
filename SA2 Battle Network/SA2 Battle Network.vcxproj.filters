@@ -19,17 +19,17 @@
     <Filter Include="Source Files\Networking">
       <UniqueIdentifier>{02a7a80d-de3a-4346-b031-83994e6da4fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Program">
-      <UniqueIdentifier>{836f4cf0-ab0e-4a2c-ad5a-b8aa0b02ce68}</UniqueIdentifier>
+    <Filter Include="Source Files\Events">
+      <UniqueIdentifier>{72043bf3-0119-4051-aa10-5e4284eb53a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Program">
-      <UniqueIdentifier>{e9ba9889-5811-4998-b92b-9e96efac8fbc}</UniqueIdentifier>
+    <Filter Include="Header Files\Events">
+      <UniqueIdentifier>{9575a5e3-a1e6-442e-bb12-48cebd4d3fe8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Game Memory">
-      <UniqueIdentifier>{68264a71-e6c1-4c43-abf1-55daa6b33913}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Game Memory">
+    <Filter Include="Source Files\Memory">
       <UniqueIdentifier>{07e75d45-fa4f-40b3-9242-5633e7ed18bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Memory">
+      <UniqueIdentifier>{68264a71-e6c1-4c43-abf1-55daa6b33913}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,29 +39,23 @@
     <ClInclude Include="Networking.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
-    <ClInclude Include="Globals.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
     <ClInclude Include="CommonEnums.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="AddressList.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="LazyMemory.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="MemoryHandler.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="MemoryManagement.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="MemoryStruct.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="PacketExtensions.h">
       <Filter>Header Files\Networking</Filter>
@@ -70,27 +64,33 @@
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
     <ClInclude Include="PlayerObject.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="ModLoaderExtensions.h">
-      <Filter>Header Files\Game Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="nop.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
-    <ClInclude Include="MainThread.h">
-      <Filter>Header Files\Program</Filter>
-    </ClInclude>
-    <ClInclude Include="Program.h">
-      <Filter>Header Files\Program</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="BAMS.h">
-      <Filter>Header Files\Game Memory</Filter>
+      <Filter>Header Files\Memory</Filter>
     </ClInclude>
     <ClInclude Include="OnFrame.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="OnInput.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nop.h">
+      <Filter>Header Files\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Program.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -98,37 +98,37 @@
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="Globals.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryManagement.cpp">
-      <Filter>Source Files\Game Memory</Filter>
+      <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="MemoryHandler.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Common.cpp">
-      <Filter>Source Files\Program</Filter>
+      <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="PacketExtensions.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="PlayerObject.cpp">
-      <Filter>Source Files\Game Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="nop.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
-    <ClCompile Include="Program.cpp">
-      <Filter>Source Files\Program</Filter>
-    </ClCompile>
-    <ClCompile Include="mod.cpp">
-      <Filter>Source Files\Program</Filter>
+      <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="OnFrame.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="OnInput.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="mod.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nop.cpp">
+      <Filter>Source Files\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
