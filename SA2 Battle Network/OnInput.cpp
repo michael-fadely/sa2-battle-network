@@ -40,7 +40,12 @@ void InputHandler()
 			memory->RequestPacket(MSG_I_BUTTONS, safe);
 
 		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
-			memory->RequestPacket(MSG_I_ANALOG, (!pad->LeftStickX && !pad->LeftStickY) ? safe : fast);
+		{
+			if (!pad->LeftStickX && !pad->LeftStickY)
+				memory->RequestPacket(MSG_I_ANALOG, safe);
+			else if (FrameCount % (2 - (FrameIncrement - 1)))
+				memory->RequestPacket(MSG_I_ANALOG, fast);
+		}
 
 		Globals::Networking->Send(safe);
 		Globals::Networking->Send(fast);
