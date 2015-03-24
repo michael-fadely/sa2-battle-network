@@ -37,6 +37,8 @@ DataPointer(unsigned char, PauseSelection, ADDR_PAUSESEL);
 DataPointer(unsigned char, GameState, ADDR_GAMESTATE);
 DataPointer(unsigned char, SplitscreenMode, ADDR_SPLITSCREEN);
 DataPointer(unsigned int, FrameCount, ADDR_FRAMECOUNT);
+DataPointer(unsigned int, FrameCountIngame, (ADDR_FRAMECOUNT + 4));
+DataPointer(unsigned int, FrameIncrement, 0x1DEB50C);
 DataPointer(unsigned char, TimerFrames, 0x0174AFDD); // ADDR_TIME + 0x02
 #pragma endregion
 

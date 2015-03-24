@@ -1,11 +1,14 @@
 #include <SA2ModLoader.h>
 
 #include "Globals.h"
+#include "AddressList.h"
 
 #include "OnFrame.h"
 
 void* caseDefault_ptr = (void*)0x004340CC;
-void* caseRestartNoLife_ptr = (void*)0x0043407E;	// Doesn't appear to ever execute
+void* case08_ptr = (void*)0x0043405D;
+void* case09_ptr = (void*)0x0043407E;
+void* case10_ptr = (void*)0x0043407E;
 
 void __declspec(naked) OnFrame_MidJump()
 {
@@ -36,26 +39,26 @@ void __declspec(naked) OnFrame_Hook()
 	}
 }
 
-
+unsigned int lastFrame = 0;
+bool frameDiscrepency = false;
 void FrameHandler()
 {
-	PrintDebug("FrameHandler");
+	frameDiscrepency = (FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame;
+	PrintDebug("\t\t[%d/%d] ~~~FrameHandler~~~%s", FrameCount, FrameCountIngame, (frameDiscrepency ? " [FRAME DISCREPENCY]" : ""));
+	lastFrame = FrameCount;
 }
 
 void InitOnFrame()
 {
-	char* buffer = new char[9];
-	memset(buffer, 0xC3, 9);
-	
+	WriteJump(case08_ptr, OnFrame_MidJump);
+	WriteJump(case09_ptr, OnFrame_MidJump);
+	WriteJump(case10_ptr, OnFrame_MidJump);
+
 	// OnFrame caseDefault
-	// Occurs if the current gamestate isn't Exit1, RestartLevel_NoLifeLost,
-	//  or Exit2, and byte_174AFF9 == 1
+	// Occurs if the current game mode isn't 8, 9 or 10, and byte_174AFF9 == 1
 	WriteJump(caseDefault_ptr, OnFrame_MidJump);
 
 	// OnFrame OnFrame_Hook
 	// Occurs at the end of the function (effectively the "else" to the statement above)
-	WriteData(OnFrame_Hook_ptr, buffer, 9);
 	WriteJump(OnFrame_Hook_ptr, OnFrame_Hook);
-
-	delete[] buffer;
 }
