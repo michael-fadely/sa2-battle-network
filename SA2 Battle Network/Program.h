@@ -46,7 +46,7 @@ public:
 	Version remoteVersion;
 
 private:
-	ErrorCode exitCode;
+	ErrorCode errorCode;
 
 	Settings clientSettings;
 	PacketHandler::RemoteAddress Address;
