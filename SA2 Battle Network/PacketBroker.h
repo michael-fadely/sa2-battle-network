@@ -38,14 +38,10 @@ public:
 	/// </summary>
 	void Finalize();
 
-	// Read and send System variables
-	void SendSystem();
-	// Read and send Input
-	void SendInput();
-	// Read and send Player varaibles
-	void SendPlayer();
-	// Read and send Menu variables
-	void SendMenu();
+	inline void SendSystem()	{ SendSystem(safe, fast); }
+	inline void SendInput()		{ SendInput(safe, fast); }
+	inline void SendPlayer()	{ SendPlayer(safe, fast); }
+	inline void SendMenu()		{ SendMenu(safe, fast); }
 
 
 	ControllerData recvInput, sendInput;

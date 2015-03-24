@@ -193,11 +193,12 @@ void PacketBroker::Finalize()
 {
 	Globals::Networking->Send(safe);
 	Globals::Networking->Send(fast);
+	safe.Clear();
+	fast.Clear();
 }
 
 #pragma region Send
 
-void PacketBroker::SendSystem() { SendSystem(safe, fast); }
 void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
@@ -234,8 +235,6 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 			RequestPacket(MSG_S_RINGS, safe, fast);
 	}
 }
-
-void PacketBroker::SendInput() { SendInput(safe, fast); }
 void PacketBroker::SendInput(PacketEx& safe, PacketEx& fast)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
@@ -296,8 +295,6 @@ void PacketBroker::SendInput(PacketEx& safe, PacketEx& fast)
 		}
 	}
 }
-
-void PacketBroker::SendPlayer() { SendPlayer(safe, fast); }
 void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
@@ -355,8 +352,6 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		sendPlayer.Set(Player1);
 	}
 }
-
-void PacketBroker::SendMenu() { SendMenu(safe, fast); }
 void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)

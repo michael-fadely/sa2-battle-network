@@ -37,18 +37,20 @@ void InputHandler()
 	ControllerData* lastPad = &broker->sendInput;
 
 #pragma region Send
-	{
-		if (pad->PressedButtons || pad->ReleasedButtons)
-			broker->Request(MSG_I_BUTTONS, true);
+	// TODO: Figure out why this breaks if not finalized here
+	if (pad->PressedButtons || pad->ReleasedButtons)
+		broker->Request(MSG_I_BUTTONS, true);
 
-		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
-		{
-			if (!pad->LeftStickX && !pad->LeftStickY)
-				broker->Request(MSG_I_ANALOG, true);
-			else if (FrameCount % (2 - (FrameIncrement - 1)))
-				broker->Request(MSG_I_ANALOG, false);
-		}
+	// TODO: Figure out why this is so freaking slow (aside from the obvious huge amount of packets)
+	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
+	{
+		if (!pad->LeftStickX && !pad->LeftStickY)
+			broker->Request(MSG_I_ANALOG, true);
+		else if (FrameCount % (2 - (FrameIncrement - 1)))
+			broker->Request(MSG_I_ANALOG, false);
 	}
+
+	broker->Finalize();
 #pragma endregion
 
 	broker->inputLock.lock();
