@@ -2,8 +2,6 @@
 
 #include <LazyTypedefs.h>
 
-#include <mutex>
-
 #include "PlayerObject.h"			// for PlayerObject
 #include "MemoryStruct.h"			// for MemStruct
 
@@ -21,16 +19,16 @@ public:
 	//
 
 	void RecvLoop();
-	
+
 	/// <summary>
 	/// Requests the specified message type to be added to the outbound packets.
 	/// </summary>
 	/// <param name="type">The message type.</param>
-	/// <param name="safe">If set to <c>true</c>, the request will be added to the safe packet.</param>
+	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
-	bool inline PacketBroker::Request(uint8 type, bool safe)
+	bool inline PacketBroker::Request(uint8 type, bool isSafe)
 	{
-		return RequestPacket(type, (safe) ? this->safe : this->fast, (safe) ? this->fast : this->safe);
+		return RequestPacket(type, (isSafe) ? safe : fast, (isSafe) ? fast : safe);
 	}
 
 	/// <summary>
@@ -43,10 +41,7 @@ public:
 	inline void SendPlayer()	{ SendPlayer(safe, fast); }
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
-
 	ControllerData recvInput, sendInput;
-	// Used for thread safety with received input (recvInput)
-	std::mutex inputLock;
 
 private:
 	//

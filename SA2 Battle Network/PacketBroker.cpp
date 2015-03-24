@@ -641,15 +641,11 @@ bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 			return false;
 
 			RECEIVED(MSG_I_BUTTONS);
-			inputLock.lock();
 			packet >> recvInput.HeldButtons;
-			inputLock.unlock();
 			break;
 
 			RECEIVED(MSG_I_ANALOG);
-			inputLock.lock();
 			packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
-			inputLock.unlock();
 			break;
 		}
 

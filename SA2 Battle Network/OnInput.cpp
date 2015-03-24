@@ -52,9 +52,6 @@ void InputHandler()
 
 	broker->Finalize();
 #pragma endregion
-
-	broker->inputLock.lock();
-
 	pad = &ControllersRaw[1];
 
 	pad->LeftStickX = netPad->LeftStickX;
@@ -74,6 +71,4 @@ void InputHandler()
 
 	pad->LTriggerPressure = (pad->HeldButtons & Buttons_L) ? UCHAR_MAX : 0;
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
-
-	broker->inputLock.unlock();
 }
