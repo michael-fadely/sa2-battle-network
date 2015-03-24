@@ -2,8 +2,14 @@
 
 #include "Globals.h"
 #include "AddressList.h"
+#include "MemoryHandler.h"
+#include <SFML/Network.hpp>
+#include "PacketExtensions.h"
+#include "Networking.h"
 
 #include "OnFrame.h"
+
+using namespace sa2bn;
 
 void* caseDefault_ptr = (void*)0x004340CC;
 void* case08_ptr = (void*)0x0043405D;
@@ -40,12 +46,29 @@ void __declspec(naked) OnFrame_Hook()
 }
 
 unsigned int lastFrame = 0;
-bool frameDiscrepency = false;
 void FrameHandler()
 {
-	frameDiscrepency = (FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame;
-	PrintDebug("\t\t[%d/%d] ~~~FrameHandler~~~%s", FrameCount, FrameCountIngame, (frameDiscrepency ? " [FRAME DISCREPENCY]" : ""));
+	if ((FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame)
+		PrintDebug("\a[FRAME DISCREPENCY]");
+	
 	lastFrame = FrameCount;
+
+	if (!Globals::isConnected())
+		return;
+
+	Globals::Memory->RecvLoop();
+	Globals::Memory->GetFrame();
+
+	PacketEx safe(true), fast(false);
+
+	Globals::Memory->SendSystem(safe, fast);
+	Globals::Memory->SendPlayer(safe, fast);
+	Globals::Memory->SendMenu(safe, fast);
+
+	Globals::Networking->Send(safe);
+	Globals::Networking->Send(fast);
+
+	Globals::Memory->SetFrame();
 }
 
 void InitOnFrame()

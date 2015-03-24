@@ -1,4 +1,5 @@
 #include <SA2ModLoader.h>
+#include "Networking.h"
 #include "Globals.h"
 
 #include "InputHandler.h"
@@ -26,18 +27,37 @@ void InputHandler()
 	if (!Globals::isConnected())
 		return;
 
-	Globals::Memory->inputLock.lock();
+	MemoryHandler* memory = Globals::Memory;
+	ControllerData* pad = &ControllersRaw[0];
+	ControllerData* netPad = &memory->recvInput;
+	ControllerData* lastPad = &memory->sendInput;
 
-	ControllerData* network = &Globals::Memory->recvInput;
-	ControllerData* pad = &ControllersRaw[1];
+#pragma region Send
+	{
+		PacketEx safe(true), fast(false);
 
-	pad->LeftStickX = network->LeftStickX;
-	pad->LeftStickY = network->LeftStickY;
+		if (pad->PressedButtons || pad->ReleasedButtons)
+			memory->RequestPacket(MSG_I_BUTTONS, safe);
 
-	pad->RightStickX = network->RightStickX;
-	pad->RightStickY = network->RightStickY;
+		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
+			memory->RequestPacket(MSG_I_ANALOG, (!pad->LeftStickX && !pad->LeftStickY) ? safe : fast);
 
-	pad->HeldButtons = network->HeldButtons;
+		Globals::Networking->Send(safe);
+		Globals::Networking->Send(fast);
+	}
+#pragma endregion
+
+	memory->inputLock.lock();
+
+	pad = &ControllersRaw[1];
+
+	pad->LeftStickX = netPad->LeftStickX;
+	pad->LeftStickY = netPad->LeftStickY;
+
+	pad->RightStickX = netPad->RightStickX;
+	pad->RightStickY = netPad->RightStickY;
+
+	pad->HeldButtons = netPad->HeldButtons;
 	pad->NotHeldButtons = ~pad->HeldButtons;
 
 	pad->ReleasedButtons = pad->Old & (pad->HeldButtons ^ pad->Old);
@@ -49,5 +69,5 @@ void InputHandler()
 	pad->LTriggerPressure = (pad->HeldButtons & Buttons_L) ? UCHAR_MAX : 0;
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
 
-	Globals::Memory->inputLock.unlock();
+	memory->inputLock.unlock();
 }

@@ -247,13 +247,13 @@ Program::ExitCode Program::RunLoop()
 		while (Globals::Networking->isConnected())
 		{
 			Globals::Memory->RecvLoop();
-			Globals::Memory->SendLoop();
+			//Globals::Memory->SendLoop();
 
 			// Check to see if we should disconnect
 			if (!(Globals::Memory->GetCurrentMenu() >= Menu::BATTLE))
 				break;
 
-			Globals::Memory->SetFrame();
+			//Globals::Memory->SetFrame();
 
 			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
 			SleepFor((milliseconds)1);

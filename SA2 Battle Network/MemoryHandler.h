@@ -53,7 +53,7 @@ public:
 	// Used for thread safety with received input (recvInput)
 	std::mutex inputLock;
 
-private:
+//private:
 	//
 	// Methods
 	//

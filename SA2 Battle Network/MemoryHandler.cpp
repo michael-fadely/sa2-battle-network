@@ -97,7 +97,7 @@ void MemoryHandler::RecvLoop()
 {
 	// Grab the current frame before continuing.
 	// This is for frame synchronization.
-	GetFrame();
+	//GetFrame();
 	PreReceive();
 
 	sf::Packet packet;
