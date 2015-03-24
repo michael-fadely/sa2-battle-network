@@ -23,13 +23,13 @@ namespace MemManage
 	bool elapsedFrames(const uint32 lastFrame, const uint32 frameCount = 1);
 	// Blocking
 	// Waits for frameCount frames to pass (since lastFrame, if not 0) before continuing
-	void waitFrame(const uint32 frameCount = 1, const uint32 lastFrame = 0);
+	//void waitFrame(const uint32 frameCount = 1, const uint32 lastFrame = 0);
 
 	// Returns true if both input structures have been initalized.
 	bool InputInitalized();
 	// Blocking
 	// Wait for input to be initialized before continuing
-	void waitInputInit();
+	//void waitInputInit();
 
 	/*
 	// Static

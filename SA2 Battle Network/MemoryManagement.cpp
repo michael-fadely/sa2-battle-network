@@ -26,6 +26,7 @@ bool MemManage::elapsedFrames(const uint32 currentFrameCount, const uint32 frame
 	return (result >= frameCount);
 }
 
+/*
 void MemManage::waitFrame(const uint32 frameCount, const uint32 lastFrame)
 {
 	uint32 frames = 0;
@@ -47,6 +48,7 @@ void MemManage::waitFrame(const uint32 frameCount, const uint32 lastFrame)
 
 	return;
 }
+*/
 
 void MemManage::keepActive(const bool doNop)
 {
@@ -76,14 +78,14 @@ void MemManage::nop2PSpecials(const bool doNop)
 
 void MemManage::nopP2Input(const bool doNop)
 {
-	waitInputInit();
+	//waitInputInit();
 	if (doNop)
 	{
 		nop::apply(ADDR_P2INOP, 6);
 	}
 	else
 	{
-		waitFrame(5);
+		//waitFrame(5);
 		nop::restore(ADDR_P2INOP);
 	}
 
@@ -123,7 +125,7 @@ bool MemManage::InputInitalized()
 {
 	return (ControllerPtr1 != nullptr && ControllerPtr2 != nullptr);
 }
-
+/*
 void MemManage::waitInputInit()
 {
 	if (!InputInitalized())
@@ -134,6 +136,7 @@ void MemManage::waitInputInit()
 
 	return;
 }
+*/
 
 void MemManage::swapInput(const bool doNop)
 {
@@ -144,7 +147,7 @@ void MemManage::swapInput(const bool doNop)
 	else
 		nop::restore(0x00441BCA);
 
-	waitInputInit();
+	//waitInputInit();
 
 	ControllerData* p1ptr = ControllerPtr1;
 	ControllerData* p2ptr = ControllerPtr2;
