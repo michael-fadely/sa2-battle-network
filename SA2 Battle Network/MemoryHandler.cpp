@@ -147,64 +147,63 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	else
 		status = Globals::Networking->recvFast(packet);
 
-	if (status == sf::Socket::Status::Done)
+	if (status != sf::Socket::Status::Done)
+		return;
+
+	uint8 newType = MSG_NULL;
+	uint8 lastType = MSG_NULL;
+
+	while (!packet.endOfPacket())
 	{
-		uint8 newType = MSG_NULL;
-		uint8 lastType = MSG_NULL;
+		packet >> newType;
 
-		while (!packet.endOfPacket())
+		if (newType == lastType)
 		{
-			packet >> newType;
-
-			if (newType == lastType)
-			{
-				PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
-				break;
-			}
-
-			//cout << (ushort)newType << endl;
-			switch (newType)
-			{
-			case MSG_NULL:
-				PrintDebug("\a>> Reached end of packet.");
-				break;
-
-			case MSG_COUNT:
-				PrintDebug(">> Received message count?! Malformed packet warning!");
-				break;
-
-			case MSG_DISCONNECT:
-				PrintDebug(">> Received disconnect request from client.");
-				Globals::Networking->Disconnect(true);
-				break;
-
-			default:
-
-				ReceiveInput(newType, packet);
-				ReceiveSystem(newType, packet);
-
-				// HACK: This isn't really a sufficient fix for the scale bug.
-				// I suspect it's causing some weird side effects like "falling" while going down a slope,
-				// usually interrupting spindashes. However, it fixes the scale issue.
-				// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
-				if (!writePlayer)
-					recvPlayer.Set(Player2);
-
-				if (ReceivePlayer(newType, packet))
-				{
-					if (GameState >= GameState::INGAME)
-					{
-						writePlayer = false;
-						PlayerObject::WritePlayer(Player2, &recvPlayer);
-					}
-				}
-
-				ReceiveMenu(newType, packet);
-				break;
-			}
-
-			lastType = newType;
+			PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
+			break;
 		}
+
+		//cout << (ushort)newType << endl;
+		switch (newType)
+		{
+		case MSG_NULL:
+			PrintDebug("\a>> Reached end of packet.");
+			break;
+
+		case MSG_COUNT:
+			PrintDebug(">> Received message count?! Malformed packet warning!");
+			break;
+
+		case MSG_DISCONNECT:
+			PrintDebug(">> Received disconnect request from client.");
+			Globals::Networking->Disconnect(true);
+			break;
+
+		default:
+			ReceiveInput(newType, packet);
+			ReceiveSystem(newType, packet);
+
+			// HACK: This isn't really a sufficient fix for the scale bug.
+			// I suspect it's causing some weird side effects like "falling" while going down a slope,
+			// usually interrupting spindashes. However, it fixes the scale issue.
+			// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
+			if (!writePlayer)
+				recvPlayer.Set(Player2);
+
+			if (ReceivePlayer(newType, packet))
+			{
+				if (GameState >= GameState::INGAME)
+				{
+					writePlayer = false;
+					PlayerObject::WritePlayer(Player2, &recvPlayer);
+				}
+			}
+
+			ReceiveMenu(newType, packet);
+			break;
+		}
+
+		lastType = newType;
 	}
 }
 
@@ -891,7 +890,7 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 
 			break;
 		}
-		
+
 		return true;
 	}
 
