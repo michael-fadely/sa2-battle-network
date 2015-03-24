@@ -1,10 +1,9 @@
 #include <SA2ModLoader.h>
-#include <LazyTypedefs.h>
 #include "Globals.h"
 
 #include "InputHandler.h"
 
-void* OnInput_Ptr = (void*)0x0077E897;
+void* OnInput_ptr = (void*)0x0077E897;
 void __cdecl OnInput()
 {
 	InputHandler();
@@ -12,11 +11,11 @@ void __cdecl OnInput()
 
 void InitInputHandler()
 {
-	char* returns = new char[9];
-	memset(returns, 0xC3, 9);
-	WriteData(OnInput_Ptr, returns, 9);
-	WriteCall(OnInput_Ptr, OnInput);
-	delete[] returns;
+	char* buffer = new char[9];
+	memset(buffer, 0xC3, 9);
+	WriteData(OnInput_ptr, buffer, 9);
+	WriteCall(OnInput_ptr, OnInput);
+	delete[] buffer;
 }
 
 // TODO: Send input from here.
