@@ -87,10 +87,10 @@
     <ClInclude Include="BAMS.h">
       <Filter>Header Files\Game Memory</Filter>
     </ClInclude>
-    <ClInclude Include="InputHandler.h">
+    <ClInclude Include="OnFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OnFrame.h">
+    <ClInclude Include="OnInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,10 +125,10 @@
     <ClCompile Include="mod.cpp">
       <Filter>Source Files\Program</Filter>
     </ClCompile>
-    <ClCompile Include="InputHandler.cpp">
+    <ClCompile Include="OnFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OnFrame.cpp">
+    <ClCompile Include="OnInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

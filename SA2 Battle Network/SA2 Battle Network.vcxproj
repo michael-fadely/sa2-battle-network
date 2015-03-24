@@ -88,8 +88,8 @@
     <ClInclude Include="AddressList.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
-    <ClInclude Include="InputHandler.h" />
     <ClInclude Include="OnFrame.h" />
+    <ClInclude Include="OnInput.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CommonEnums.h" />
@@ -107,8 +107,8 @@
     <ClInclude Include="PacketHandler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="OnFrame.cpp" />
+    <ClCompile Include="OnInput.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Globals.cpp" />
