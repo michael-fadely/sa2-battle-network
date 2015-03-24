@@ -127,5 +127,5 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();
 	Globals::Program = new Program(Settings, isServer, Address);
-	Globals::Memory = new PacketBroker();
+	Globals::Broker = new PacketBroker();
 }

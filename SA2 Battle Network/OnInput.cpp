@@ -5,6 +5,8 @@
 
 #include "OnInput.h"
 
+#pragma region Initialization
+
 void* OnInput_ptr = (void*)0x0077E897;
 void __cdecl OnInput()
 {
@@ -20,7 +22,8 @@ void InitOnInput()
 	delete[] buffer;
 }
 
-// TODO: Send input from here.
+#pragma endregion
+
 void InputHandler()
 {
 	using namespace sa2bn;
@@ -28,27 +31,27 @@ void InputHandler()
 	if (!Globals::isConnected())
 		return;
 
-	PacketBroker* memory = Globals::Memory;
+	PacketBroker* broker = Globals::Broker;
 	ControllerData* pad = &ControllersRaw[0];
-	ControllerData* netPad = &memory->recvInput;
-	ControllerData* lastPad = &memory->sendInput;
+	ControllerData* netPad = &broker->recvInput;
+	ControllerData* lastPad = &broker->sendInput;
 
 #pragma region Send
 	{
 		if (pad->PressedButtons || pad->ReleasedButtons)
-			memory->Request(MSG_I_BUTTONS, true);
+			broker->Request(MSG_I_BUTTONS, true);
 
 		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 		{
 			if (!pad->LeftStickX && !pad->LeftStickY)
-				memory->Request(MSG_I_ANALOG, true);
+				broker->Request(MSG_I_ANALOG, true);
 			else if (FrameCount % (2 - (FrameIncrement - 1)))
-				memory->Request(MSG_I_ANALOG, false);
+				broker->Request(MSG_I_ANALOG, false);
 		}
 	}
 #pragma endregion
 
-	memory->inputLock.lock();
+	broker->inputLock.lock();
 
 	pad = &ControllersRaw[1];
 
@@ -70,5 +73,5 @@ void InputHandler()
 	pad->LTriggerPressure = (pad->HeldButtons & Buttons_L) ? UCHAR_MAX : 0;
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
 
-	memory->inputLock.unlock();
+	broker->inputLock.unlock();
 }

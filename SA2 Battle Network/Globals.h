@@ -12,12 +12,12 @@ namespace sa2bn
 	public:
 		static HANDLE			ProcessID;
 		static PacketHandler*	Networking;
-		static PacketBroker*	Memory;
+		static PacketBroker*	Broker;
 		static Program*			Program;
 
 		static bool isConnected()
 		{
-			return (Networking != nullptr && Memory != nullptr && Program != nullptr) && Networking->isConnected();
+			return (Networking != nullptr && Broker != nullptr && Program != nullptr) && Networking->isConnected();
 		}
 	};
 }

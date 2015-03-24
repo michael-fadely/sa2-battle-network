@@ -7,6 +7,8 @@
 
 using namespace sa2bn;
 
+#pragma region Initialization
+
 void* caseDefault_ptr = (void*)0x004340CC;
 void* case08_ptr = (void*)0x0043405D;
 void* case09_ptr = (void*)0x0043407E;
@@ -41,6 +43,23 @@ void __declspec(naked) OnFrame_Hook()
 	}
 }
 
+void InitOnFrame()
+{
+	WriteJump(case08_ptr, OnFrame_MidJump);
+	WriteJump(case09_ptr, OnFrame_MidJump);
+	WriteJump(case10_ptr, OnFrame_MidJump);
+
+	// OnFrame caseDefault
+	// Occurs if the current game mode isn't 8, 9 or 10, and byte_174AFF9 == 1
+	WriteJump(caseDefault_ptr, OnFrame_MidJump);
+
+	// OnFrame OnFrame_Hook
+	// Occurs at the end of the function (effectively the "else" to the statement above)
+	WriteJump(OnFrame_Hook_ptr, OnFrame_Hook);
+}
+
+#pragma endregion
+
 unsigned int lastFrame = 0;
 void FrameHandler()
 {
@@ -60,26 +79,11 @@ void FrameHandler()
 		return;
 	}
 
-	Globals::Memory->RecvLoop();
+	Globals::Broker->RecvLoop();
 
-	Globals::Memory->SendSystem();
-	Globals::Memory->SendPlayer();
-	Globals::Memory->SendMenu();
+	Globals::Broker->SendSystem();
+	Globals::Broker->SendPlayer();
+	Globals::Broker->SendMenu();
 
-	Globals::Memory->Finalize();
-}
-
-void InitOnFrame()
-{
-	WriteJump(case08_ptr, OnFrame_MidJump);
-	WriteJump(case09_ptr, OnFrame_MidJump);
-	WriteJump(case10_ptr, OnFrame_MidJump);
-
-	// OnFrame caseDefault
-	// Occurs if the current game mode isn't 8, 9 or 10, and byte_174AFF9 == 1
-	WriteJump(caseDefault_ptr, OnFrame_MidJump);
-
-	// OnFrame OnFrame_Hook
-	// Occurs at the end of the function (effectively the "else" to the statement above)
-	WriteJump(OnFrame_Hook_ptr, OnFrame_Hook);
+	Globals::Broker->Finalize();
 }
