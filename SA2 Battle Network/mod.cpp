@@ -15,7 +15,7 @@
 
 #include "MainThread.h"
 
-#include "InputHandler.h"
+#include "OnInput.h"
 #include "OnFrame.h"
 
 // Namespaces
@@ -44,7 +44,7 @@ void __cdecl ThreadInit(const char *path)
 	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
 		abort();
 
-	InitInputHandler();
+	InitOnInput();
 	InitOnFrame();
 
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);

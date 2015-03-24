@@ -2,7 +2,7 @@
 #include "Networking.h"
 #include "Globals.h"
 
-#include "InputHandler.h"
+#include "OnInput.h"
 
 void* OnInput_ptr = (void*)0x0077E897;
 void __cdecl OnInput()
@@ -10,7 +10,7 @@ void __cdecl OnInput()
 	InputHandler();
 }
 
-void InitInputHandler()
+void InitOnInput()
 {
 	char* buffer = new char[9];
 	memset(buffer, 0xC3, 9);

@@ -1,4 +1,4 @@
 #pragma once
 
-void InitInputHandler();
+void InitOnInput();
 void InputHandler();
