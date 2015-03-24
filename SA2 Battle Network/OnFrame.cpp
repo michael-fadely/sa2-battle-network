@@ -65,7 +65,7 @@ void FrameHandler()
 	}
 
 	Globals::Memory->RecvLoop();
-	Globals::Memory->GetFrame();
+	//Globals::Memory->GetFrame();
 
 	PacketEx safe(true), fast(false);
 
@@ -76,7 +76,7 @@ void FrameHandler()
 	Globals::Networking->Send(safe);
 	Globals::Networking->Send(fast);
 
-	Globals::Memory->SetFrame();
+	//Globals::Memory->SetFrame();
 }
 
 void InitOnFrame()
