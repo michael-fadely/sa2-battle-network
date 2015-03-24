@@ -1,6 +1,7 @@
-#include <SA2ModLoader.h>
-#include "Networking.h"
-#include "Globals.h"
+#include <SA2ModLoader.h>	// for everything
+#include "Networking.h"		// for MSG
+#include "Globals.h"		// for Globals :specialed:
+#include "AddressList.h"	// for FrameCount, FrameIncrement
 
 #include "OnInput.h"
 
@@ -27,28 +28,23 @@ void InputHandler()
 	if (!Globals::isConnected())
 		return;
 
-	MemoryHandler* memory = Globals::Memory;
+	PacketBroker* memory = Globals::Memory;
 	ControllerData* pad = &ControllersRaw[0];
 	ControllerData* netPad = &memory->recvInput;
 	ControllerData* lastPad = &memory->sendInput;
 
 #pragma region Send
 	{
-		PacketEx safe(true), fast(false);
-
 		if (pad->PressedButtons || pad->ReleasedButtons)
-			memory->RequestPacket(MSG_I_BUTTONS, safe);
+			memory->Request(MSG_I_BUTTONS, true);
 
 		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 		{
 			if (!pad->LeftStickX && !pad->LeftStickY)
-				memory->RequestPacket(MSG_I_ANALOG, safe);
+				memory->Request(MSG_I_ANALOG, true);
 			else if (FrameCount % (2 - (FrameIncrement - 1)))
-				memory->RequestPacket(MSG_I_ANALOG, fast);
+				memory->Request(MSG_I_ANALOG, false);
 		}
-
-		Globals::Networking->Send(safe);
-		Globals::Networking->Send(fast);
 	}
 #pragma endregion
 

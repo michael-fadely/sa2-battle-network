@@ -3,7 +3,7 @@
 #include <string>
 #include "PacketHandler.h"
 
-// TODO: Rewrite a majority of this class.
+// TODO: Reconsider the necessity for this class.
 class Program
 {
 public:

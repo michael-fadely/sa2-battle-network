@@ -8,10 +8,11 @@
 #include <ShellAPI.h>		// for CommandLinetoArgvW
 #include <SA2ModLoader.h>
 
-#include "Common.h"			// for LazyTypedefs, SleepFor, Globals
+#include <LazyTypedefs.h>
+
+#include "Globals.h"		// PacketHandler, Program, PacketBroker
 #include "Networking.h"		// for MSG_COUNT
 #include "PacketHandler.h"	// for RemoteAddress
-#include "Program.h"		// for Program
 
 #include "MainThread.h"
 
@@ -126,5 +127,5 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();
 	Globals::Program = new Program(Settings, isServer, Address);
-	Globals::Memory = new MemoryHandler();
+	Globals::Memory = new PacketBroker();
 }

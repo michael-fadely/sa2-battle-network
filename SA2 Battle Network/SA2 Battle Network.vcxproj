@@ -96,7 +96,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="LazyMemory.h" />
     <ClInclude Include="MainThread.h" />
-    <ClInclude Include="MemoryHandler.h" />
+    <ClInclude Include="PacketBroker.h" />
     <ClInclude Include="MemoryManagement.h" />
     <ClInclude Include="MemoryStruct.h" />
     <ClInclude Include="ModLoaderExtensions.h" />
@@ -113,7 +113,7 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="mod.cpp" />
-    <ClCompile Include="MemoryHandler.cpp" />
+    <ClCompile Include="PacketBroker.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />

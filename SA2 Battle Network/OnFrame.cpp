@@ -1,11 +1,7 @@
 #include <SA2ModLoader.h>
 
-#include "Globals.h"
-#include "AddressList.h"
-#include "MemoryHandler.h"
-#include <SFML/Network.hpp>
-#include "PacketExtensions.h"
-#include "Networking.h"
+#include "Globals.h"			// for Globals :specialed:
+#include "AddressList.h"		// for FrameCount, FrameIncrement
 
 #include "OnFrame.h"
 
@@ -65,18 +61,12 @@ void FrameHandler()
 	}
 
 	Globals::Memory->RecvLoop();
-	//Globals::Memory->GetFrame();
 
-	PacketEx safe(true), fast(false);
+	Globals::Memory->SendSystem();
+	Globals::Memory->SendPlayer();
+	Globals::Memory->SendMenu();
 
-	Globals::Memory->SendSystem(safe, fast);
-	Globals::Memory->SendPlayer(safe, fast);
-	Globals::Memory->SendMenu(safe, fast);
-
-	Globals::Networking->Send(safe);
-	Globals::Networking->Send(fast);
-
-	//Globals::Memory->SetFrame();
+	Globals::Memory->Finalize();
 }
 
 void InitOnFrame()

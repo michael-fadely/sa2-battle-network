@@ -1,62 +1,66 @@
 #pragma once
 
-// Defines
-//#define RECV_VERBOSE(type) case type: cout << ">> [" << Millisecs() << "] " #type << endl
-#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type);
-#define RECV_CONCISE(type) case type:
-
-#ifndef RECEIVED
-#define RECEIVED RECV_CONCISE
-#endif
-
-
 #include <LazyTypedefs.h>
 
 #include <mutex>
 
-#include "AddressList.h"			// for FrameCount
-#include "ModLoaderExtensions.h"	// for InputStruct
 #include "PlayerObject.h"			// for PlayerObject
 #include "MemoryStruct.h"			// for MemStruct
 
 #include <SFML/Network.hpp>			// for sf::Packet
 #include "PacketExtensions.h"		// for PacketEx
 
-class MemoryHandler
+class PacketBroker
 {
 public:
-	MemoryHandler();
+	PacketBroker();
+	void Initialize();
 
 	//
 	// Methods
 	//
 
-	void Initialize();
-
 	void RecvLoop();
-	void SendLoop();
+	
+	/// <summary>
+	/// Requests the specified message type to be added to the outbound packets.
+	/// </summary>
+	/// <param name="type">The message type.</param>
+	/// <param name="safe">If set to <c>true</c>, the request will be added to the safe packet.</param>
+	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
+	bool inline PacketBroker::Request(uint8 type, bool safe)
+	{
+		return RequestPacket(type, (safe) ? this->safe : this->fast, (safe) ? this->fast : this->safe);
+	}
 
-	// Reads the frame count from memory into thisFrame
-	inline void GetFrame() { thisFrame = FrameCount; }
-	// Sets lastFrame to thisFrame
-	inline void SetFrame() { lastFrame = thisFrame; }
-	// Designed exclusively to be used externally. Returns the current menu.
-	// This function does frame synchronization to ensure you don't catch the value
-	// mid-operation. Used by the class Program
+	/// <summary>
+	/// Finalizes this instance, sending queued packets.
+	/// </summary>
+	void Finalize();
 
-	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
-	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
-	// Requests that the packet type packetType is added to packetAddTo.
-	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
+	// Read and send System variables
+	void SendSystem();
+	// Read and send Input
+	void SendInput();
+	// Read and send Player varaibles
+	void SendPlayer();
+	// Read and send Menu variables
+	void SendMenu();
+
 
 	ControllerData recvInput, sendInput;
 	// Used for thread safety with received input (recvInput)
 	std::mutex inputLock;
 
-//private:
+private:
 	//
 	// Methods
 	//
+
+	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
+	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	// Requests that the packet type packetType is added to packetAddTo.
+	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo);
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet
@@ -93,16 +97,11 @@ public:
 	// Returns true if the player has been teleported.
 	bool Teleport();
 
-	// Returns true if one or more frames have passed since lastFrame
-	inline bool isNewFrame() { return (thisFrame != lastFrame); }
-
 	//
 	// Members
 	//
 
-	// Used for frame synchronization.
-	uint thisFrame, lastFrame;
-
+	PacketEx safe, fast;
 	PlayerObject recvPlayer, sendPlayer;
 
 	// Used for comparison to determine what to send.

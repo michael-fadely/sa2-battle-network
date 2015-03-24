@@ -1,17 +1,13 @@
-
 #include <string>
-#include <chrono>
 
 #include <SFML/Network.hpp>
 
-#include "Common.h"
-#include "Networking.h"
+#include "Globals.h"			// for Globals :specialed:
+#include "Networking.h"			// for MSG
 
-#include "PacketHandler.h"
-#include "MemoryManagement.h"
-#include "MemoryHandler.h"
-#include "ModLoaderExtensions.h"
-#include "CommonEnums.h"
+#include "MemoryManagement.h"	// for MemManage
+#include "CommonEnums.h"		// for Menu, SubMenu2P
+#include "AddressList.h"		// for CurrentMenu
 
 #include "Program.h"
 

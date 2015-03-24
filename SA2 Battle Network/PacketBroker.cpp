@@ -1,19 +1,25 @@
-// Standard Includes
+// Defines
+#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type)
+#define RECV_CONCISE(type) case type:
 
+#ifndef RECEIVED
+#define RECEIVED RECV_CONCISE
+#endif
+
+// Standard Includes
 #include <cmath>	// for abs
 
 // Global Includes
 #include <LazyTypedefs.h>
 
 // Local Includes
-#include "Globals.h"
+#include "Globals.h"			// for Globals :specialed:
 #include "Common.h"
 #include "CommonEnums.h"
 
-#include "Networking.h"
-#include "PacketExtensions.h"
+#include "Networking.h"			// for MSG
+#include "PacketExtensions.h"	// for PacketEx
 #include "AdventurePacketOverloads.h"
-#include "PacketHandler.h"
 
 #include <SA2ModLoader.h>
 #include "BAMS.h"
@@ -22,7 +28,7 @@
 #include "AddressList.h"
 
 // This Class
-#include "MemoryHandler.h"
+#include "PacketBroker.h"
 
 // Namespaces
 using namespace std;
@@ -70,13 +76,11 @@ static inline bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-// TODO: After rewriting the input handler yet again, consider frame sync blocking RecvLoop
-
-MemoryHandler::MemoryHandler()
+PacketBroker::PacketBroker() : safe(true), fast(false)
 {
 	Initialize();
 }
-void MemoryHandler::Initialize()
+void PacketBroker::Initialize()
 {
 	local = {};
 	recvInput = {};
@@ -88,16 +92,10 @@ void MemoryHandler::Initialize()
 	wroteP2Start = false;
 	writePlayer = false;
 	sendSpinTimer = false;
-
-	thisFrame = 0;
-	lastFrame = 0;
 }
 
-void MemoryHandler::RecvLoop()
+void PacketBroker::RecvLoop()
 {
-	// Grab the current frame before continuing.
-	// This is for frame synchronization.
-	//GetFrame();
 	PreReceive();
 
 	sf::Packet packet;
@@ -105,40 +103,9 @@ void MemoryHandler::RecvLoop()
 	Receive(packet, false);
 
 	PostReceive();
-
-	// TODO: Consider moving the main logic loop to this class. See comment below.
-	// HACK: SetFrame() is called from outside this function.
-}
-void MemoryHandler::SendLoop()
-{
-	// Grab the current frame before continuing.
-	// This is for frame synchronization.
-	GetFrame();
-
-	if (isNewFrame() && (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
-		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y)))
-	{
-		PrintDebug("<> Warping to test level!");
-		CurrentLevel = 0;
-	}
-
-	PacketEx safe(true), fast(false);
-
-	SendInput(safe, fast);
-	if (isNewFrame())
-	{
-		SendSystem(safe, fast);
-		SendPlayer(safe, fast);
-		SendMenu(safe, fast);
-	}
-
-	Globals::Networking->Send(safe);
-	Globals::Networking->Send(fast);
-
-	// HACK: SetFrame() is called from outside this function.
 }
 
-void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
+void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 {
 	Socket::Status status = Socket::Status::NotReady;
 
@@ -207,9 +174,31 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 	}
 }
 
+bool PacketBroker::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+{
+	if (!packetIsIn.isInPacket(packetType))
+		return RequestPacket(packetType, packetAddTo);
+
+	return false;
+}
+bool PacketBroker::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
+{
+	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
+		return AddPacket(packetType, packetAddTo);
+
+	return false;
+}
+
+void PacketBroker::Finalize()
+{
+	Globals::Networking->Send(safe);
+	Globals::Networking->Send(fast);
+}
+
 #pragma region Send
 
-void MemoryHandler::SendSystem(PacketEx& safe, PacketEx& fast)
+void PacketBroker::SendSystem() { SendSystem(safe, fast); }
+void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
@@ -245,13 +234,12 @@ void MemoryHandler::SendSystem(PacketEx& safe, PacketEx& fast)
 			RequestPacket(MSG_S_RINGS, safe, fast);
 	}
 }
-void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
+
+void PacketBroker::SendInput() { SendInput(safe, fast); }
+void PacketBroker::SendInput(PacketEx& safe, PacketEx& fast)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
-		if (isNewFrame())
-			ToggleSplitscreen();
-
 		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
 		{
 			// If the Action Button is pressed, then check the specials.
@@ -308,7 +296,9 @@ void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 		}
 	}
 }
-void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
+
+void PacketBroker::SendPlayer() { SendPlayer(safe, fast); }
+void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
 	{
@@ -365,7 +355,9 @@ void MemoryHandler::SendPlayer(PacketEx& safe, PacketEx& fast)
 		sendPlayer.Set(Player1);
 	}
 }
-void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
+
+void PacketBroker::SendMenu() { SendMenu(safe, fast); }
+void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
 	{
@@ -450,21 +442,7 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 	}
 }
 
-bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
-{
-	if (!packetIsIn.isInPacket(packetType))
-		return RequestPacket(packetType, packetAddTo);
-
-	return false;
-}
-bool MemoryHandler::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
-{
-	if (packetType >= MSG_DISCONNECT && packetAddTo.addType(packetType))
-		return AddPacket(packetType, packetAddTo);
-
-	return false;
-}
-bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
+bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 {
 	switch (packetType)
 	{
@@ -658,7 +636,7 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma endregion
 #pragma region Receive
 
-bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
 	{
@@ -685,7 +663,7 @@ bool MemoryHandler::ReceiveInput(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -741,7 +719,7 @@ bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
@@ -813,7 +791,7 @@ bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 {
 	if (GameState == GameState::INACTIVE)
 	{
@@ -901,7 +879,7 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 #pragma endregion
 #pragma region Crap
 
-void MemoryHandler::PreReceive()
+void PacketBroker::PreReceive()
 {
 	writeRings();
 	writeSpecials();
@@ -925,20 +903,20 @@ void MemoryHandler::PreReceive()
 		}
 	}
 }
-void MemoryHandler::PostReceive()
+void PacketBroker::PostReceive()
 {
 	writeRings();
 	writeSpecials();
 }
 
-inline void MemoryHandler::writeRings() { RingCount[1] = local.game.RingCount[1]; }
-inline void MemoryHandler::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
-inline void MemoryHandler::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
+inline void PacketBroker::writeRings() { RingCount[1] = local.game.RingCount[1]; }
+inline void PacketBroker::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
+inline void PacketBroker::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
 
 #pragma endregion
 #pragma region Toggles
 
-void MemoryHandler::ToggleSplitscreen()
+void PacketBroker::ToggleSplitscreen()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{
@@ -953,7 +931,7 @@ void MemoryHandler::ToggleSplitscreen()
 		}
 	}
 }
-bool MemoryHandler::Teleport()
+bool PacketBroker::Teleport()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
 	{

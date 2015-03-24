@@ -48,9 +48,6 @@
     <ClInclude Include="LazyMemory.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryHandler.h">
-      <Filter>Header Files\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryManagement.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
@@ -93,15 +90,15 @@
     <ClInclude Include="Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PacketBroker.h">
+      <Filter>Header Files\Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManagement.cpp">
-      <Filter>Source Files\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryHandler.cpp">
       <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="PacketExtensions.cpp">
@@ -130,6 +127,9 @@
     </ClCompile>
     <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketBroker.cpp">
+      <Filter>Source Files\Memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

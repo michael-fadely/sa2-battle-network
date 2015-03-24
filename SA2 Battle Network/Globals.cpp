@@ -4,5 +4,5 @@ using namespace sa2bn;
 
 HANDLE Globals::ProcessID			= 0;
 PacketHandler* Globals::Networking	= nullptr;
-MemoryHandler* Globals::Memory		= nullptr;
+PacketBroker* Globals::Memory		= nullptr;
 Program* Globals::Program			= nullptr;
