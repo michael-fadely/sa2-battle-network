@@ -60,7 +60,7 @@ void InitOnFrame()
 
 #pragma endregion
 
-unsigned int lastFrame = 0;
+static unsigned int lastFrame = 0;
 void FrameHandler()
 {
 	if ((FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame)

@@ -1,3 +1,5 @@
+#include <cmath>			// for abs
+
 #include <SA2ModLoader.h>	// for everything
 #include "Networking.h"		// for MSG
 #include "Globals.h"		// for Globals :specialed:
@@ -24,6 +26,11 @@ void InitOnInput()
 
 #pragma endregion
 
+static const ushort analogThreshold = 16;
+static const ushort analogMax = 220;
+static const uint analogFrames = 8;
+static const uint lastFrame = 0;
+
 void InputHandler()
 {
 	using namespace sa2bn;
@@ -45,13 +52,19 @@ void InputHandler()
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 	{
 		if (!pad->LeftStickX && !pad->LeftStickY)
+		{
 			broker->Request(MSG_I_ANALOG, true);
-		else if (!(FrameCount % (2 - (FrameIncrement - 1))))
+		}
+		else if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
+			|| (FrameCount - lastFrame) > (analogFrames / FrameIncrement))
+		{
 			broker->Request(MSG_I_ANALOG, false);
+		}
 	}
 
 	broker->Finalize();
 #pragma endregion
+
 	pad = &ControllersRaw[1];
 
 	pad->LeftStickX = netPad->LeftStickX;
