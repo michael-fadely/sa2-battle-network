@@ -1,4 +1,4 @@
-#include <iostream>
+
 #include "ModLoaderExtensions.h"
 
 #include "PlayerObject.h"
@@ -32,7 +32,7 @@ void PlayerObject::Set(ObjectMaster* player)
 {
 	if (player != LastPointer)
 	{
-		std::cout << "Re-initializing local player object... [" << std::hex << player << " != " << LastPointer << ']' << std::dec << std::endl;
+		PrintDebug("Re-initializing local player object... [ %08X != %08X]", player, LastPointer);
 		LastPointer = player;
 		Initialize();
 	}

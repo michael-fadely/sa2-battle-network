@@ -1,4 +1,4 @@
-#include <iostream>
+
 #include <thread>
 #include <chrono>
 
@@ -20,8 +20,8 @@ bool MemManage::elapsedFrames(const uint32 currentFrameCount, const uint32 frame
 {
 	uint32 result = getElapsedFrames(currentFrameCount);
 
-	if (result > frameCount)
-		cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
+	//if (result > frameCount)
+	//	cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
 
 	return (result >= frameCount);
 }
@@ -62,14 +62,14 @@ void MemManage::nop2PSpecials(const bool doNop)
 {
 	if (doNop)
 	{
-		cout << "<> Disabling specials..." << endl;
+		PrintDebug("<> Disabling specials...");
 		nop::apply(0x00724257, 2);
 		nop::apply(0x00736207, 2);
 		nop::apply(0x00749917, 2);
 	}
 	else
 	{
-		cout << "<> Enabling specials..." << endl;
+		PrintDebug("<> Enabling specials...");
 		nop::restore(0x00724257);
 		nop::restore(0x00736207);
 		nop::restore(0x00749917);
@@ -129,7 +129,7 @@ bool MemManage::InputInitalized()
 void MemManage::waitInputInit()
 {
 	if (!InputInitalized())
-		cout << "Waiting for input structures to initialize..." << endl;
+		PrintDebug("Waiting for input structures to initialize...");
 
 	while (!InputInitalized())
 		std::this_thread::yield();
@@ -140,7 +140,7 @@ void MemManage::waitInputInit()
 
 void MemManage::swapInput(const bool doNop)
 {
-	cout << "<> Swapping input devices..." << endl;
+	PrintDebug("<> Swapping input devices...");
 
 	if (doNop)
 		nop::apply(0x00441BCA, 7);
@@ -152,10 +152,10 @@ void MemManage::swapInput(const bool doNop)
 	ControllerData* p1ptr = ControllerPtr1;
 	ControllerData* p2ptr = ControllerPtr2;
 
-	cout << hex << "<> " << p1ptr << " " << p2ptr << dec << endl;
+	PrintDebug("<> %08X %08X", p1ptr, p2ptr);
 
 	ControllerPtr1 = p2ptr;
 	ControllerPtr2 = p1ptr;
 
-	cout << "<> Swap complete." << endl;
+	PrintDebug("<> Swap complete.");
 }

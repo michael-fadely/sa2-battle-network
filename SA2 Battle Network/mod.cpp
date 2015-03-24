@@ -1,7 +1,7 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
 
-#include <iostream>
+
 #include <string>
 
 #include <Windows.h>		// for GetCommandLIneW(), GetCurrentProcess()

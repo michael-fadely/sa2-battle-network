@@ -49,7 +49,7 @@ unsigned int lastFrame = 0;
 void FrameHandler()
 {
 	if ((FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame)
-		PrintDebug("\a[FRAME DISCREPENCY]");
+		PrintDebug("\a[FRAME DISCREPANCY]");
 	
 	lastFrame = FrameCount;
 

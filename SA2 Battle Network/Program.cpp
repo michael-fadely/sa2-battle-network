@@ -1,4 +1,4 @@
-#include <iostream>
+
 #include <string>
 #include <chrono>
 
@@ -61,13 +61,13 @@ Program::ErrorCode Program::Connect()
 		{
 #pragma region Server
 			if (!Globals::Networking->isBound())
-				cout << "<> Hosting server on port " << Address.port << "..." << endl;
+				PrintDebug("Hosting server on port %d...", Address.port);
 
 			if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
 			{
 				if (status == sf::Socket::Error)
 				{
-					cout << "<> An error occurred while trying to listen for connections on port " << Address.port << endl;
+					PrintDebug("<> An error occurred while trying to listen for connections on port %d", Address.port);
 					return errorCode = ErrorCode::ClientTimeout;
 				}
 				else if (status == sf::Socket::NotReady)
@@ -80,7 +80,7 @@ Program::ErrorCode Program::Connect()
 			{
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
-					cout << ">> An error occurred while waiting for version number." << endl;
+					PrintDebug(">> An error occurred while waiting for version number.");
 					return ErrorCode::NotReady;
 				}
 
@@ -88,7 +88,7 @@ Program::ErrorCode Program::Connect()
 				packet >> id;
 				if (id != MSG_VERSION_CHECK)
 				{
-					cout << ">> Received malformed packet from client!" << endl;
+					PrintDebug(">> Received malformed packet from client!");
 					return ErrorCode::NotReady;
 				}
 
@@ -98,8 +98,8 @@ Program::ErrorCode Program::Connect()
 				if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
 				{
 					Globals::Networking->Disconnect();
-					cout << "\n>> Connection rejected; the client's version does not match the local version." << endl;
-					cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
+					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
+					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str(), remoteVersion.str());
 
 
 					packet << (uint8)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
@@ -113,12 +113,12 @@ Program::ErrorCode Program::Connect()
 
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 				{
-					cout << ">> An error occurred while confirming the connection with the client." << endl;
+					PrintDebug(">> An error occurred while confirming the connection with the client.");
 					return ErrorCode::ClientTimeout;
 				}
 
 				system("cls");
-				cout << ">> Connected!" << endl;
+				PrintDebug(">> Connected!");
 			}
 #pragma endregion
 		}
@@ -126,13 +126,13 @@ Program::ErrorCode Program::Connect()
 		{
 #pragma region Client
 			if (!Globals::Networking->isBound())
-				cout << "<< Connecting to server at " << Address.ip << " on port " << Address.port << "..." << endl;
+				PrintDebug("<< Connecting to server at %s on port %d...", Address.ip.toString(), Address.port);
 
 			if ((status = Globals::Networking->Connect(Address, false)) != sf::Socket::Done)
 			{
 				if (status == sf::Socket::Error)
 				{
-					cout << "<< A connection error has occurred." << endl;
+					PrintDebug("<< A connection error has occurred.");
 					return errorCode = ErrorCode::ClientTimeout;
 				}
 				else if (status == sf::Socket::NotReady)
@@ -149,7 +149,7 @@ Program::ErrorCode Program::Connect()
 
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 				{
-					cout << "<< An error occurred while sending the version number!" << endl;
+					PrintDebug("<< An error occurred while sending the version number!");
 					return ErrorCode::NotReady;
 				}
 
@@ -157,7 +157,7 @@ Program::ErrorCode Program::Connect()
 
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
-					cout << ">> An error occurred while receiving version confirmation message." << endl;
+					PrintDebug(">> An error occurred while receiving version confirmation message.");
 					return ErrorCode::NotReady;
 				}
 
@@ -166,19 +166,19 @@ Program::ErrorCode Program::Connect()
 				switch (id)
 				{
 				default:
-					cout << ">> Received malformed packet from server!" << endl;
+					PrintDebug(">> Received malformed packet from server!");
 					break;
 
 				case MSG_VERSION_MISMATCH:
 					packet >> remoteVersion.major >> remoteVersion.minor;
-					cout << "\n>> Connection rejected; the server's version does not match the local version." << endl;
-					cout << "->\tYour version: " << versionNum.str() << " - Remote version: " << remoteVersion.str() << endl;
+					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
+					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str(), remoteVersion.str());
 					return ErrorCode::VersionMismatch;
 					break;
 
 				case MSG_VERSION_OK:
 					system("cls");
-					cout << "<< Connected!" << endl;
+					PrintDebug("<< Connected!");
 					break;
 				}
 			}
@@ -205,9 +205,9 @@ Program::ErrorCode Program::Connect()
 void Program::ApplySettings(const bool apply)
 {
 	if (apply)
-		cout << "<> Applying code changes..." << endl;
+		PrintDebug("<> Applying code changes...");
 	else
-		cout << "<> Reverting code changes..." << endl;
+		PrintDebug("<> Reverting code changes...");
 
 	if (clientSettings.noSpecials)
 		MemManage::nop2PSpecials(apply);
@@ -232,7 +232,7 @@ void Program::Disconnect(bool received, ErrorCode code)
 {
 	setMusic = false;
 
-	cout << "<> Disconnecting..." << endl;
+	PrintDebug("<> Disconnecting...");
 	Globals::Networking->Disconnect();
 
 	ApplySettings(false);

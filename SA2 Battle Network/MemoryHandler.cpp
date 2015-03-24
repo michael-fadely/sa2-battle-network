@@ -1,5 +1,5 @@
 // Standard Includes
-#include <iostream>
+
 #include <cmath>	// for abs
 
 // Global Includes
@@ -118,7 +118,7 @@ void MemoryHandler::SendLoop()
 	if (isNewFrame() && (GameState < GameState::LOAD_FINISHED && (Controller1Raw.HeldButtons & Buttons_Y)
 		|| GameState < GameState::LOAD_FINISHED && (recvInput.HeldButtons & Buttons_Y)))
 	{
-		cout << "<> Warping to test level!" << endl;
+		PrintDebug("<> Warping to test level!");
 		CurrentLevel = 0;
 	}
 
@@ -158,7 +158,7 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 
 			if (newType == lastType)
 			{
-				cout << "\a<> Packet read loop failsafe! [LAST " << (ushort)lastType << " - RECV " << (ushort)newType << ']' << endl;
+				PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
 				break;
 			}
 
@@ -166,15 +166,15 @@ void MemoryHandler::Receive(sf::Packet& packet, const bool safe)
 			switch (newType)
 			{
 			case MSG_NULL:
-				cout << "\a>> Reached end of packet." << endl;
+				PrintDebug("\a>> Reached end of packet.");
 				break;
 
 			case MSG_COUNT:
-				cout << ">> Received message count?! Malformed packet warning!" << endl;
+				PrintDebug(">> Received message count?! Malformed packet warning!");
 				break;
 
 			case MSG_DISCONNECT:
-				cout << ">> Received disconnect request from client." << endl;
+				PrintDebug(">> Received disconnect request from client.");
 				Globals::Networking->Disconnect(true);
 				break;
 
@@ -265,7 +265,7 @@ void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 					// If a special has been used, send buttons followed immediately by specials.
 					if (P1SpecialAttacks[i] == 0 && local.game.P1SpecialAttacks[i] != 0)
 					{
-						//cout << "<> \aUSED" << endl;
+						//PrintDebug("<> \aUSED");
 						// As it stands now, the special will rarely be 0 before we send it over, so if we set the local copy to 0,
 						// it has a lower chance of sending redundant packets later, as SendSystem is behind a frame-sync barrier, whereas this is not.
 						failsafe = true;
@@ -277,7 +277,7 @@ void MemoryHandler::SendInput(PacketEx& safe, PacketEx& fast)
 					// Otherwise, if a special has been gained, send specials first followed immediately by buttons.
 					else if (P1SpecialAttacks[i] == 1 && local.game.P1SpecialAttacks[i] != 1)
 					{
-						//cout << "<> \aGAINED" << endl;
+						//PrintDebug("<> \aGAINED");
 						failsafe = true;
 						RequestPacket(MSG_S_2PSPECIALS, safe, fast);
 						RequestPacket(MSG_I_BUTTONS, safe, fast);
@@ -410,7 +410,7 @@ void MemoryHandler::SendMenu(PacketEx& safe, PacketEx& fast)
 			// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
 			if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
 			{
-				cout << "<> Resetting character selections" << endl;
+				PrintDebug("<> Resetting character selections");
 				CharacterSelectTimer = 0;
 				CurrentMenu[1] = SubMenu2P::O_CHARSEL;
 			}
@@ -566,12 +566,12 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		return false;
 
 	case MSG_P_POWERUPS:
-		cout << "<< Sending powerups" << endl;
+		PrintDebug("<< Sending powerups");
 		packet << Player1->Data2->Powerups;
 		break;
 
 	case MSG_P_UPGRADES:
-		cout << "<< Sending upgrades" << endl;
+		PrintDebug("<< Sending upgrades");
 		packet << Player1->Data2->Upgrades;
 		break;
 
@@ -617,7 +617,7 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 
 	case MSG_S_GAMESTATE:
 		packet << GameState;
-		cout << "<< GameState [" << (ushort)local.system.GameState << ' ' << (ushort)GameState << ']' << endl;
+		PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
 		local.system.GameState = GameState;
 		break;
 
@@ -640,14 +640,12 @@ bool MemoryHandler::AddPacket(const uint8 packetType, PacketEx& packet)
 		break;
 
 	case MSG_S_TIMESTOP:
-		cout << "<< Sending Time Stop [";
+		PrintDebug("<< Sending Time Stop");
 
 		// Swap the Time Stop value, as this is connected to player number,
 		// and Player 1 and 2 are relative to the game instance.
-
 		packet << (char)(TimeStopMode * 5 % 3);
 
-		cout << ']' << endl;
 		local.game.TimeStopMode = TimeStopMode;
 		break;
 
@@ -735,7 +733,7 @@ bool MemoryHandler::ReceiveSystem(uint8 type, sf::Packet& packet)
 			packet >> local.game.RingCount[1];
 			writeRings();
 
-			cout << ">> Ring Count Change " << local.game.RingCount[1] << endl;
+			PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
 			break;
 		}
 
@@ -793,7 +791,7 @@ bool MemoryHandler::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_HP);
 			packet >> recvPlayer.Data2.MechHP;
-			cout << ">> Received HP update. (" << recvPlayer.Data2.MechHP << ')' << endl;
+			PrintDebug(">> Received HP update. (%f)", recvPlayer.Data2.MechHP);
 			break;
 
 			RECEIVED(MSG_P_SPEED);
@@ -829,7 +827,7 @@ bool MemoryHandler::ReceiveMenu(uint8 type, sf::Packet& packet)
 			packet >> local.menu.PlayerReady[1];
 			PlayerReady[1] = local.menu.PlayerReady[1];
 
-			cout << ">> Player 2 ready state changed. " << (ushort)local.menu.PlayerReady[1] << endl;
+			PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
 			break;
 
 			RECEIVED(MSG_M_CHARSEL);
@@ -963,7 +961,7 @@ bool MemoryHandler::Teleport()
 		if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
 		{
 			// Teleport to recvPlayer
-			cout << "<> Teleporting to other player..." << endl;;
+			PrintDebug("<> Teleporting to other player...");;
 			PlayerObject::Teleport(&recvPlayer, Player1);
 			return true;
 		}

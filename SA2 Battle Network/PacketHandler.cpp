@@ -1,4 +1,4 @@
-#include <iostream>
+
 #include <Winsock2.h>
 
 #include "Common.h"			// for Millisecs(), LazyTypedefs
@@ -23,8 +23,6 @@ PacketHandler::~PacketHandler()
 }
 void PacketHandler::Initialize()
 {
-	cout << "<> Initializing packet handler..." << endl;
-	//recvTimer = sendTimer = 0;
 	listener.setBlocking(false);
 	socketSafe.setBlocking(false);
 	socketFast.setBlocking(false);

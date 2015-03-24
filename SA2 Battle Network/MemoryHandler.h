@@ -1,7 +1,8 @@
 #pragma once
 
 // Defines
-#define RECV_VERBOSE(type) case type: cout << ">> [" << Millisecs() << "] " #type << endl
+//#define RECV_VERBOSE(type) case type: cout << ">> [" << Millisecs() << "] " #type << endl
+#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type);
 #define RECV_CONCISE(type) case type:
 
 #ifndef RECEIVED
