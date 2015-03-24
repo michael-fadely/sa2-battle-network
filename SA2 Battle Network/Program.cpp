@@ -11,14 +11,17 @@
 
 #include "Program.h"
 
-// TODO: Replace music filename strings with constants or read them from a file.
-
 using namespace std;
 using namespace chrono;
 using namespace sa2bn;
 
 Program::Version Program::versionNum = { 3, 1 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
+
+const char* musicConnecting		= "chao_k_net_connect.adx";
+const char* musicConnected		= "chao_k_net_fine.adx";
+const char* musicDisconnected	= "chao_k_net_fault.adx";
+const char* musicDefault		= "btl_sel.adx";
 
 const std::string Program::Version::str()
 {
@@ -33,9 +36,14 @@ errorCode(ErrorCode::None), clientSettings(settings), remoteVersion(Program::ver
 
 bool Program::CheckConnectOK()
 {
-	return CurrentMenu[0] >= Menu::BATTLE/* && (
-		(!Globals::Networking->isConnected() && CurrentMenu[1] >= SubMenu2P::S_START) ||
-		(Globals::Networking->isConnected() && CurrentMenu[1] < SubMenu2P::S_START && CurrentMenu[1] >= SubMenu2P::S_BATTLEMODE))*/;
+	return CurrentMenu[0] >= Menu::BATTLE;
+
+	/*	This works, but pressing B after making a connection will automatically start another one, so...
+	if (Globals::Networking->isConnected())
+		return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] != SubMenu2P::S_START;
+	else
+		return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] >= SubMenu2P::S_START;
+	*/
 }
 
 Program::ErrorCode Program::Connect()
@@ -49,7 +57,7 @@ Program::ErrorCode Program::Connect()
 
 		if (!setMusic)
 		{
-			ChangeMusic("chao_k_net_connect.adx");
+			ChangeMusic(musicConnecting);
 			setMusic = true;
 		}
 
@@ -95,7 +103,7 @@ Program::ErrorCode Program::Connect()
 				{
 					Globals::Networking->Disconnect();
 					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str(), remoteVersion.str());
+					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
 
 					packet << (uint8)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
@@ -122,7 +130,7 @@ Program::ErrorCode Program::Connect()
 		{
 #pragma region Client
 			if (!Globals::Networking->isBound())
-				PrintDebug("<< Connecting to server at %s on port %d...", Address.ip.toString(), Address.port);
+				PrintDebug("<< Connecting to server at %s on port %d...", Address.ip.toString().c_str(), Address.port);
 
 			if ((status = Globals::Networking->Connect(Address, false)) != sf::Socket::Done)
 			{
@@ -168,7 +176,7 @@ Program::ErrorCode Program::Connect()
 				case MSG_VERSION_MISMATCH:
 					packet >> remoteVersion.major >> remoteVersion.minor;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str(), remoteVersion.str());
+					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 					return ErrorCode::VersionMismatch;
 					break;
 
@@ -181,11 +189,13 @@ Program::ErrorCode Program::Connect()
 #pragma endregion
 		}
 
-		PlayMusic("btl_sel.adx");
-		PlayJingle("chao_k_net_fine.adx");
+		PlayMusic(musicDefault);
+		PlayJingle(musicConnected);
 
 		connected = true;
 		ApplySettings(true);
+		// Uncomment for alternate hosting mode in CheckConnectOK
+		//P2Start = 2;
 
 		return ErrorCode::None;
 	}
@@ -229,12 +239,13 @@ void Program::Disconnect(bool received, ErrorCode code)
 	setMusic = false;
 
 	PrintDebug("<> Disconnecting...");
-	Globals::Networking->Disconnect();
+	Globals::Networking->Disconnect(received);
 
 	ApplySettings(false);
 
 	if (received)
 		errorCode = code;
 
-	PlayJingle("chao_k_net_fault.adx");
+	Globals::Broker->Initialize();
+	PlayJingle(musicDisconnected);
 }

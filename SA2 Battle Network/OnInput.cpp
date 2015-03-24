@@ -46,7 +46,7 @@ void InputHandler()
 	{
 		if (!pad->LeftStickX && !pad->LeftStickY)
 			broker->Request(MSG_I_ANALOG, true);
-		else if (FrameCount % (2 - (FrameIncrement - 1)))
+		else if (!(FrameCount % (2 - (FrameIncrement - 1))))
 			broker->Request(MSG_I_ANALOG, false);
 	}
 
