@@ -42,7 +42,6 @@ public:
 	// Designed exclusively to be used externally. Returns the current menu.
 	// This function does frame synchronization to ensure you don't catch the value
 	// mid-operation. Used by the class Program
-	uint GetCurrentMenu();
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
 	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);

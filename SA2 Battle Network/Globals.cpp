@@ -1,6 +1,8 @@
 #include "Globals.h"
 
 using namespace sa2bn;
-HANDLE Globals::ProcessID = 0;
-PacketHandler* Globals::Networking = nullptr;
-MemoryHandler* Globals::Memory = nullptr;
+
+HANDLE Globals::ProcessID			= 0;
+PacketHandler* Globals::Networking	= nullptr;
+MemoryHandler* Globals::Memory		= nullptr;
+Program* Globals::Program			= nullptr;

@@ -31,26 +31,20 @@ const std::string Program::Version::str()
 
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-exitCode(ExitCode::None),
-clientSettings(settings),
-remoteVersion(Program::versionNum),
-isServer(host),
-Address(address),
-setMusic(false)
+exitCode(ErrorCode::None), clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Address(address), setMusic(false)
 {
-	Globals::Memory = new MemoryHandler();
 }
 
-Program::~Program()
+bool Program::CheckConnectOK()
 {
-	delete Globals::Memory;
+	return CurrentMenu[0] >= Menu::BATTLE/* && (
+		(!Globals::Networking->isConnected() && CurrentMenu[1] >= SubMenu2P::S_START) ||
+		(Globals::Networking->isConnected() && CurrentMenu[1] < SubMenu2P::S_START && CurrentMenu[1] >= SubMenu2P::S_BATTLEMODE))*/;
 }
 
-
-Program::ExitCode Program::Connect()
+Program::ErrorCode Program::Connect()
 {
-	// TODO: Abort network operation when the sub menu changes to allow local multiplayer without lingering connection.
-	if (Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
+	if (CheckConnectOK())
 	{
 		// Used only for connection loops.
 		sf::Packet packet;
@@ -74,15 +68,15 @@ Program::ExitCode Program::Connect()
 				if (status == sf::Socket::Error)
 				{
 					cout << "<> An error occurred while trying to listen for connections on port " << Address.port << endl;
-					return exitCode = ExitCode::ClientTimeout;
+					return exitCode = ErrorCode::ClientTimeout;
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return ExitCode::NotReady;
+					return ErrorCode::NotReady;
 				}
 			}
 
-			while (!connected && Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && CheckConnectOK())
 			{
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
@@ -125,9 +119,6 @@ Program::ExitCode Program::Connect()
 
 				system("cls");
 				cout << ">> Connected!" << endl;
-
-				connected = true;
-				return ExitCode::None;
 			}
 #pragma endregion
 		}
@@ -142,16 +133,16 @@ Program::ExitCode Program::Connect()
 				if (status == sf::Socket::Error)
 				{
 					cout << "<< A connection error has occurred." << endl;
-					return exitCode = ExitCode::ClientTimeout;
+					return exitCode = ErrorCode::ClientTimeout;
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return ExitCode::NotReady;
+					return ErrorCode::NotReady;
 				}
 			}
 
 
-			while (!connected && Globals::Memory->GetCurrentMenu() >= Menu::BATTLE)
+			while (!connected && CheckConnectOK())
 			{
 				packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 				uint8 id;
@@ -187,26 +178,31 @@ Program::ExitCode Program::Connect()
 				case MSG_VERSION_OK:
 					system("cls");
 					cout << "<< Connected!" << endl;
-					connected = true;
-					return ExitCode::None;
+					break;
 				}
 			}
 #pragma endregion
 		}
+
+		PlayMusic("btl_sel.adx");
+		PlayJingle("chao_k_net_fine.adx");
+
+		connected = true;
+		ApplySettings(true);
+
+		return ErrorCode::None;
 	}
 	else
 	{
 		setMusic = false;
 	}
 
-	return ExitCode::NotReady;
+	return ErrorCode::NotReady;
 }
 
 
 void Program::ApplySettings(const bool apply)
 {
-	//MemManage::nopP2Input(apply);
-
 	if (apply)
 		cout << "<> Applying code changes..." << endl;
 	else
@@ -231,41 +227,7 @@ void Program::ApplySettings(const bool apply)
 	}
 }
 
-Program::ExitCode Program::RunLoop()
-{
-	Globals::Memory->Initialize();
-
-	if (Globals::Networking->isConnected())
-	{
-		ApplySettings(true);
-
-		PlayMusic("btl_sel.adx");
-		PlayJingle(0, "chao_k_net_fine.adx");
-
-		exitCode = ExitCode::None;
-
-		while (Globals::Networking->isConnected())
-		{
-			Globals::Memory->RecvLoop();
-			//Globals::Memory->SendLoop();
-
-			// Check to see if we should disconnect
-			if (!(Globals::Memory->GetCurrentMenu() >= Menu::BATTLE))
-				break;
-
-			//Globals::Memory->SetFrame();
-
-			// IN CASE OF SLOW, COMMENT FOR SPEED DEMON
-			SleepFor((milliseconds)1);
-		}
-
-		Disconnect(false, ExitCode::NotReady);
-	}
-
-	return exitCode;
-}
-
-void Program::Disconnect(bool received, ExitCode code)
+void Program::Disconnect(bool received, ErrorCode code)
 {
 	setMusic = false;
 
@@ -277,6 +239,5 @@ void Program::Disconnect(bool received, ExitCode code)
 	if (received)
 		exitCode = code;
 
-	MemManage::waitFrame();
-	PlayJingle(0, "chao_k_net_fault.adx");
+	PlayJingle("chao_k_net_fault.adx");
 }

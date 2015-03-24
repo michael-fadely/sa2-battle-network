@@ -3,12 +3,11 @@
 #include <string>
 #include "PacketHandler.h"
 
-class MemoryHandler;
-
 // TODO: Rewrite a majority of this class.
 class Program
 {
 public:
+#pragma region Embedded Types
 	struct Settings
 	{
 		bool noSpecials;
@@ -23,7 +22,7 @@ public:
 		const std::string str();
 	};
 
-	enum class ExitCode
+	enum class ErrorCode
 	{
 		None,
 		NotReady,
@@ -32,14 +31,13 @@ public:
 		ClientTimeout,
 		ClientDisconnect,
 	};
+#pragma endregion
 
 	Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
-	~Program();
 
-	ExitCode Connect();
-	void Disconnect(const bool received, const ExitCode code = ExitCode::ClientDisconnect);
-
-	ExitCode RunLoop();
+	bool CheckConnectOK();
+	ErrorCode Connect();
+	void Disconnect(const bool received, const ErrorCode code = ErrorCode::ClientDisconnect);
 
 	bool isServer;
 	static Version versionNum;
@@ -48,7 +46,7 @@ public:
 	Version remoteVersion;
 
 private:
-	ExitCode exitCode;
+	ErrorCode exitCode;
 
 	Settings clientSettings;
 	PacketHandler::RemoteAddress Address;

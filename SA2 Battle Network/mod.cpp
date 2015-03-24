@@ -48,8 +48,7 @@ void __cdecl ThreadInit(const char *path)
 	InitOnFrame();
 
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	thread mainThread(MainThread, argc, argv);
-	mainThread.detach();
+	MainThread(argc, argv);
 	return;
 }
 
@@ -122,18 +121,10 @@ void MainThread(int argc, wchar_t** argv)
 #pragma endregion
 
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
-	sa2bn::Globals::ProcessID = GetCurrentProcess();
-	sa2bn::Globals::Networking = new PacketHandler();
-	Program* program = new Program(Settings, isServer, Address);
 
-	while (true)
-	{
-		if (program->Connect() != Program::ExitCode::NotReady)
-			program->RunLoop();
-
-		SleepFor((milliseconds)250);
-	}
-
-	delete program;
-	delete sa2bn::Globals::Networking;
+	using namespace sa2bn;
+	Globals::ProcessID = GetCurrentProcess();
+	Globals::Networking = new PacketHandler();
+	Globals::Program = new Program(Settings, isServer, Address);
+	Globals::Memory = new MemoryHandler();
 }

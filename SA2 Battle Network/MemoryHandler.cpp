@@ -973,11 +973,3 @@ bool MemoryHandler::Teleport()
 }
 
 #pragma endregion
-
-uint32 MemoryHandler::GetCurrentMenu()
-{
-	if (!Globals::Networking->isConnected())
-		GetFrame();
-
-	return (isNewFrame()) ? local.menu.main = CurrentMenu[0] : local.menu.main;
-}

@@ -54,7 +54,15 @@ void FrameHandler()
 	lastFrame = FrameCount;
 
 	if (!Globals::isConnected())
+	{
+		Globals::Program->Connect();
 		return;
+	}
+	else if (!Globals::Program->CheckConnectOK())
+	{
+		Globals::Program->Disconnect(false, Program::ErrorCode::NotReady);
+		return;
+	}
 
 	Globals::Memory->RecvLoop();
 	Globals::Memory->GetFrame();
