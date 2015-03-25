@@ -35,7 +35,7 @@ void InputHandler()
 {
 	using namespace sa2bn;
 
-	if (!Globals::isConnected())
+	if (!Globals::isInitialized() || !Globals::isConnected())
 		return;
 
 	PacketBroker* broker = Globals::Broker;

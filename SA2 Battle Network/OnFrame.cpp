@@ -68,6 +68,9 @@ void FrameHandler()
 	
 	lastFrame = FrameCount;
 
+	if (!Globals::isInitialized())
+		return;
+
 	if (!Globals::isConnected())
 	{
 		Globals::Program->Connect();

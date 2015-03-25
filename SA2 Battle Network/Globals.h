@@ -15,9 +15,13 @@ namespace sa2bn
 		static PacketBroker*	Broker;
 		static Program*			Program;
 
+		static bool isInitialized()
+		{
+			return (Networking != nullptr && Broker != nullptr && Program != nullptr);
+		}
 		static bool isConnected()
 		{
-			return (Networking != nullptr && Broker != nullptr && Program != nullptr) && Networking->isConnected();
+			return isInitialized() && Networking->isConnected();
 		}
 	};
 }
