@@ -357,11 +357,11 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
 	{
 		// Skip the Press Start screen straight to "Ready" screen
-		if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2 && !wroteP2Start)
-		{
-			wroteP2Start = true;
-			P2Start = 2;
-		}
+		//if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2 && !wroteP2Start)
+		//{
+		//	wroteP2Start = true;
+		//	P2Start = 2;
+		//}
 
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)

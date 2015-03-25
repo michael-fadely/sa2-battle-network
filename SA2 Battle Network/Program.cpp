@@ -36,7 +36,7 @@ errorCode(ErrorCode::None), clientSettings(settings), remoteVersion(Program::ver
 
 bool Program::CheckConnectOK()
 {
-	return CurrentMenu[0] >= Menu::BATTLE;
+	return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
 
 	/*	This works, but pressing B after making a connection will automatically start another one, so...
 	if (Globals::Networking->isConnected())
@@ -194,8 +194,7 @@ Program::ErrorCode Program::Connect()
 
 		connected = true;
 		ApplySettings(true);
-		// Uncomment for alternate hosting mode in CheckConnectOK
-		//P2Start = 2;
+		P2Start = 2;
 
 		return ErrorCode::None;
 	}
