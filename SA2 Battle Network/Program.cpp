@@ -15,25 +15,34 @@ using namespace std;
 using namespace chrono;
 using namespace sa2bn;
 
+#pragma region Embedded Types
+
 Program::Version Program::versionNum = { 3, 1 };
 const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
+const std::string Program::Version::str() { return to_string(major) + "." + to_string(minor); }
+
+#pragma endregion
 
 const char* musicConnecting		= "chao_k_net_connect.adx";
 const char* musicConnected		= "chao_k_net_fine.adx";
 const char* musicDisconnected	= "chao_k_net_fault.adx";
 const char* musicDefault		= "btl_sel.adx";
 
-const std::string Program::Version::str()
-{
-	return to_string(major) + "." + to_string(minor);
-}
-
-
+/// <summary>
+/// Initializes a new instance of the <see cref="Program"/> class.
+/// </summary>
+/// <param name="settings">The settings.</param>
+/// <param name="host">Indicates if this instance is a server or client.</param>
+/// <param name="address">The port to listen on if <paramref name="host"/> is true, otherwise the remote address to connect to.</param>
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 errorCode(ErrorCode::None), clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Address(address), setMusic(false)
 {
 }
 
+/// <summary>
+/// Checks if it's safe to start the connection.
+/// </summary>
+/// <returns><c>true</c> if safe.</returns>
 bool Program::CheckConnectOK()
 {
 	return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
@@ -46,6 +55,10 @@ bool Program::CheckConnectOK()
 	*/
 }
 
+/// <summary>
+/// Attempts to connect in a non-blocking fashion.
+/// </summary>
+/// <returns><c>ErrorCode::None</c> on success.</returns>
 Program::ErrorCode Program::Connect()
 {
 	if (CheckConnectOK())
@@ -204,6 +217,26 @@ Program::ErrorCode Program::Connect()
 	return errorCode = ErrorCode::NotReady;
 }
 
+/// <summary>
+/// Closes all connections.
+/// </summary>
+/// <param name="received">If <c>true</c>, sends a message to all open connections notifying them of the disconnect.</param>
+/// <param name="code">The error code to set.</param>
+void Program::Disconnect(bool received, ErrorCode code)
+{
+	setMusic = false;
+
+	PrintDebug("<> Disconnecting...");
+	Globals::Networking->Disconnect(received);
+
+	ApplySettings(false);
+
+	if (received)
+		errorCode = code;
+
+	Globals::Broker->Initialize();
+	PlayJingle(musicDisconnected);
+}
 
 void Program::ApplySettings(const bool apply)
 {
@@ -229,20 +262,4 @@ void Program::ApplySettings(const bool apply)
 		MemManage::swapSpawn(!apply);
 		MemManage::swapCharsel(!apply);
 	}
-}
-
-void Program::Disconnect(bool received, ErrorCode code)
-{
-	setMusic = false;
-
-	PrintDebug("<> Disconnecting...");
-	Globals::Networking->Disconnect(received);
-
-	ApplySettings(false);
-
-	if (received)
-		errorCode = code;
-
-	Globals::Broker->Initialize();
-	PlayJingle(musicDisconnected);
 }

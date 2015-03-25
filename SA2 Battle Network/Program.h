@@ -33,17 +33,35 @@ public:
 	};
 #pragma endregion
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Program"/> class.
+	/// </summary>
+	/// <param name="settings">The settings.</param>
+	/// <param name="host">Indicates if this instance is a server or client.</param>
+	/// <param name="address">The port to listen on if <paramref name="host"/> is true, otherwise the remote address to connect to.</param>
 	Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
 
+	/// <summary>
+	/// Checks if it's safe to start the connection.
+	/// </summary>
+	/// <returns><c>true</c> if safe.</returns>
 	bool CheckConnectOK();
+	/// <summary>
+	/// Attempts to connect in a non-blocking fashion.
+	/// </summary>
+	/// <returns><c>ErrorCode::None</c> on success.</returns>
 	ErrorCode Connect();
+	/// <summary>
+	/// Closes all connections.
+	/// </summary>
+	/// <param name="received">If <c>true</c>, sends a message to all open connections notifying them of the disconnect.</param>
+	/// <param name="code">The error code to set.</param>
 	void Disconnect(const bool received, const ErrorCode code = ErrorCode::ClientDisconnect);
 
-	bool isServer;
+	Version remoteVersion;
+
 	static Version versionNum;
 	static const std::string version;
-
-	Version remoteVersion;
 
 private:
 	ErrorCode errorCode;
@@ -51,6 +69,7 @@ private:
 	Settings clientSettings;
 	PacketHandler::RemoteAddress Address;
 
+	bool isServer;
 	bool setMusic;
 
 	// Applies code and other changes to memory.
