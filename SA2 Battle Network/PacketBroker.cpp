@@ -41,7 +41,7 @@ using namespace sa2bn;
 // TODO: Consider using the same timer for all three.
 
 const float positionDelta = 16;
-const int rotateDelta = toBAMS(5.625); // TODO: Consider adjusting this yet again. 11.25?
+const int rotateDelta = toBAMS(11.25); // TODO: Consider adjusting this yet again. 11.25?
 const float speedDelta = 0.1F;
 
 uint positionTimer = 0;

@@ -28,7 +28,10 @@ public:
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
 	bool inline PacketBroker::Request(uint8 type, bool isSafe)
 	{
-		return RequestPacket(type, (isSafe) ? safe : fast, (isSafe) ? fast : safe);
+		if (isSafe)
+			return RequestPacket(type, safe, fast);
+		else
+			return RequestPacket(type, fast, safe);
 	}
 
 	/// <summary>

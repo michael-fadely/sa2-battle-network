@@ -44,21 +44,19 @@ void InputHandler()
 	ControllerData* lastPad = &broker->sendInput;
 
 #pragma region Send
-	// TODO: Figure out why this breaks if not finalized here
 	if (pad->PressedButtons || pad->ReleasedButtons)
 		broker->Request(MSG_I_BUTTONS, true);
 
-	// TODO: Figure out why this is so freaking slow (aside from the obvious huge amount of packets)
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 	{
-		if (!pad->LeftStickX && !pad->LeftStickY)
-		{
-			broker->Request(MSG_I_ANALOG, true);
-		}
-		else if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
+		if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
 			|| (FrameCount - lastFrame) > (analogFrames / FrameIncrement))
 		{
 			broker->Request(MSG_I_ANALOG, false);
+		}
+		else if (!pad->LeftStickX && !pad->LeftStickY)
+		{
+			broker->Request(MSG_I_ANALOG, true);
 		}
 	}
 

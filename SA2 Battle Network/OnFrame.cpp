@@ -60,7 +60,7 @@ void InitOnFrame()
 
 #pragma endregion
 
-static unsigned int lastFrame = 0;
+unsigned int lastFrame = 0;
 void FrameHandler()
 {
 	if ((FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame)
@@ -85,5 +85,5 @@ void FrameHandler()
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();
 
-	Globals::Broker->Finalize();
+	//Globals::Broker->Finalize();
 }
