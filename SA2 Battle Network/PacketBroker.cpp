@@ -1,5 +1,5 @@
 // Defines
-#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type)
+#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type, Millisecs())
 #define RECV_CONCISE(type) case type:
 
 #ifndef RECEIVED
