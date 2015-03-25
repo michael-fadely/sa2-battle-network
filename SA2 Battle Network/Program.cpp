@@ -76,7 +76,7 @@ Program::ErrorCode Program::Connect()
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 			}
 
@@ -85,7 +85,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
 					PrintDebug(">> An error occurred while waiting for version number.");
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 
 				uint8 id;
@@ -93,7 +93,7 @@ Program::ErrorCode Program::Connect()
 				if (id != MSG_VERSION_CHECK)
 				{
 					PrintDebug(">> Received malformed packet from client!");
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 
 				packet >> remoteVersion.major >> remoteVersion.minor;
@@ -110,7 +110,7 @@ Program::ErrorCode Program::Connect()
 					Globals::Networking->sendSafe(packet);
 					packet.clear();
 
-					return ErrorCode::VersionMismatch;
+					return errorCode = ErrorCode::VersionMismatch;
 				}
 
 				packet << (uint8)MSG_VERSION_OK << versionNum.major << versionNum.minor;
@@ -118,10 +118,9 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 				{
 					PrintDebug(">> An error occurred while confirming the connection with the client.");
-					return ErrorCode::ClientTimeout;
+					return errorCode = ErrorCode::ClientTimeout;
 				}
 
-				system("cls");
 				PrintDebug(">> Connected!");
 			}
 #pragma endregion
@@ -141,7 +140,7 @@ Program::ErrorCode Program::Connect()
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 			}
 
@@ -154,7 +153,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 				{
 					PrintDebug("<< An error occurred while sending the version number!");
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 
 				packet.clear();
@@ -162,7 +161,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
 					PrintDebug(">> An error occurred while receiving version confirmation message.");
-					return ErrorCode::NotReady;
+					return errorCode = ErrorCode::NotReady;
 				}
 
 				packet >> id;
@@ -177,11 +176,10 @@ Program::ErrorCode Program::Connect()
 					packet >> remoteVersion.major >> remoteVersion.minor;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
-					return ErrorCode::VersionMismatch;
+					return errorCode = ErrorCode::VersionMismatch;
 					break;
 
 				case MSG_VERSION_OK:
-					system("cls");
 					PrintDebug("<< Connected!");
 					break;
 				}
@@ -196,14 +194,14 @@ Program::ErrorCode Program::Connect()
 		ApplySettings(true);
 		P2Start = 2;
 
-		return ErrorCode::None;
+		return errorCode = ErrorCode::None;
 	}
 	else
 	{
 		setMusic = false;
 	}
 
-	return ErrorCode::NotReady;
+	return errorCode = ErrorCode::NotReady;
 }
 
 

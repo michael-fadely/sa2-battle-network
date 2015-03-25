@@ -87,6 +87,4 @@ void FrameHandler()
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();
-
-	//Globals::Broker->Finalize();
 }
