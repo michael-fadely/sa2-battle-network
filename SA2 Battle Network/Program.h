@@ -21,16 +21,6 @@ public:
 		unsigned char minor;
 		const std::string str();
 	};
-
-	enum class ErrorCode
-	{
-		None,
-		NotReady,
-		VersionMismatch,
-		GameTerminated,
-		ClientTimeout,
-		ClientDisconnect,
-	};
 #pragma endregion
 
 	/// <summary>
@@ -50,13 +40,13 @@ public:
 	/// Attempts to connect in a non-blocking fashion.
 	/// </summary>
 	/// <returns><c>ErrorCode::None</c> on success.</returns>
-	ErrorCode Connect();
+	bool Connect();
 	/// <summary>
 	/// Closes all connections.
 	/// </summary>
 	/// <param name="received">If <c>true</c>, sends a message to all open connections notifying them of the disconnect.</param>
 	/// <param name="code">The error code to set.</param>
-	void Disconnect(const bool received, const ErrorCode code = ErrorCode::ClientDisconnect);
+	void Disconnect(const bool received);
 
 	Version remoteVersion;
 
@@ -64,8 +54,6 @@ public:
 	static const std::string version;
 
 private:
-	ErrorCode errorCode;
-
 	Settings clientSettings;
 	PacketHandler::RemoteAddress Address;
 

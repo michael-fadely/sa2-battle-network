@@ -29,7 +29,7 @@ void InitOnInput()
 static const ushort analogThreshold = 16;
 static const ushort analogMax = 220;
 static const uint analogFrames = 8;
-static const uint lastFrame = 0;
+static uint lastFrame = 0;
 
 void InputHandler()
 {
@@ -52,6 +52,7 @@ void InputHandler()
 		if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
 			|| (FrameCount - lastFrame) > (analogFrames / FrameIncrement))
 		{
+			lastFrame = FrameCount;
 			broker->Request(MSG_I_ANALOG, false);
 		}
 		else if (!pad->LeftStickX && !pad->LeftStickY)

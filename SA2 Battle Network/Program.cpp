@@ -35,7 +35,7 @@ const char* musicDefault		= "btl_sel.adx";
 /// <param name="host">Indicates if this instance is a server or client.</param>
 /// <param name="address">The port to listen on if <paramref name="host"/> is true, otherwise the remote address to connect to.</param>
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-errorCode(ErrorCode::None), clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Address(address), setMusic(false)
+clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Address(address), setMusic(false)
 {
 }
 
@@ -59,7 +59,7 @@ bool Program::CheckConnectOK()
 /// Attempts to connect in a non-blocking fashion.
 /// </summary>
 /// <returns><c>ErrorCode::None</c> on success.</returns>
-Program::ErrorCode Program::Connect()
+bool Program::Connect()
 {
 	if (CheckConnectOK())
 	{
@@ -85,11 +85,11 @@ Program::ErrorCode Program::Connect()
 				if (status == sf::Socket::Error)
 				{
 					PrintDebug("<> An error occurred while trying to listen for connections on port %d", Address.port);
-					return errorCode = ErrorCode::ClientTimeout;
+					return false;
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 			}
 
@@ -98,7 +98,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
 					PrintDebug(">> An error occurred while waiting for version number.");
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 
 				uint8 id;
@@ -106,7 +106,7 @@ Program::ErrorCode Program::Connect()
 				if (id != MSG_VERSION_CHECK)
 				{
 					PrintDebug(">> Received malformed packet from client!");
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 
 				packet >> remoteVersion.major >> remoteVersion.minor;
@@ -123,7 +123,7 @@ Program::ErrorCode Program::Connect()
 					Globals::Networking->sendSafe(packet);
 					packet.clear();
 
-					return errorCode = ErrorCode::VersionMismatch;
+					return false;
 				}
 
 				packet << (uint8)MSG_VERSION_OK << versionNum.major << versionNum.minor;
@@ -131,7 +131,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 				{
 					PrintDebug(">> An error occurred while confirming the connection with the client.");
-					return errorCode = ErrorCode::ClientTimeout;
+					return false;
 				}
 
 				PrintDebug(">> Connected!");
@@ -149,11 +149,11 @@ Program::ErrorCode Program::Connect()
 				if (status == sf::Socket::Error)
 				{
 					PrintDebug("<< A connection error has occurred.");
-					return errorCode = ErrorCode::ClientTimeout;
+					return false;
 				}
 				else if (status == sf::Socket::NotReady)
 				{
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 			}
 
@@ -166,7 +166,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 				{
 					PrintDebug("<< An error occurred while sending the version number!");
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 
 				packet.clear();
@@ -174,7 +174,7 @@ Program::ErrorCode Program::Connect()
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
 					PrintDebug(">> An error occurred while receiving version confirmation message.");
-					return errorCode = ErrorCode::NotReady;
+					return false;
 				}
 
 				packet >> id;
@@ -189,7 +189,7 @@ Program::ErrorCode Program::Connect()
 					packet >> remoteVersion.major >> remoteVersion.minor;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
-					return errorCode = ErrorCode::VersionMismatch;
+					return false;
 					break;
 
 				case MSG_VERSION_OK:
@@ -207,14 +207,14 @@ Program::ErrorCode Program::Connect()
 		ApplySettings(true);
 		P2Start = 2;
 
-		return errorCode = ErrorCode::None;
+		return true;
 	}
 	else
 	{
 		setMusic = false;
 	}
 
-	return errorCode = ErrorCode::NotReady;
+	return false;
 }
 
 /// <summary>
@@ -222,7 +222,7 @@ Program::ErrorCode Program::Connect()
 /// </summary>
 /// <param name="received">If <c>true</c>, sends a message to all open connections notifying them of the disconnect.</param>
 /// <param name="code">The error code to set.</param>
-void Program::Disconnect(bool received, ErrorCode code)
+void Program::Disconnect(bool received)
 {
 	setMusic = false;
 
@@ -230,9 +230,6 @@ void Program::Disconnect(bool received, ErrorCode code)
 	Globals::Networking->Disconnect(received);
 
 	ApplySettings(false);
-
-	if (received)
-		errorCode = code;
 
 	Globals::Broker->Initialize();
 	PlayJingle(musicDisconnected);

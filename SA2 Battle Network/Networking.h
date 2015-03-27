@@ -1,11 +1,11 @@
 #pragma once
 
 /*
-Message types with the naming convention MSG_<group>_<START/END> are never sent;
-they're used to verify that a received message is within that group's range.
+	Message types with the naming convention MSG_<group>_<START/END> are never sent;
+	they're used to verify that a received message is within that group's range.
 
-Example:
-When receiving player messages, we check if the type is > MSG_P_START and < MSG_P_END.
+	Example:
+	When receiving player messages, we check if the type is > MSG_P_START and < MSG_P_END.
 */
 
 enum MsgTypes : unsigned char

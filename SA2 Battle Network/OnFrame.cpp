@@ -78,7 +78,7 @@ void FrameHandler()
 	}
 	else if (!Globals::Program->CheckConnectOK())
 	{
-		Globals::Program->Disconnect(false, Program::ErrorCode::NotReady);
+		Globals::Program->Disconnect(false);
 		return;
 	}
 
