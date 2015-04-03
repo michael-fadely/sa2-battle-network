@@ -45,17 +45,16 @@ void __cdecl ThreadInit(const char *path)
 	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
 		abort();
 
-	InitOnInput();
-	InitOnFrame();
-
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	MainThread(argc, argv);
-	return;
 }
 
 void MainThread(int argc, wchar_t** argv)
 {
-	bool ValidArguments = false;
+	if (argc < 3)
+		return;
+
+	bool validArguments = false;
 	bool isServer = false;
 	uint timeout = 15000;
 
@@ -63,69 +62,62 @@ void MainThread(int argc, wchar_t** argv)
 	Program::Settings Settings = {};
 
 #pragma region Command line arguments
-	if (argc > 2)
+	for (int i = 1; i < argc; i++)
 	{
-		for (int i = 1; i < argc; i++)
+		// Connection
+		if ((!wcscmp(argv[i], L"--host") || !wcscmp(argv[i], L"-h")) && (i + 1) < argc)
 		{
-			// Connection
-			if ((!wcscmp(argv[i], L"--host") || !wcscmp(argv[i], L"-h")) && (i + 1) < argc)
-			{
-				isServer = true;
-				//netMode = "server";
-				Address.port = _wtoi(argv[++i]);
-				ValidArguments = true;
-			}
-			else if ((!wcscmp(argv[i], L"--connect") || !wcscmp(argv[i], L"-c")) && (i + 2) < argc)
-			{
-				isServer = false;
+			isServer = true;
+			Address.port = _wtoi(argv[++i]);
+			validArguments = true;
+		}
+		else if ((!wcscmp(argv[i], L"--connect") || !wcscmp(argv[i], L"-c")) && (i + 2) < argc)
+		{
+			isServer = false;
 
-				wstring wstr = argv[++i];
-				string sstr(wstr.begin(), wstr.end());
+			wstring wstr = argv[++i];
+			string sstr(wstr.begin(), wstr.end());
 
-				Address.ip = sstr;
-				Address.port = _wtoi(argv[++i]);
-				ValidArguments = true;
-			}
-			else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
-			{
-				if ((timeout = _wtoi(argv[++i])) < 1000)
-					timeout = 1000;
+			Address.ip = sstr;
+			Address.port = _wtoi(argv[++i]);
+			validArguments = true;
+		}
+		else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
+		{
+			if ((timeout = _wtoi(argv[++i])) < 1000)
+				timeout = 1000;
 
-				ValidArguments = true;
-			}
-
-			// Configuration
-			else if (!wcscmp(argv[i], L"--no-specials"))
-			{
-				Settings.noSpecials = true;
-				ValidArguments = true;
-			}
-			else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
-			{
-				Settings.isLocal = true;
-				ValidArguments = true;
-			}
-			else if (!wcscmp(argv[i], L"--keep-active"))
-			{
-				Settings.KeepWindowActive = true;
-				ValidArguments = true;
-			}
+			validArguments = true;
+		}
+		// Configuration
+		else if (!wcscmp(argv[i], L"--no-specials"))
+		{
+			Settings.noSpecials = true;
+			validArguments = true;
+		}
+		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
+		{
+			Settings.isLocal = true;
+			validArguments = true;
+		}
+		else if (!wcscmp(argv[i], L"--keep-active"))
+		{
+			Settings.KeepWindowActive = true;
+			validArguments = true;
 		}
 	}
-	else
-	{
-		return;
-	}
 
-	if (!ValidArguments)
+	if (!validArguments)
 		return;
 #pragma endregion
 
-	PacketEx::SetMessageTypeCount(MSG_COUNT);
-
 	using namespace sa2bn;
+	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();
 	Globals::Program = new Program(Settings, isServer, Address);
 	Globals::Broker = new PacketBroker();
+
+	InitOnInput();
+	InitOnFrame();
 }
