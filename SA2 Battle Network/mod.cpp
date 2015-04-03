@@ -52,7 +52,10 @@ void __cdecl ThreadInit(const char *path)
 void MainThread(int argc, wchar_t** argv)
 {
 	if (argc < 3)
+	{
+		PrintDebug("[SA2:BN] Insufficient parameters.");
 		return;
+	}
 
 	bool validArguments = false;
 	bool isServer = false;
@@ -108,7 +111,10 @@ void MainThread(int argc, wchar_t** argv)
 	}
 
 	if (!validArguments)
+	{
+		PrintDebug("[SA2:BN] Invalid parameters.");
 		return;
+	}
 #pragma endregion
 
 	using namespace sa2bn;
