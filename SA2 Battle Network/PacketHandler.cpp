@@ -2,7 +2,7 @@
 #include <Winsock2.h>
 
 #include "Common.h"			// for Millisecs(), LazyTypedefs
-#include "Networking.h"
+#include "Networking.h"		// TODO: Remove
 
 // This class
 #include "PacketHandler.h"

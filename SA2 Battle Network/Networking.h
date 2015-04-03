@@ -15,6 +15,8 @@ enum MsgTypes : unsigned char
 	MSG_VERSION_MISMATCH,	// Client version mismatch
 	MSG_VERSION_OK,			// Client version match
 	MSG_BIND,				// UDP bind request/confirm
+	MSG_SETTINGS,			// Used for synchronizing settings
+	MSG_CONNECTED,			// Connection setup successful
 	MSG_DISCONNECT,			// Request disconnect
 
 	MSG_I_START,			// Marker: Start of input messages
@@ -23,7 +25,6 @@ enum MsgTypes : unsigned char
 	MSG_I_BUTTONS,
 
 	MSG_I_END,				// Marker: End of input messages
-
 	MSG_M_START,			// Marker: Start of menu messages
 
 	MSG_M_ALTCHAR,
@@ -34,7 +35,6 @@ enum MsgTypes : unsigned char
 	MSG_M_STAGESEL,
 
 	MSG_M_END,				// Marker: End of menu messages
-
 	MSG_P_START,			// Marker: Start of player messages
 
 	// CharObj1
@@ -54,7 +54,6 @@ enum MsgTypes : unsigned char
 	MSG_P_SPINTIMER,
 
 	MSG_P_END,				// Marker: End of player messages
-
 	MSG_S_START,			// Marker: Start of system messages
 
 	MSG_S_2PMODE,
@@ -69,6 +68,5 @@ enum MsgTypes : unsigned char
 	MSG_S_TIMESTOP,
 
 	MSG_S_END,				// Marker: End of system messages
-
 	MSG_COUNT
 };

@@ -15,6 +15,20 @@ using namespace std;
 using namespace chrono;
 using namespace sa2bn;
 
+const char* musicConnecting		= "chao_k_net_connect.adx";
+const char* musicConnected		= "chao_k_net_fine.adx";
+const char* musicDisconnected	= "chao_k_net_fault.adx";
+const char* musicDefault		= "btl_sel.adx";
+
+sf::Packet& operator <<(sf::Packet& packet, const Program::Version& data)
+{
+	return packet << data.major << data.minor;
+}
+sf::Packet& operator >>(sf::Packet& packet, Program::Version& data)
+{
+	return packet >> data.major >> data.minor;
+}
+
 #pragma region Embedded Types
 
 Program::Version Program::versionNum = { 3, 1 };
@@ -22,11 +36,6 @@ const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
 const std::string Program::Version::str() { return to_string(major) + "." + to_string(minor); }
 
 #pragma endregion
-
-const char* musicConnecting		= "chao_k_net_connect.adx";
-const char* musicConnected		= "chao_k_net_fine.adx";
-const char* musicDisconnected	= "chao_k_net_fault.adx";
-const char* musicDefault		= "btl_sel.adx";
 
 /// <summary>
 /// Initializes a new instance of the <see cref="Program"/> class.
@@ -97,24 +106,34 @@ bool Program::Connect()
 					return false;
 				}
 
-				packet >> remoteVersion.major >> remoteVersion.minor;
+				packet >> remoteVersion;
 				packet.clear();
 
-				if (memcmp(&versionNum, &remoteVersion, sizeof(Version)) != 0)
+				if (versionNum != remoteVersion)
 				{
 					Globals::Networking->Disconnect();
 					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
 
-					packet << (uint8)MSG_VERSION_MISMATCH << versionNum.major << versionNum.minor;
+					packet << (uint8)MSG_VERSION_MISMATCH << versionNum;
 					Globals::Networking->sendSafe(packet);
 					packet.clear();
 
 					return false;
 				}
 
-				packet << (uint8)MSG_VERSION_OK << versionNum.major << versionNum.minor;
+				packet << (uint8)MSG_VERSION_OK;
+
+				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
+				{
+					PrintDebug(">> An error occurred while confirming version numbers with the client.");
+					return false;
+				}
+
+				packet.clear();
+				packet << (uint8)MSG_SETTINGS << clientSettings.noSpecials;
+				packet << (uint8)MSG_CONNECTED;
 
 				if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 				{
@@ -154,31 +173,46 @@ bool Program::Connect()
 
 				packet.clear();
 
-				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+				do
 				{
-					PrintDebug(">> An error occurred while receiving version confirmation message.");
-					return false;
-				}
+					if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+					{
+						PrintDebug(">> An error occurred while confirming the connection with the server.");
+						return false;
+					}
 
-				packet >> id;
+					while (!packet.endOfPacket())
+					{
+						packet >> id;
 
-				switch (id)
-				{
-				default:
-					PrintDebug(">> Received malformed packet from server!");
-					break;
+						switch (id)
+						{
+						default:
+							PrintDebug(">> Received malformed packet from server!");
+							return false;
 
-				case MSG_VERSION_MISMATCH:
-					packet >> remoteVersion.major >> remoteVersion.minor;
-					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
-					return false;
-					break;
+						case MSG_VERSION_MISMATCH:
+							packet >> remoteVersion;
+							PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
+							PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
+							return false;
 
-				case MSG_VERSION_OK:
-					PrintDebug("<< Connected!");
-					break;
-				}
+						case MSG_VERSION_OK:
+							PrintDebug(">> Version match!");
+							break;
+
+							// This is only used for specials right now.
+						case MSG_SETTINGS:
+							packet >> clientSettings.noSpecials;
+							PrintDebug(">> Specials %s by server.", clientSettings.noSpecials ? "disabled" : "enabled");
+							break;
+
+						case MSG_CONNECTED:
+							PrintDebug("<< Connected!");
+							break;
+						}
+					}
+				} while (id != MSG_CONNECTED);
 			}
 #pragma endregion
 		}
