@@ -148,7 +148,7 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short
 		sf::Packet packet;
 
 		// Now we populate the packet with the ID and the port,
-		// and send it off, retreiving the status.
+		// and send it off, retrieving the status.
 		packet << (uint8)MSG_BIND << socketFast.getLocalPort();
 		result = sendSafe(packet);
 

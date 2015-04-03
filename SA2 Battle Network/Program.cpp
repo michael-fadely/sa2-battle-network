@@ -46,13 +46,6 @@ clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Ad
 bool Program::CheckConnectOK()
 {
 	return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
-
-	/*	This works, but pressing B after making a connection will automatically start another one, so...
-	if (Globals::Networking->isConnected())
-		return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] != SubMenu2P::S_START;
-	else
-		return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] >= SubMenu2P::S_START;
-	*/
 }
 
 /// <summary>
@@ -83,14 +76,9 @@ bool Program::Connect()
 			if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
 			{
 				if (status == sf::Socket::Error)
-				{
 					PrintDebug("<> An error occurred while trying to listen for connections on port %d", Address.port);
-					return false;
-				}
-				else if (status == sf::Socket::NotReady)
-				{
-					return false;
-				}
+
+				return false;
 			}
 
 			if (!connected && CheckConnectOK())
