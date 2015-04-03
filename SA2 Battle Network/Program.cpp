@@ -135,14 +135,9 @@ bool Program::Connect()
 			if ((status = Globals::Networking->Connect(Address, false)) != sf::Socket::Done)
 			{
 				if (status == sf::Socket::Error)
-				{
 					PrintDebug("<< A connection error has occurred.");
-					return false;
-				}
-				else if (status == sf::Socket::NotReady)
-				{
-					return false;
-				}
+
+				return false;
 			}
 
 
