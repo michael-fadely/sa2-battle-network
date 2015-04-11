@@ -7,13 +7,12 @@
 
 namespace sa2bn
 {
-	class Globals
+	namespace Globals
 	{
-	public:
-		static HANDLE			ProcessID;
-		static PacketHandler*	Networking;
-		static PacketBroker*	Broker;
-		static Program*			Program;
+		extern HANDLE			ProcessID;
+		extern PacketHandler*	Networking;
+		extern PacketBroker*	Broker;
+		extern ::Program*		Program;
 
 		static bool isInitialized()
 		{

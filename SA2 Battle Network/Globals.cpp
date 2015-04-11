@@ -1,8 +1,12 @@
 #include "Globals.h"
 
-using namespace sa2bn;
-
-HANDLE Globals::ProcessID			= 0;
-PacketHandler* Globals::Networking	= nullptr;
-PacketBroker* Globals::Broker		= nullptr;
-Program* Globals::Program			= nullptr;
+namespace sa2bn
+{
+	namespace Globals
+	{
+		HANDLE ProcessID = 0;
+		PacketHandler* Networking = nullptr;
+		PacketBroker* Broker = nullptr;
+		::Program* Program = nullptr;
+	}
+}

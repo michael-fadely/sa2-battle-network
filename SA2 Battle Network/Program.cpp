@@ -173,6 +173,7 @@ bool Program::Connect()
 
 				packet.clear();
 
+				// TODO: Timeout on both of these loops.
 				do
 				{
 					if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
