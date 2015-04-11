@@ -49,8 +49,10 @@ void InputHandler()
 
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 	{
-		if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
-			|| (FrameCount - lastFrame) > (analogFrames / FrameIncrement))
+		if (
+			(abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
+			|| (FrameCount - lastFrame) > (analogFrames / FrameIncrement)
+			)
 		{
 			lastFrame = FrameCount;
 			broker->Request(MSG_I_ANALOG, false);
@@ -75,12 +77,16 @@ void InputHandler()
 	pad->HeldButtons = netPad->HeldButtons;
 	pad->NotHeldButtons = ~pad->HeldButtons;
 
-	pad->ReleasedButtons = pad->Old & (pad->HeldButtons ^ pad->Old);
+	// Here we're using netPad's "Old" since it can in some cases be overwritten
+	// by the input update with irrelevant data, thus invalidating Released and Pressed.
+	uint mask = (pad->HeldButtons ^ netPad->Old);
+	pad->ReleasedButtons = netPad->Old & mask;
+	pad->PressedButtons = pad->HeldButtons & mask;
 
-	pad->PressedButtons = pad->HeldButtons & (pad->HeldButtons ^ pad->Old);
+	// Setting pad->Old might not be necessary, but better safe than sorry.
+	netPad->Old = pad->Old = pad->HeldButtons;
 
-	pad->Old = pad->HeldButtons;
-
+	// HACK: Fixes camera rotation in non-emerald hunting modes.
 	pad->LTriggerPressure = (pad->HeldButtons & Buttons_L) ? UCHAR_MAX : 0;
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
 }
