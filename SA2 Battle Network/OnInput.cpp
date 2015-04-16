@@ -33,19 +33,18 @@ static uint lastFrame = 0;
 
 void InputHandler()
 {
-	using namespace sa2bn;
+	using namespace sa2bn::Globals;
 
-	if (!Globals::isInitialized() || !Globals::isConnected())
+	if (!isInitialized() || !isConnected())
 		return;
 
-	PacketBroker* broker = Globals::Broker;
 	ControllerData* pad = &ControllersRaw[0];
-	ControllerData* netPad = &broker->recvInput;
-	ControllerData* lastPad = &broker->sendInput;
+	ControllerData* netPad = &Broker->recvInput;
+	ControllerData* lastPad = &Broker->sendInput;
 
 #pragma region Send
 	if (pad->PressedButtons || pad->ReleasedButtons)
-		broker->Request(MSG_I_BUTTONS, true);
+		Broker->Request(MSG_I_BUTTONS, true);
 
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 	{
@@ -55,15 +54,15 @@ void InputHandler()
 			)
 		{
 			lastFrame = FrameCount;
-			broker->Request(MSG_I_ANALOG, false);
+			Broker->Request(MSG_I_ANALOG, false);
 		}
 		else if (!pad->LeftStickX && !pad->LeftStickY)
 		{
-			broker->Request(MSG_I_ANALOG, true);
+			Broker->Request(MSG_I_ANALOG, true);
 		}
 	}
 
-	broker->Finalize();
+	Broker->Finalize();
 #pragma endregion
 
 	pad = &ControllersRaw[1];

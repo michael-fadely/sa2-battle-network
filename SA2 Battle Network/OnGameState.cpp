@@ -1,9 +1,9 @@
-#include <vector>
-#include <thread>
+#include <vector>			// obvious
+#include <thread>			// for this_thread::yield
 
 #include <SA2ModLoader.h>	// for everything
 #include "CommonEnums.h"	// for GameState enum
-#include "Networking.h"
+#include "Networking.h"		// for MsgTypes
 #include "Globals.h"		// for Globals :specialed:
 
 #include "OnGameState.h"
@@ -13,6 +13,7 @@ void* escape_addr = (void*)0x0043AAEE;
 
 void InitOnGameState()
 {
+	// TODO: Make revertable
 	// Adding nops first because the existing instruction smaller than a call.
 	std::vector<uint8> patch(5, 0x90);
 	WriteData(escape_addr, patch.data(), patch.size());
