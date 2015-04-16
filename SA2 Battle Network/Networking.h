@@ -17,6 +17,7 @@ enum MsgTypes : unsigned char
 	MSG_BIND,				// UDP bind request/confirm
 	MSG_SETTINGS,			// Used for synchronizing settings
 	MSG_CONNECTED,			// Connection setup successful
+	MSG_READY,				// Inidicates stage load completion
 	MSG_DISCONNECT,			// Request disconnect
 
 	MSG_I_START,			// Marker: Start of input messages

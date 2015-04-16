@@ -44,6 +44,8 @@ public:
 	inline void SendPlayer()	{ SendPlayer(safe, fast); }
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
+	// HACK: Dirty, dirty hack.
+	bool isClientReady;
 	ControllerData recvInput, sendInput;
 
 private:

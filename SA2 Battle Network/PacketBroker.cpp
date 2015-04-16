@@ -1,5 +1,5 @@
 // Defines
-#define RECV_VERBOSE(type) case type: PrintDebug(">> [%d] " #type, Millisecs())
+#define RECV_VERBOSE(type) case type: PrintDebug(">> [%06d] " #type, FrameCount)
 #define RECV_CONCISE(type) case type:
 
 #ifndef RECEIVED
@@ -92,6 +92,7 @@ void PacketBroker::Initialize()
 	wroteP2Start = false;
 	writePlayer = false;
 	sendSpinTimer = false;
+	isClientReady = false;
 }
 
 void PacketBroker::RecvLoop()
@@ -144,6 +145,10 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		case MSG_DISCONNECT:
 			PrintDebug(">> Received disconnect request from client.");
 			Globals::Networking->Disconnect(true);
+			break;
+
+		case MSG_READY:
+			isClientReady = true;
 			break;
 
 		default:

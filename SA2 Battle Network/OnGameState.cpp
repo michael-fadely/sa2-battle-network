@@ -1,19 +1,20 @@
 #include <vector>
+#include <thread>
 
-#include <LazyTypedefs.h>
 #include <SA2ModLoader.h>	// for everything
 #include "CommonEnums.h"	// for GameState enum
-#include "AddressList.h"	// for GameState, FrameCount
-//#include "Globals.h"		// for Globals :specialed:
+#include "Networking.h"
+#include "Globals.h"		// for Globals :specialed:
 
 #include "OnGameState.h"
 
-void* escape_addr = (void*)0x0043AAD2;
+DataPointer(uint, dword_174B058, 0x174B058);
+void* escape_addr = (void*)0x0043AAEE;
 
 void InitOnGameState()
 {
 	// Adding nops first because the existing instruction smaller than a call.
-	std::vector<uint8> patch(7, 0x90);
+	std::vector<uint8> patch(5, 0x90);
 	WriteData(escape_addr, patch.data(), patch.size());
 	WriteCall(escape_addr, OnGameState);
 }
@@ -22,11 +23,33 @@ static void __cdecl OnGameState()
 {
 	// This is here because we overwrite its assignment with a call
 	// in the original code.
-	GameState = GameState::INGAME;
-	OnGameState_Ingame();
+	dword_174B058 = 0;
+	StageLoaded();
 }
 
-void OnGameState_Ingame()
+void StageLoaded()
 {
-	PrintDebug("\a[%06d] Stage loaded.", FrameCount);
+	using namespace sa2bn::Globals;
+
+	if (!isInitialized() || !isConnected())
+		return;
+
+	sf::Packet packet;
+	packet << (uint8)MSG_READY;
+	Networking->sendSafe(packet);
+
+	if (!Broker->isClientReady)
+	{
+		PrintDebug("<> Waiting for players...");
+		
+		do
+		{
+			Broker->RecvLoop();
+			std::this_thread::yield();
+		} while (!Broker->isClientReady);
+
+		PrintDebug(">> All players ready. Resuming game.");
+	}
+	
+	Broker->isClientReady = false;
 }
