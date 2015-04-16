@@ -18,6 +18,7 @@
 
 #include "OnInput.h"
 #include "OnFrame.h"
+#include "OnGameState.h"
 
 // Namespaces
 using namespace std;
@@ -124,6 +125,7 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Program = new Program(Settings, isServer, Address);
 	Globals::Broker = new PacketBroker();
 
+	InitOnGameState();
 	InitOnInput();
 	InitOnFrame();
 }

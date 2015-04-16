@@ -93,6 +93,9 @@
     <ClInclude Include="PlayerObject.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
+    <ClInclude Include="OnGameState.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -130,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="PacketBroker.cpp">
       <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="OnGameState.cpp">
+      <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -89,6 +89,7 @@
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
     <ClInclude Include="OnFrame.h" />
+    <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnInput.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Common.h" />
@@ -108,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="OnFrame.cpp" />
+    <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
