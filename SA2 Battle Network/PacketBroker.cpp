@@ -23,7 +23,6 @@
 
 #include <SA2ModLoader.h>
 #include "BAMS.h"
-#include "MemoryManagement.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 
@@ -108,7 +107,7 @@ void PacketBroker::RecvLoop()
 
 void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 {
-	Socket::Status status = Socket::Status::NotReady;
+	Socket::Status status;
 
 	if (safe)
 		status = Globals::Networking->recvSafe(packet);

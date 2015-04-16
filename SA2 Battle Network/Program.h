@@ -19,7 +19,7 @@ public:
 	{
 		unsigned char major;
 		unsigned char minor;
-		const std::string str();
+		std::string str();
 		bool operator==(const Version& value) { return major == value.major && minor == value.minor; }
 		bool operator!=(const Version& value) { return !(*this == value); }
 	};

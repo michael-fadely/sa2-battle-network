@@ -32,8 +32,8 @@ sf::Packet& operator >>(sf::Packet& packet, Program::Version& data)
 #pragma region Embedded Types
 
 Program::Version Program::versionNum = { 3, 1 };
-const string Program::version = "SA2:BN Version: " + Program::versionNum.str();
-const std::string Program::Version::str() { return to_string(major) + "." + to_string(minor); }
+const std::string Program::version = "SA2:BN Version: " + Program::versionNum.str();
+std::string Program::Version::str() { return to_string(major) + "." + to_string(minor); }
 
 #pragma endregion
 
@@ -44,7 +44,7 @@ const std::string Program::Version::str() { return to_string(major) + "." + to_s
 /// <param name="host">Indicates if this instance is a server or client.</param>
 /// <param name="address">The port to listen on if <paramref name="host"/> is true, otherwise the remote address to connect to.</param>
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-clientSettings(settings), remoteVersion(Program::versionNum), isServer(host), Address(address), setMusic(false)
+remoteVersion(Program::versionNum), clientSettings(settings), Address(address), isServer(host), setMusic(false)
 {
 }
 
@@ -68,7 +68,6 @@ bool Program::Connect()
 		// Used only for connection loops.
 		sf::Packet packet;
 		sf::Socket::Status status = sf::Socket::Status::Error;
-		bool connected = false;
 
 		if (!setMusic)
 		{
@@ -90,7 +89,7 @@ bool Program::Connect()
 				return false;
 			}
 
-			if (!connected && CheckConnectOK())
+			if (CheckConnectOK())
 			{
 				if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 				{
@@ -160,7 +159,7 @@ bool Program::Connect()
 			}
 
 
-			if (!connected && CheckConnectOK())
+			if (CheckConnectOK())
 			{
 				packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
 				uint8 id;
@@ -221,7 +220,6 @@ bool Program::Connect()
 		PlayMusic(musicDefault);
 		PlayJingle(musicConnected);
 
-		connected = true;
 		ApplySettings(true);
 		P2Start = 2;
 

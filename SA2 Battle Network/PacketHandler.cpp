@@ -111,6 +111,7 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
+
 	if (!connected)
 	{
 		// First, let's bind the UDP port.
@@ -163,6 +164,7 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short
 
 		sendFast(packet);
 	}
+
 	return result;
 }
 sf::Socket::Status PacketHandler::Disconnect(const bool received)

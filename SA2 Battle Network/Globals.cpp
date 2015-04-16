@@ -4,7 +4,7 @@ namespace sa2bn
 {
 	namespace Globals
 	{
-		HANDLE ProcessID = 0;
+		HANDLE ProcessID = nullptr;
 		PacketHandler* Networking = nullptr;
 		PacketBroker* Broker = nullptr;
 		::Program* Program = nullptr;

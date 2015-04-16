@@ -6,7 +6,6 @@
 #include "AddressList.h"
 #include "LazyMemory.h"
 
-#include "MemoryStruct.h"
 #include "nop.h"
 
 #include "MemoryManagement.h"

@@ -2,7 +2,6 @@
 #include <thread>			// for this_thread::yield
 
 #include <SA2ModLoader.h>	// for everything
-#include "CommonEnums.h"	// for GameState enum
 #include "Networking.h"		// for MsgTypes
 #include "Globals.h"		// for Globals :specialed:
 
