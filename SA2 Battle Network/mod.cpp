@@ -1,7 +1,6 @@
 // Fixes PROCESS_ALL_ACCESS for Windows XP
 #define _WIN32_WINNT 0x501
 
-
 #include <string>
 
 #include <Windows.h>		// for GetCommandLIneW(), GetCurrentProcess()
@@ -39,7 +38,7 @@ ModInfo SA2ModInfo = {
 int argc = 0;
 wchar_t** argv = nullptr;
 
-void __cdecl ThreadInit(const char *path)
+void __cdecl ThreadInit(const char* path)
 {
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
 		abort();
