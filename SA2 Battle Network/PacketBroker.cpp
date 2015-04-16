@@ -534,9 +534,6 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		packet << Player1->Data1->Scale;
 		break;
 
-	case MSG_P_CHARACTER:	// Not yet implemented.
-		return false;
-
 	case MSG_P_POWERUPS:
 		PrintDebug("<< Sending powerups");
 		packet << Player1->Data2->Powerups;
@@ -569,9 +566,6 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 #pragma region System
 
-	case MSG_S_2PMODE:	// Not yet implemented.
-		return false;
-
 	case MSG_S_2PREADY:
 		packet << PlayerReady[0];
 		local.menu.PlayerReady[0] = PlayerReady[0];
@@ -592,9 +586,6 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
 		local.system.GameState = GameState;
 		break;
-
-	case MSG_S_LEVEL:	// Not yet implemented
-		return false;
 
 	case MSG_S_PAUSESEL:
 		packet << PauseSelection;

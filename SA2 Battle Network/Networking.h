@@ -44,7 +44,6 @@ enum MsgTypes : unsigned char
 	MSG_P_POSITION,
 	MSG_P_SCALE,
 	// CharObj2
-	MSG_P_CHARACTER,
 	MSG_P_POWERUPS,
 	MSG_P_UPGRADES,
 	MSG_P_HP,
@@ -56,12 +55,10 @@ enum MsgTypes : unsigned char
 	MSG_P_END,				// Marker: End of player messages
 	MSG_S_START,			// Marker: Start of system messages
 
-	MSG_S_2PMODE,
 	MSG_S_2PREADY,
 	MSG_S_2PSPECIALS,
 	MSG_S_BATTLEOPT,
 	MSG_S_GAMESTATE,
-	MSG_S_LEVEL,
 	MSG_S_PAUSESEL,
 	MSG_S_RINGS,
 	MSG_S_TIME,
