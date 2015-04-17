@@ -221,8 +221,8 @@ void PacketBroker::Finalize()
 
 void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 {
-	if (Duration(sentKeepalive) >= 1000)
-		RequestPacket(MSG_S_KEEPALIVE, safe);
+	/*if (Duration(sentKeepalive) >= 1000)
+		RequestPacket(MSG_S_KEEPALIVE, safe);*/
 
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
