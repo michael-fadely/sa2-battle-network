@@ -31,7 +31,6 @@
 
 // Namespaces
 using namespace std;
-using namespace sf;
 using namespace sa2bn;
 
 #pragma region science
@@ -75,24 +74,27 @@ static inline bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-PacketBroker::PacketBroker(uint timeout) : Timeout(timeout), safe(true), fast(false)
+PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), safe(true), fast(false)
 {
 	Initialize();
 }
 void PacketBroker::Initialize()
 {
-	local = {};
-	recvInput = {};
-	sendInput = {};
+	local		= {};
+	recvInput	= {};
+	sendInput	= {};
 
-	firstMenuEntry = false;
-	wroteP2Start = false;
-	writePlayer = false;
-	sendSpinTimer = false;
-	isClientReady = false;
+	firstMenuEntry	= false;
+	wroteP2Start	= false;
+	writePlayer		= false;
+	sendSpinTimer	= false;
+	isClientReady	= false;
+	timedOut		= false;
+
+	receivedKeepalive = sentKeepalive = 0;
 }
 
-void PacketBroker::RecvLoop()
+void PacketBroker::ReceiveLoop()
 {
 	PreReceive();
 
@@ -100,12 +102,14 @@ void PacketBroker::RecvLoop()
 	Receive(packet, true);
 	Receive(packet, false);
 
+	timedOut = (Duration(receivedKeepalive) >= ConnectionTimeout);
+
 	PostReceive();
 }
 
 void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 {
-	Socket::Status status;
+	sf::Socket::Status status;
 
 	if (safe)
 		status = Globals::Networking->recvSafe(packet);
@@ -148,6 +152,10 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			isClientReady = true;
 			break;
 
+		case MSG_S_KEEPALIVE:
+			receivedKeepalive = Millisecs();
+			break;
+
 		default:
 			ReceiveInput(newType, packet);
 			ReceiveSystem(newType, packet);
@@ -174,6 +182,16 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 		lastType = newType;
 	}
+}
+
+bool PacketBroker::ConnectionTimedOut()
+{
+	return timedOut;
+}
+
+void PacketBroker::SetConnectTime()
+{
+	receivedKeepalive = sentKeepalive = Millisecs();
 }
 
 bool PacketBroker::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
@@ -203,6 +221,9 @@ void PacketBroker::Finalize()
 
 void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 {
+	if (Duration(sentKeepalive) >= 1000)
+		RequestPacket(MSG_S_KEEPALIVE, safe);
+
 	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
 	{
 		if (local.game.CurrentLevel != CurrentLevel)
@@ -499,6 +520,10 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma endregion
 
 #pragma region System
+
+	case MSG_S_KEEPALIVE:
+		sentKeepalive = Millisecs();
+		break;
 
 	case MSG_S_2PREADY:
 		packet << PlayerReady[0];

@@ -18,7 +18,7 @@ public:
 	// Methods
 	//
 
-	void RecvLoop();
+	void ReceiveLoop();
 
 	/// <summary>
 	/// Requests the specified message type to be added to the outbound packets.
@@ -43,9 +43,11 @@ public:
 	inline void SendPlayer()	{ SendPlayer(safe, fast); }
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
-	// HACK: Dirty, dirty hack.
-	bool isClientReady;
-	const uint Timeout;
+	bool ConnectionTimedOut();
+	void SetConnectTime();
+
+	bool isClientReady;	// HACK: Dirty, dirty hack.
+	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
 
 private:
@@ -111,4 +113,7 @@ private:
 	// Set in SendSystem on level change to true if playing a relevant character.
 	// (Sonic, Shadow, Amy, Metalsonic)
 	bool sendSpinTimer;
+
+	bool timedOut;
+	uint sentKeepalive, receivedKeepalive;
 };

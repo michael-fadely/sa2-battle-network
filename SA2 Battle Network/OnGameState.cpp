@@ -44,7 +44,7 @@ void WaitForPlayerLoad()
 		
 		do
 		{
-			Broker->RecvLoop();
+			Broker->ReceiveLoop();
 			std::this_thread::yield();
 		} while (!Broker->isClientReady);
 

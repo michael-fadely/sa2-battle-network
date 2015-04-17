@@ -76,7 +76,7 @@ void FrameHandler()
 		return;
 	}
 
-	Globals::Broker->RecvLoop();
+	Globals::Broker->ReceiveLoop();
 
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();

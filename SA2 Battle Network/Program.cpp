@@ -221,6 +221,8 @@ bool Program::Connect()
 		PlayMusic(musicDefault);
 		PlayJingle(musicConnected);
 
+		Globals::Broker->SetConnectTime();
+
 		ApplySettings(true);
 		P2Start = 2;
 
