@@ -20,4 +20,3 @@ public:
 	// If skipErase is true, the backup data will be restored without being erased.
 	static bool restore(size_t address, bool skipErase = false);
 };
-

@@ -1,10 +1,8 @@
 #include <string>
-
 #include <SFML/Network.hpp>
 
 #include "Globals.h"			// for Globals :specialed:
 #include "Networking.h"			// for MSG
-
 #include "MemoryManagement.h"	// for MemManage
 #include "CommonEnums.h"		// for Menu, SubMenu2P
 #include "AddressList.h"		// for CurrentMenu
@@ -33,7 +31,10 @@ sf::Packet& operator >>(sf::Packet& packet, Program::Version& data)
 
 Program::Version Program::versionNum = { 3, 1 };
 const std::string Program::version = "SA2:BN Version: " + Program::versionNum.str();
-std::string Program::Version::str() { return to_string(major) + "." + to_string(minor); }
+std::string Program::Version::str()
+{
+	return to_string(major) + "." + to_string(minor);
+}
 
 #pragma endregion
 

@@ -1,4 +1,3 @@
-
 #include <thread>
 #include <chrono>
 
@@ -13,7 +12,10 @@
 using namespace std;
 using namespace chrono;
 
-inline uint32 MemManage::getElapsedFrames(const uint32 lastFrameCount) { return (FrameCount - lastFrameCount); }
+inline uint32 MemManage::getElapsedFrames(const uint32 lastFrameCount)
+{
+	return (FrameCount - lastFrameCount);
+}
 
 bool MemManage::elapsedFrames(const uint32 currentFrameCount, const uint32 frameCount)
 {
@@ -124,6 +126,7 @@ bool MemManage::InputInitalized()
 {
 	return (ControllerPtr1 != nullptr && ControllerPtr2 != nullptr);
 }
+
 /*
 void MemManage::waitInputInit()
 {

@@ -12,10 +12,23 @@ public:
 	~PacketEx();
 
 	bool isInPacket(const uint8 type) const;
-	bool isEmpty() const { return empty; }
-	void Clear() { clear(); Initialize(); }
+
+	bool isEmpty() const
+	{
+		return empty;
+	}
+
+	void Clear()
+	{
+		clear();
+		Initialize();
+	}
+
 	// Returns the number of unique messages in this instance of the packet
-	uint32 getMessageCount() const { return messageCount; }
+	uint32 getMessageCount() const
+	{
+		return messageCount;
+	}
 
 	// Adds a message type to the packet.
 	// Returns true if it was added, false if it already exists.

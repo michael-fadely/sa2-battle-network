@@ -13,7 +13,7 @@ using namespace sf;
 
 #pragma region PacketHandler
 
-PacketHandler::PacketHandler() : start_time(0), bound(false), host(false), connected(false), Address({})
+PacketHandler::PacketHandler() : bound(false), connected(false), host(false), start_time(0), Address({})
 {
 	Initialize();
 }
@@ -180,7 +180,6 @@ sf::Socket::Status PacketHandler::Disconnect(const bool received)
 		{
 			result = socketSafe.send(disconnect);
 		} while (result == Socket::Status::NotReady);
-
 	}
 
 	socketSafe.disconnect();

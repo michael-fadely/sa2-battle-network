@@ -40,9 +40,9 @@ wchar_t** argv = nullptr;
 
 void __cdecl ThreadInit(const char* path)
 {
-	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
+	if (setvbuf(stdout, nullptr, _IOLBF, 4096) != 0)
 		abort();
-	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
+	if (setvbuf(stderr, nullptr, _IOLBF, 4096) != 0)
 		abort();
 
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -121,7 +121,7 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();
 	Globals::Program = new Program(Settings, isServer, Address);
-	Globals::Broker = new PacketBroker();
+	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
 	InitOnInput();

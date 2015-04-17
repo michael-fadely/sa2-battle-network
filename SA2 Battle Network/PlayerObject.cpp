@@ -1,4 +1,3 @@
-
 #include "ModLoaderExtensions.h"
 
 #include "PlayerObject.h"
@@ -134,6 +133,7 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 		}
 	}
 }
+
 void PlayerObject::Teleport(PlayerObject* destination, ObjectMaster* source)
 {
 	source->Data1->Position = destination->Data1.Position;
