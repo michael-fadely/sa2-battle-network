@@ -75,7 +75,7 @@ static inline bool SpeedDelta(const float last, const float current)
 //	Memory Handler Class
 */
 
-PacketBroker::PacketBroker() : safe(true), fast(false)
+PacketBroker::PacketBroker(uint timeout) : Timeout(timeout), safe(true), fast(false)
 {
 	Initialize();
 }
@@ -84,8 +84,6 @@ void PacketBroker::Initialize()
 	local = {};
 	recvInput = {};
 	sendInput = {};
-
-	analogTimer = 0;
 
 	firstMenuEntry = false;
 	wroteP2Start = false;
@@ -239,66 +237,6 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 			RequestPacket(MSG_S_RINGS, safe, fast);
 	}
 }
-void PacketBroker::SendInput(PacketEx& safe, PacketEx& fast)
-{
-	if (CurrentMenu[0] == Menu::BATTLE || CurrentMenu[0] == Menu::BATTLE && TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
-	{
-		if (sendInput.HeldButtons != ControllersRaw[0].HeldButtons)
-		{
-			// If the Action Button is pressed, then check the specials.
-			if (ControllersRaw[0].PressedButtons & (Buttons_B | Buttons_X))
-			{
-				bool failsafe = false;
-
-				for (uint8 i = 0; i < 3; i++)
-				{
-					// If a special has been used, send buttons followed immediately by specials.
-					if (P1SpecialAttacks[i] == 0 && local.game.P1SpecialAttacks[i] != 0)
-					{
-						//PrintDebug("<> \aUSED");
-						// As it stands now, the special will rarely be 0 before we send it over, so if we set the local copy to 0,
-						// it has a lower chance of sending redundant packets later, as SendSystem is behind a frame-sync barrier, whereas this is not.
-						failsafe = true;
-						RequestPacket(MSG_I_BUTTONS, safe, fast);
-						RequestPacket(MSG_S_2PSPECIALS, safe, fast);
-						local.game.P1SpecialAttacks[i] = 0;
-						break;
-					}
-					// Otherwise, if a special has been gained, send specials first followed immediately by buttons.
-					else if (P1SpecialAttacks[i] == 1 && local.game.P1SpecialAttacks[i] != 1)
-					{
-						//PrintDebug("<> \aGAINED");
-						failsafe = true;
-						RequestPacket(MSG_S_2PSPECIALS, safe, fast);
-						RequestPacket(MSG_I_BUTTONS, safe, fast);
-						local.game.P1SpecialAttacks[i] = 1;
-						break;
-					}
-				}
-
-				if (!failsafe)
-					RequestPacket(MSG_I_BUTTONS, safe, fast);
-			}
-			else
-			{
-				RequestPacket(MSG_I_BUTTONS, safe, fast);
-			}
-		}
-
-		if (sendInput.LeftStickX != ControllersRaw[0].LeftStickX || sendInput.LeftStickY != ControllersRaw[0].LeftStickY)
-		{
-			if (GameState == GameState::INGAME /*&& Duration(analogTimer) >= 125*/)
-			{
-				if (ControllersRaw[0].LeftStickX == 0 && ControllersRaw[0].LeftStickY == 0)
-					RequestPacket(MSG_I_ANALOG, safe, fast);
-				else
-					RequestPacket(MSG_I_ANALOG, fast, safe);
-
-				analogTimer = Millisecs();
-			}
-		}
-	}
-}
 void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
@@ -360,13 +298,6 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
 	{
-		// Skip the Press Start screen straight to "Ready" screen
-		//if (CurrentMenu[1] >= SubMenu2P::S_START && P2Start != 2 && !wroteP2Start)
-		//{
-		//	wroteP2Start = true;
-		//	P2Start = 2;
-		//}
-
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
 			RequestPacket(MSG_S_BATTLEOPT, safe);
@@ -562,7 +493,6 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		break;
 
 	case MSG_P_SPINTIMER:
-		//cout << "<< [" << Millisecs() << "]\t\tSPIN TIMER: " << ((SonicCharObj2*)Player1->Data2)->SpindashTimer << endl;
 		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 		break;
 
@@ -611,7 +541,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 		// Swap the Time Stop value, as this is connected to player number,
 		// and Player 1 and 2 are relative to the game instance.
-		packet << (char)(TimeStopMode * 5 % 3);
+		packet << (int8)(TimeStopMode * 5 % 3);
 
 		local.game.TimeStopMode = TimeStopMode;
 		break;
@@ -738,7 +668,7 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_POWERUPS);
 			{
-				int powerups;
+				int powerups = 0;
 				packet >> powerups;
 				recvPlayer.Data2.Powerups = (Powerups)powerups;
 				break;
@@ -746,7 +676,7 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 			RECEIVED(MSG_P_UPGRADES);
 			{
-				int upgrades;
+				int upgrades = 0;
 				packet >> upgrades;
 				recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
 				break;
@@ -796,13 +726,11 @@ bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 			RECEIVED(MSG_M_CHARSEL);
 			packet >> local.menu.CharacterSelection[1];
 			CharacterSelection[1] = local.menu.CharacterSelection[1];
-			//cout << (ushort)local.menu.CharacterSelection[1] << ' ' << (ushort)CharacterSelection[1] << endl;
 			break;
 
 			RECEIVED(MSG_M_CHARCHOSEN);
 			packet >> local.menu.CharacterSelected[1];
 			CharacterSelected[1] = local.menu.CharacterSelected[1];
-			//cout << (ushort)CharacterSelected[1] << ' ' << (ushort)local.menu.CharacterSelected[1] << endl;
 			break;
 
 			RECEIVED(MSG_M_ALTCHAR);
@@ -902,6 +830,7 @@ inline void PacketBroker::writeTimeStop() { TimeStopMode = local.game.TimeStopMo
 #pragma endregion
 #pragma region Toggles
 
+// TODO: Remove from this class
 void PacketBroker::ToggleSplitscreen()
 {
 	if (GameState == GameState::INGAME && TwoPlayerMode > 0)

@@ -28,6 +28,7 @@ void PacketEx::Initialize()
 	
 	if (MessageTypes != nullptr)
 		delete[] MessageTypes;
+
 	MessageTypes = new bool[MessageTypeCount]();
 }
 
@@ -39,16 +40,12 @@ bool PacketEx::isInPacket(const uint8 type) const
 bool PacketEx::addType(uint8 type)
 {
 	if (isInPacket(type))
-	{
 		return false;
-	}
-	else
-	{
-		empty = false;
-		*this << type;
-		messageCount++;
-		return MessageTypes[type] = true;
-	}
+
+	empty = false;
+	*this << type;
+	messageCount++;
+	return MessageTypes[type] = true;
 }
 
 

@@ -1,7 +1,6 @@
 #include <SA2ModLoader.h>
 
 #include "Globals.h"			// for Globals :specialed:
-#include "AddressList.h"		// for FrameCount, FrameIncrement
 
 #include "OnFrame.h"
 
@@ -60,14 +59,8 @@ void InitOnFrame()
 
 #pragma endregion
 
-unsigned int lastFrame = 0;
 void FrameHandler()
 {
-	if ((FrameCount - lastFrame) > FrameIncrement || FrameCount == lastFrame)
-		PrintDebug("\a[FRAME DISCREPANCY]");
-	
-	lastFrame = FrameCount;
-
 	if (!Globals::isInitialized())
 		return;
 
@@ -76,7 +69,8 @@ void FrameHandler()
 		Globals::Program->Connect();
 		return;
 	}
-	else if (!Globals::Program->CheckConnectOK())
+
+	if (!Globals::Program->CheckConnectOK())
 	{
 		Globals::Program->Disconnect(false);
 		return;

@@ -87,9 +87,7 @@ void MainThread(int argc, wchar_t** argv)
 		}
 		else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
 		{
-			if ((timeout = _wtoi(argv[++i])) < 1000)
-				timeout = 1000;
-
+			timeout = min(2500, _wtoi(argv[++i]));
 			validArguments = true;
 		}
 		// Configuration
@@ -118,6 +116,7 @@ void MainThread(int argc, wchar_t** argv)
 #pragma endregion
 
 	using namespace sa2bn;
+
 	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();

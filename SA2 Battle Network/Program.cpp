@@ -225,11 +225,8 @@ bool Program::Connect()
 
 		return true;
 	}
-	else
-	{
-		setMusic = false;
-	}
 
+	setMusic = false;
 	return false;
 }
 
@@ -265,14 +262,6 @@ void Program::ApplySettings(const bool apply)
 	if (clientSettings.KeepWindowActive)
 		MemManage::keepActive(apply);
 
-	if (!isServer)
-	{
-		MemManage::swapSpawn(apply);
-		MemManage::swapCharsel(apply);
-	}
-	else
-	{
-		MemManage::swapSpawn(!apply);
-		MemManage::swapCharsel(!apply);
-	}
+	MemManage::swapSpawn(isServer ? !apply : apply);
+	MemManage::swapCharsel(isServer ? !apply : apply);
 }

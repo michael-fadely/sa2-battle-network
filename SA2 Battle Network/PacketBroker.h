@@ -11,7 +11,7 @@
 class PacketBroker
 {
 public:
-	PacketBroker();
+	PacketBroker(uint timeout);
 	void Initialize();
 
 	//
@@ -40,12 +40,12 @@ public:
 	void Finalize();
 
 	inline void SendSystem()	{ SendSystem(safe, fast); }
-	inline void SendInput()		{ SendInput(safe, fast); }
 	inline void SendPlayer()	{ SendPlayer(safe, fast); }
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
 	// HACK: Dirty, dirty hack.
 	bool isClientReady;
+	const uint Timeout;
 	ControllerData recvInput, sendInput;
 
 private:
@@ -66,8 +66,6 @@ private:
 
 	// Read and send System variables
 	void SendSystem(PacketEx& safe, PacketEx& fast);
-	// Read and send Input
-	void SendInput(PacketEx& safe, PacketEx& fast);
 	// Read and send Player varaibles
 	void SendPlayer(PacketEx& safe, PacketEx& fast);
 	// Read and send Menu variables
@@ -102,10 +100,6 @@ private:
 
 	// Used for comparison to determine what to send.
 	MemStruct local;
-
-	// Analog throttle timer.
-	// Prevents it from spamming packets.
-	uint analogTimer;
 
 	// Toggles and things
 	bool firstMenuEntry;

@@ -2,4 +2,4 @@
 
 void InitOnGameState();
 static void OnGameState();
-void StageLoaded();
+void WaitForPlayerLoad();

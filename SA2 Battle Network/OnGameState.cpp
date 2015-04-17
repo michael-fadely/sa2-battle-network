@@ -24,10 +24,10 @@ static void __cdecl OnGameState()
 	// This is here because we overwrite its assignment with a call
 	// in the original code.
 	dword_174B058 = 0;
-	StageLoaded();
+	WaitForPlayerLoad();
 }
 
-void StageLoaded()
+void WaitForPlayerLoad()
 {
 	using namespace sa2bn::Globals;
 
