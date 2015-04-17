@@ -236,7 +236,7 @@ bool Program::Connect()
 /// <summary>
 /// Closes all connections.
 /// </summary>
-/// <param name="received">If <c>true</c>, sends a message to all open connections notifying them of the disconnect.</param>
+/// <param name="received">If <c>false</c>, sends a message to all open connections notifying them of the disconnect.</param>
 /// <param name="code">The error code to set.</param>
 void Program::Disconnect(bool received)
 {

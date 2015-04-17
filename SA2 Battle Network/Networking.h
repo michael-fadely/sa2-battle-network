@@ -56,6 +56,7 @@ enum MsgTypes : unsigned char
 	MSG_P_END,				// Marker: End of player messages
 	MSG_S_START,			// Marker: Start of system messages
 
+	MSG_S_KEEPALIVE,		// Keep-alive message
 	MSG_S_2PREADY,
 	MSG_S_2PSPECIALS,
 	MSG_S_BATTLEOPT,
