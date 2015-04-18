@@ -48,9 +48,9 @@ uint speedTimer = 0;
 
 static inline bool PositionDelta(const Vertex& last, const Vertex& current)
 {
-	return (abs(last.x - current.x) >= positionDelta
-		|| abs(last.y - current.y) >= positionDelta
-		|| abs(last.z - current.z) >= positionDelta
+	return (fabs(last.x - current.x) >= positionDelta
+		|| fabs(last.y - current.y) >= positionDelta
+		|| fabs(last.z - current.z) >= positionDelta
 		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
@@ -62,9 +62,10 @@ static inline bool RotationDelta(const Rotation& last, const Rotation& current)
 		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
+// TODO: Fix. Totally broken on negative values.
 static inline bool SpeedDelta(const float last, const float current)
 {
-	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= speedDelta);
+	return last != current && (Duration(speedTimer) >= 10000 || fabs(last - current) >= speedDelta);
 	//abs(last - current) >= max((speedDelta * current), 0.01)
 }
 
