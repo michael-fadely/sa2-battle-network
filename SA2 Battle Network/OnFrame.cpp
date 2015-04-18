@@ -78,6 +78,12 @@ void FrameHandler()
 
 	Globals::Broker->ReceiveLoop();
 
+	if (Globals::Broker->ConnectionTimedOut())
+	{
+		PrintDebug("<> Connection timed out.");
+		Globals::Program->Disconnect(true);
+	}
+
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();

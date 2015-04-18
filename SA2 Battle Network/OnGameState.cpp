@@ -45,6 +45,14 @@ void WaitForPlayerLoad()
 		do
 		{
 			Broker->ReceiveLoop();
+
+			if (Broker->ConnectionTimedOut())
+			{
+				PrintDebug("<> Connection timed out while waiting for players.");
+				sa2bn::Globals::Program->Disconnect(true);
+				return;
+			}
+
 			std::this_thread::yield();
 		} while (!Broker->isClientReady);
 
