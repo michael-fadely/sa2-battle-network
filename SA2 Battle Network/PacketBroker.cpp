@@ -119,11 +119,11 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 	if (status != sf::Socket::Status::Done)
 		return;
 
-	uint8 newType = MSG_NULL;
 	uint8 lastType = MSG_NULL;
 
 	while (!packet.endOfPacket())
 	{
+		uint8 newType;
 		packet >> newType;
 
 		if (newType == lastType)
@@ -150,34 +150,51 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 		case MSG_READY:
 			isClientReady = true;
+			packet.m_readPos += sizeof(ushort);
 			break;
 
 		case MSG_S_KEEPALIVE:
 			receivedKeepalive = Millisecs();
+			packet.m_readPos += sizeof(ushort);
 			break;
 
 		default:
-			ReceiveInput(newType, packet);
-			ReceiveSystem(newType, packet);
-
-			// HACK: This isn't really a sufficient fix for the scale bug.
-			// I suspect it's causing some weird side effects like "falling" while going down a slope,
-			// usually interrupting spindashes. However, it fixes the scale issue.
-			// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
-			if (!writePlayer)
-				recvPlayer.Set(Player2);
-
-			if (ReceivePlayer(newType, packet))
 			{
-				if (GameState >= GameState::INGAME)
-				{
-					writePlayer = false;
-					PlayerObject::WritePlayer(Player2, &recvPlayer);
-				}
-			}
+				ushort length;
+				packet >> length;
 
-			ReceiveMenu(newType, packet);
-			break;
+				if (ReceiveInput(newType, packet) || ReceiveSystem(newType, packet))
+				{
+					break;
+				}
+
+				// HACK: This isn't really a sufficient fix for the scale bug.
+				// I suspect it's causing some weird side effects like "falling" while going down a slope,
+				// usually interrupting spindashes. However, it fixes the scale issue.
+				// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
+				if (!writePlayer)
+					recvPlayer.Set(Player2);
+
+				if (ReceivePlayer(newType, packet))
+				{
+					if (GameState >= GameState::INGAME)
+					{
+						writePlayer = false;
+						PlayerObject::WritePlayer(Player2, &recvPlayer);
+					}
+
+					break;
+				}
+
+				if (ReceiveMenu(newType, packet))
+				{
+					break;
+				}
+
+				packet.m_readPos += length;
+
+				break;
+			}
 		}
 
 		lastType = newType;
@@ -420,6 +437,11 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 
 bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 {
+
+	auto offset = packet.getDataSize();
+	ushort MyCoolShorts = 0;
+	packet << MyCoolShorts;
+
 	switch (packetType)
 	{
 	default:
@@ -597,12 +619,15 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		break;
 
 	case MSG_S_STAGE:
+		PrintDebug("<< Sending stage: %d", CurrentLevel);
 		packet << CurrentLevel;
 		break;
 
 #pragma endregion
 
 	}
+
+	*((ushort*)((uchar*)packet.getData() + offset)) = (packet.getDataSize() - offset);
 
 	return true;
 }
@@ -635,6 +660,16 @@ bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 }
 bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 {
+	if (type == MSG_S_STAGE)
+	{
+		int level;
+		packet >> level;
+		CurrentLevel = level;
+		PrintDebug(">> Received stage change: %d (%d)", level, CurrentLevel);
+		stageReceived = true;
+		return true;
+	}
+
 	if (GameState >= GameState::LOAD_FINISHED)
 	{
 		switch (type)
@@ -681,11 +716,6 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 			writeRings();
 
 			PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
-			break;
-
-		case MSG_S_STAGE:
-			packet >> CurrentLevel;
-			stageReceived = true;
 			break;
 		}
 

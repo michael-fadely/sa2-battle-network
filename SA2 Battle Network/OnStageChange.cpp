@@ -16,9 +16,9 @@ int __declspec(naked) SetCurrentLevel_asm(int stage)
 	__asm
 	{
 		push eax
-			call SetCurrentLevel
-			pop eax
-			retn
+		call SetCurrentLevel
+		pop eax
+		retn
 	}
 }
 
@@ -57,8 +57,9 @@ void OnStageChange()
 	{
 		PrintDebug("<> Waiting for stage number...");
 		Broker->WaitForPlayers(Broker->stageReceived);
-		Broker->Request(MSG_READY, true);
-		Broker->Finalize();
+		sf::Packet packet;
+		packet << (uint8)MSG_READY;
+		Networking->sendSafe(packet);
 	}
 
 	PrintDebug(">> Stage received. Resuming game.");
