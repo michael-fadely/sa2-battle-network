@@ -38,35 +38,33 @@ using namespace sa2bn;
 // TODO: Re-evaluate all this science.
 // TODO: Consider using the same timer for all three.
 
-const float positionDelta = 16;
-const int rotateDelta = toBAMS(11.25); // TODO: Consider adjusting this yet again. 11.25?
-const float speedDelta = 0.1F;
+const float positionThreshold = 16;
+const int rotateThreshold = toBAMS(11.25);
+const float speedThreshold = 0.1F;
 
 uint positionTimer = 0;
 uint rotateTimer = 0;
 uint speedTimer = 0;
 
-static inline bool PositionDelta(const Vertex& last, const Vertex& current)
+static inline bool PositionThreshold(const Vertex& last, const Vertex& current)
 {
-	return (fabs(last.x - current.x) >= positionDelta
-		|| fabs(last.y - current.y) >= positionDelta
-		|| fabs(last.z - current.z) >= positionDelta
+	return (fabs(last.x - current.x) >= positionThreshold
+		|| fabs(last.y - current.y) >= positionThreshold
+		|| fabs(last.z - current.z) >= positionThreshold
 		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
-static inline bool RotationDelta(const Rotation& last, const Rotation& current)
+static inline bool RotationThreshold(const Rotation& last, const Rotation& current)
 {
-	return (abs(last.x - current.x) >= rotateDelta
-		|| abs(last.y - current.y) >= rotateDelta
-		|| abs(last.z - current.z) >= rotateDelta
+	return (abs(last.x - current.x) >= rotateThreshold
+		|| abs(last.y - current.y) >= rotateThreshold
+		|| abs(last.z - current.z) >= rotateThreshold
 		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
-// TODO: Fix. Totally broken on negative values.
-static inline bool SpeedDelta(const float last, const float current)
+static inline bool SpeedThreshold(const float last, const float current)
 {
-	return last != current && (Duration(speedTimer) >= 10000 || fabs(last - current) >= speedDelta);
-	//abs(last - current) >= max((speedDelta * current), 0.01)
+	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= max((speedThreshold * current), speedThreshold));
 }
 
 #pragma endregion
@@ -269,7 +267,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 			RequestPacket(MSG_P_SPEED, safe, fast);
 		}
 
-		if (PositionDelta(sendPlayer.Data1.Position, Player1->Data1->Position))
+		if (PositionThreshold(sendPlayer.Data1.Position, Player1->Data1->Position))
 			RequestPacket(MSG_P_POSITION, fast, safe);
 
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
@@ -289,8 +287,8 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 				RequestPacket(MSG_P_SPINTIMER, safe, fast);
 		}
 
-		if (RotationDelta(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
-			|| (SpeedDelta(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedDelta(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
+		if (RotationThreshold(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
+			|| (SpeedThreshold(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedThreshold(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
 			|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 		{
 			RequestPacket(MSG_P_ROTATION, fast, safe);
