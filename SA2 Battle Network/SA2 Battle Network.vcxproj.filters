@@ -96,6 +96,9 @@
     <ClInclude Include="OnGameState.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="OnStageChange.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -135,6 +138,9 @@
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="OnGameState.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="OnStageChange.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

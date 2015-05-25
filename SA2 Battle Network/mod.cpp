@@ -18,6 +18,7 @@
 #include "OnInput.h"
 #include "OnFrame.h"
 #include "OnGameState.h"
+#include "OnStageChange.h"
 
 // Namespaces
 using namespace std;
@@ -126,4 +127,5 @@ void MainThread(int argc, wchar_t** argv)
 	InitOnGameState();
 	InitOnInput();
 	InitOnFrame();
+	InitOnStageChange();
 }
