@@ -1,4 +1,6 @@
 #include <SA2ModLoader.h>
+#include <thread>			// for this_thread::yield
+#include "Networking.h"		// for MSG
 #include "Globals.h"
 #include "OnStageChange.h"
 
@@ -14,9 +16,9 @@ int __declspec(naked) SetCurrentLevel_asm(int stage)
 	__asm
 	{
 		push eax
-		call SetCurrentLevel
-		pop eax
-		retn
+			call SetCurrentLevel
+			pop eax
+			retn
 	}
 }
 
@@ -35,8 +37,6 @@ void SetCurrentLevel(int stage)
 	OnStageChange();
 }
 
-using namespace sa2bn;
-
 void OnStageChange()
 {
 	using namespace sa2bn::Globals;
@@ -49,10 +49,17 @@ void OnStageChange()
 
 	if (Networking->isServer())
 	{
-		PrintDebug("Stage load confirmation as server.");
+		Broker->Request(MSG_S_STAGE, true);
+		Broker->Finalize();
+		Broker->WaitForPlayers(Broker->isClientReady);
 	}
 	else
 	{
-		PrintDebug("Stage load confirmation as client.");
+		PrintDebug("<> Waiting for stage number...");
+		Broker->WaitForPlayers(Broker->stageReceived);
+		Broker->Request(MSG_READY, true);
+		Broker->Finalize();
 	}
+
+	PrintDebug(">> Stage received. Resuming game.");
 }

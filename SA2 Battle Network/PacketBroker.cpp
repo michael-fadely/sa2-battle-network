@@ -88,6 +88,7 @@ void PacketBroker::Initialize()
 	writePlayer		= false;
 	sendSpinTimer	= false;
 	isClientReady	= false;
+	stageReceived	= false;
 	timedOut		= false;
 
 	receivedKeepalive = sentKeepalive = 0;
@@ -183,9 +184,34 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 	}
 }
 
-bool PacketBroker::ConnectionTimedOut()
+bool PacketBroker::ConnectionTimedOut() const
 {
 	return timedOut;
+}
+
+void PacketBroker::WaitForPlayers(bool& condition)
+{
+	if (!condition)
+	{
+		PrintDebug("<> Waiting for players...");
+
+		do
+		{
+			ReceiveLoop();
+
+			if (ConnectionTimedOut())
+			{
+				PrintDebug("<> Connection timed out while waiting for players.");
+				Globals::Program->Disconnect(true);
+				return;
+			}
+
+			std::this_thread::yield();
+		} while (!condition);
+
+		PrintDebug(">> All players ready. Resuming game.");
+		condition = false;
+	}
 }
 
 void PacketBroker::SetConnectTime()
@@ -570,6 +596,10 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		local.game.TimeStopMode = TimeStopMode;
 		break;
 
+	case MSG_S_STAGE:
+		packet << CurrentLevel;
+		break;
+
 #pragma endregion
 
 	}
@@ -651,6 +681,11 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 			writeRings();
 
 			PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
+			break;
+
+		case MSG_S_STAGE:
+			packet >> CurrentLevel;
+			stageReceived = true;
 			break;
 		}
 

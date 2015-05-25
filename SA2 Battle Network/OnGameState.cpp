@@ -38,26 +38,5 @@ void WaitForPlayerLoad()
 	packet << (uint8)MSG_READY;
 	Networking->sendSafe(packet);
 
-	if (!Broker->isClientReady)
-	{
-		PrintDebug("<> Waiting for players...");
-		
-		do
-		{
-			Broker->ReceiveLoop();
-
-			if (Broker->ConnectionTimedOut())
-			{
-				PrintDebug("<> Connection timed out while waiting for players.");
-				sa2bn::Globals::Program->Disconnect(true);
-				return;
-			}
-
-			std::this_thread::yield();
-		} while (!Broker->isClientReady);
-
-		PrintDebug(">> All players ready. Resuming game.");
-	}
-	
-	Broker->isClientReady = false;
+	Broker->WaitForPlayers(Broker->isClientReady);
 }

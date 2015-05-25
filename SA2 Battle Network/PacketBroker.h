@@ -43,10 +43,12 @@ public:
 	inline void SendPlayer()	{ SendPlayer(safe, fast); }
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
-	bool ConnectionTimedOut();
+	bool ConnectionTimedOut() const;
+	void WaitForPlayers(bool& condition);
 	void SetConnectTime();
 
 	bool isClientReady;	// HACK: Dirty, dirty hack.
+	bool stageReceived;	// HACK: Dirty, dirty hack.
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
 
