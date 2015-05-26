@@ -164,9 +164,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				packet >> length;
 
 				if (ReceiveInput(newType, packet) || ReceiveSystem(newType, packet))
-				{
 					break;
-				}
 
 				// HACK: This isn't really a sufficient fix for the scale bug.
 				// I suspect it's causing some weird side effects like "falling" while going down a slope,
@@ -187,9 +185,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				}
 
 				if (ReceiveMenu(newType, packet))
-				{
 					break;
-				}
 
 				packet.m_readPos += length;
 
@@ -206,7 +202,7 @@ bool PacketBroker::ConnectionTimedOut() const
 	return timedOut;
 }
 
-void PacketBroker::WaitForPlayers(bool& condition)
+bool PacketBroker::WaitForPlayers(bool& condition)
 {
 	if (!condition)
 	{
@@ -220,15 +216,17 @@ void PacketBroker::WaitForPlayers(bool& condition)
 			{
 				PrintDebug("<> Connection timed out while waiting for players.");
 				Globals::Program->Disconnect(true);
-				return;
+				return condition = false;
 			}
 
 			std::this_thread::yield();
 		} while (!condition);
 
 		PrintDebug(">> All players ready. Resuming game.");
-		condition = false;
 	}
+
+	condition = false;
+	return true;
 }
 
 void PacketBroker::SetConnectTime()
@@ -665,9 +663,8 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 		int level;
 		packet >> level;
 		CurrentLevel = level;
-		PrintDebug(">> Received stage change: %d (%d)", level, CurrentLevel);
-		stageReceived = true;
-		return true;
+
+		return stageReceived = true;
 	}
 
 	if (GameState >= GameState::LOAD_FINISHED)

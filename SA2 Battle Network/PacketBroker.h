@@ -44,7 +44,7 @@ public:
 	inline void SendMenu()		{ SendMenu(safe, fast); }
 
 	bool ConnectionTimedOut() const;
-	void WaitForPlayers(bool& condition);
+	bool WaitForPlayers(bool& condition);
 	void SetConnectTime();
 
 	bool isClientReady;	// HACK: Dirty, dirty hack.

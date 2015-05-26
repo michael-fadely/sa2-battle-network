@@ -21,15 +21,11 @@ void InitOnGameState()
 
 static void __cdecl OnGameState()
 {
+	using namespace sa2bn::Globals;
+
 	// This is here because we overwrite its assignment with a call
 	// in the original code.
 	dword_174B058 = 0;
-	WaitForPlayerLoad();
-}
-
-void WaitForPlayerLoad()
-{
-	using namespace sa2bn::Globals;
 
 	if (!isInitialized() || !isConnected())
 		return;
