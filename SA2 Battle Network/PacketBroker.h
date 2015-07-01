@@ -26,7 +26,7 @@ public:
 	/// <param name="type">The message type.</param>
 	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
-	bool inline PacketBroker::Request(uint8 type, bool isSafe)
+	bool inline Request(uint8 type, bool isSafe)
 	{
 		if (isSafe)
 			return RequestPacket(type, safe, fast);

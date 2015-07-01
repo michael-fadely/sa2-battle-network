@@ -733,6 +733,7 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 			return false;
 
 			RECEIVED(MSG_P_ACTION);
+			// TODO: Add "Do Next Action" to status bits, and also document status bits
 			packet >> recvPlayer.Data1.Action;
 			break;
 

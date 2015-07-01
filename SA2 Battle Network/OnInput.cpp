@@ -7,13 +7,14 @@
 
 #include "OnInput.h"
 
-#pragma region Initialization
-
-void* OnInput_ptr = (void*)0x0077E897;
-void __cdecl OnInput()
+extern "C" void __declspec(dllexport) OnInput()
 {
 	InputHandler();
 }
+
+#pragma region Initialization
+
+void* OnInput_ptr = (void*)0x0077E897;
 
 void InitOnInput()
 {

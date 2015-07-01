@@ -24,30 +24,24 @@
 using namespace std;
 using namespace chrono;
 
-extern "C"				// Required for proper export
-__declspec(dllexport)	// This data is being exported from this DLL
-ModInfo SA2ModInfo = {
-	ModLoaderVer,		// Struct version
-	ThreadInit,			// Initialization function
-	NULL, 0,			// List of Patches & Patch Count
-	NULL, 0,			// List of Jumps & Jump Count
-	NULL, 0,			// List of Calls & Call Count
-	NULL, 0,			// List of Pointers & Pointer Count
-};
 
 // Globals
 int argc = 0;
 wchar_t** argv = nullptr;
 
-void __cdecl ThreadInit(const char* path)
+extern "C"
 {
-	if (setvbuf(stdout, nullptr, _IOLBF, 4096) != 0)
-		abort();
-	if (setvbuf(stderr, nullptr, _IOLBF, 4096) != 0)
-		abort();
+	__declspec(dllexport) ModInfo SA2ModInfo = { ModLoaderVer };
+	__declspec(dllexport) void __cdecl Init(const char* path)
+	{
+		if (setvbuf(stdout, nullptr, _IOLBF, 4096) != 0)
+			abort();
+		if (setvbuf(stderr, nullptr, _IOLBF, 4096) != 0)
+			abort();
 
-	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	MainThread(argc, argv);
+		argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+		MainThread(argc, argv);
+	}
 }
 
 void MainThread(int argc, wchar_t** argv)
@@ -125,7 +119,7 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
-	InitOnInput();
-	InitOnFrame();
+	//InitOnInput();
+	//InitOnFrame();
 	InitOnStageChange();
 }
