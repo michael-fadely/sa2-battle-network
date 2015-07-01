@@ -7,18 +7,19 @@
 #endif
 
 // Standard Includes
-#include <cmath>	// for abs
+#include <cmath>						// for abs
 
 // Global Includes
 #include <LazyTypedefs.h>
+#include <WinSock2.h>					// for htons
 
 // Local Includes
-#include "Globals.h"			// for Globals :specialed:
+#include "Globals.h"					// for Globals :specialed:
 #include "Common.h"
 #include "CommonEnums.h"
 
-#include "Networking.h"			// for MSG
-#include "PacketExtensions.h"	// for PacketEx
+#include "Networking.h"					// for MSG
+#include "PacketExtensions.h"			// for PacketEx
 #include "AdventurePacketOverloads.h"
 
 #include <SA2ModLoader.h>
@@ -436,7 +437,7 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 {
 
-	auto offset = packet.getDataSize();
+	size_t offset = packet.getDataSize();
 	ushort MyCoolShorts = 0;
 	packet << MyCoolShorts;
 
@@ -625,7 +626,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 	}
 
-	*((ushort*)((uchar*)packet.getData() + offset)) = (packet.getDataSize() - offset);
+	*((ushort*)((uchar*)packet.getData() + offset)) = htons((ushort)(packet.getDataSize() - offset));
 
 	return true;
 }
