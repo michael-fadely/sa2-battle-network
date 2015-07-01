@@ -34,11 +34,6 @@ extern "C"
 	__declspec(dllexport) ModInfo SA2ModInfo = { ModLoaderVer };
 	__declspec(dllexport) void __cdecl Init(const char* path)
 	{
-		if (setvbuf(stdout, nullptr, _IOLBF, 4096) != 0)
-			abort();
-		if (setvbuf(stderr, nullptr, _IOLBF, 4096) != 0)
-			abort();
-
 		argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 		MainThread(argc, argv);
 	}
