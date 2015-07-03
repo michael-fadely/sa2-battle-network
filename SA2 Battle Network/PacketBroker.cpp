@@ -172,7 +172,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				// usually interrupting spindashes. However, it fixes the scale issue.
 				// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
 				if (!writePlayer)
-					recvPlayer.Set(Player2);
+					recvPlayer.Copy(Player2);
 
 				if (ReceivePlayer(newType, packet))
 				{
@@ -188,6 +188,8 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				if (ReceiveMenu(newType, packet))
 					break;
 
+				// TODO: Figure out howtf it's getting ID 4
+				PrintDebug("\t\tSkipping %d bytes for id %02d", length, newType);
 				packet.m_readPos += length;
 
 				break;
@@ -353,7 +355,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
 			RequestPacket(MSG_P_UPGRADES, safe, fast);
 
-		sendPlayer.Set(Player1);
+		sendPlayer.Copy(Player1);
 	}
 }
 void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
@@ -436,7 +438,6 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 
 bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 {
-
 	size_t offset = packet.getDataSize();
 	ushort MyCoolShorts = 0;
 	packet << MyCoolShorts;
@@ -626,7 +627,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 	}
 
-	*((ushort*)((uchar*)packet.getData() + offset)) = htons((ushort)(packet.getDataSize() - offset));
+	*((ushort*)((uchar*)packet.getData() + offset)) = htons((ushort)(packet.getDataSize() - (offset + sizeof(short))));
 
 	return true;
 }
@@ -942,7 +943,7 @@ bool PacketBroker::Teleport()
 		{
 			// Teleport to recvPlayer
 			PrintDebug("<> Teleporting to other player...");;
-			PlayerObject::Teleport(&recvPlayer, Player1);
+			PlayerObject::Teleport(Player1, &recvPlayer);
 			return true;
 		}
 	}
