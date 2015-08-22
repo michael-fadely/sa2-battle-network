@@ -24,17 +24,13 @@
 using namespace std;
 using namespace chrono;
 
-
-// Globals
-int argc = 0;
-wchar_t** argv = nullptr;
-
 extern "C"
 {
 	__declspec(dllexport) ModInfo SA2ModInfo = { ModLoaderVer };
 	__declspec(dllexport) void __cdecl Init(const char* path)
 	{
-		argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+		int argc = 0;
+		wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 		MainThread(argc, argv);
 	}
 }
