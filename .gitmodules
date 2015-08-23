@@ -1,3 +1,6 @@
 [submodule "sa2-mod-loader"]
 	path = sa2-mod-loader
 	url = https://github.com/sonicretro/sa2-mod-loader.git
+[submodule "SFML"]
+	path = SFML
+	url = https://github.com/SFML/SFML.git
