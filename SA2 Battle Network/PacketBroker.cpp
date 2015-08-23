@@ -438,9 +438,7 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 
 bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 {
-	size_t offset = packet.getDataSize();
-	ushort MyCoolShorts = 0;
-	packet << MyCoolShorts;
+	sf::Packet out;
 
 	switch (packetType)
 	{
@@ -450,13 +448,13 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma region Input
 
 	case MSG_I_ANALOG:
-		packet << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+		out << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
 		sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
 		sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
 		break;
 
 	case MSG_I_BUTTONS:
-		packet << ControllersRaw[0].HeldButtons;
+		out << ControllersRaw[0].HeldButtons;
 		sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
 		break;
 
@@ -465,7 +463,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma region Menu
 
 	case MSG_M_ALTCHAR:
-		packet << AltCharacterSonic << AltCharacterShadow
+		out << AltCharacterSonic << AltCharacterShadow
 			<< AltCharacterTails << AltCharacterEggman
 			<< AltCharacterKnuckles << AltCharacterRouge;
 
@@ -478,28 +476,28 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		break;
 
 	case MSG_M_BATTLESEL:
-		packet << BattleSelection;
+		out << BattleSelection;
 		local.menu.BattleSelection = BattleSelection;
 		break;
 
 	case MSG_M_BATTLEOPTSEL:
-		packet << BattleOptionsSelection << BattleOptionsBack;
+		out << BattleOptionsSelection << BattleOptionsBack;
 		local.menu.BattleOptionsSelection = BattleOptionsSelection;
 		local.menu.BattleOptionsBack = BattleOptionsBack;
 		break;
 
 	case MSG_M_CHARCHOSEN:
-		packet << CharacterSelected[0];
+		out << CharacterSelected[0];
 		local.menu.CharacterSelected[0] = CharacterSelected[0];
 		break;
 
 	case MSG_M_CHARSEL:
-		packet << CharacterSelection[0];
+		out << CharacterSelection[0];
 		local.menu.CharacterSelection[0] = CharacterSelection[0];
 		break;
 
 	case MSG_M_STAGESEL:
-		packet << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+		out << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
 		local.menu.StageSelection2P[0] = StageSelection2P[0];
 		local.menu.StageSelection2P[1] = StageSelection2P[1];
 		local.menu.BattleOptionsButton = BattleOptionsButton;
@@ -514,54 +512,54 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		// Don't freak out!
 
 	case MSG_P_ACTION:
-		packet << Player1->Data1->Action;
+		out << Player1->Data1->Action;
 		break;
 
 	case MSG_P_STATUS:
-		packet << Player1->Data1->Status;
+		out << Player1->Data1->Status;
 		break;
 
 	case MSG_P_ROTATION:
 		speedTimer = rotateTimer = Millisecs();
-		packet << Player1->Data1->Rotation;
+		out << Player1->Data1->Rotation;
 		break;
 
 	case MSG_P_POSITION:
 		// Informs other conditions that it shouldn't request
-		// another position packet so soon
+		// another position out so soon
 		positionTimer = Millisecs();
-		packet << Player1->Data1->Position;
+		out << Player1->Data1->Position;
 		break;
 
 	case MSG_P_SCALE:
-		packet << Player1->Data1->Scale;
+		out << Player1->Data1->Scale;
 		break;
 
 	case MSG_P_POWERUPS:
 		PrintDebug("<< Sending powerups");
-		packet << Player1->Data2->Powerups;
+		out << Player1->Data2->Powerups;
 		break;
 
 	case MSG_P_UPGRADES:
 		PrintDebug("<< Sending upgrades");
-		packet << Player1->Data2->Upgrades;
+		out << Player1->Data2->Upgrades;
 		break;
 
 	case MSG_P_HP:
-		packet << Player1->Data2->MechHP;
+		out << Player1->Data2->MechHP;
 		break;
 
 	case MSG_P_SPEED:
 		rotateTimer = speedTimer = Millisecs();
-		packet << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+		out << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
 		break;
 
 	case MSG_P_ANIMATION:
-		packet << Player1->Data2->AnimInfo.Next;
+		out << Player1->Data2->AnimInfo.Next;
 		break;
 
 	case MSG_P_SPINTIMER:
-		packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+		out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 		break;
 
 #pragma endregion
@@ -573,38 +571,38 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 		break;
 
 	case MSG_S_2PREADY:
-		packet << PlayerReady[0];
+		out << PlayerReady[0];
 		local.menu.PlayerReady[0] = PlayerReady[0];
 		break;
 
 	case MSG_S_2PSPECIALS:
-		packet.append(P1SpecialAttacks, sizeof(char) * 3);
+		out.append(P1SpecialAttacks, sizeof(char) * 3);
 		memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
 		break;
 
 	case MSG_S_BATTLEOPT:
-		packet.append(BattleOptions, BattleOptions_Length);
+		out.append(BattleOptions, BattleOptions_Length);
 		memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
 		break;
 
 	case MSG_S_GAMESTATE:
-		packet << GameState;
+		out << GameState;
 		PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
 		local.system.GameState = GameState;
 		break;
 
 	case MSG_S_PAUSESEL:
-		packet << PauseSelection;
+		out << PauseSelection;
 		local.system.PauseSelection = PauseSelection;
 		break;
 
 	case MSG_S_RINGS:
-		packet << RingCount[0];
+		out << RingCount[0];
 		local.game.RingCount[0] = RingCount[0];
 		break;
 
 	case MSG_S_TIME:
-		packet << TimerMinutes << TimerSeconds << TimerFrames;
+		out << TimerMinutes << TimerSeconds << TimerFrames;
 		memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
 		break;
 
@@ -613,21 +611,22 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 		// Swap the Time Stop value, as this is connected to player number,
 		// and Player 1 and 2 are relative to the game instance.
-		packet << (int8)(TimeStopMode * 5 % 3);
+		out << (int8)(TimeStopMode * 5 % 3);
 
 		local.game.TimeStopMode = TimeStopMode;
 		break;
 
 	case MSG_S_STAGE:
 		PrintDebug("<< Sending stage: %d", CurrentLevel);
-		packet << CurrentLevel;
+		out << CurrentLevel;
 		break;
 
 #pragma endregion
 
 	}
 
-	*((ushort*)((uchar*)packet.getData() + offset)) = htons((ushort)(packet.getDataSize() - (offset + sizeof(short))));
+	packet << static_cast<ushort>(out.getDataSize());
+	packet.append(out.getData(), out.getDataSize());
 
 	return true;
 }
