@@ -151,12 +151,12 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 		case MSG_READY:
 			isClientReady = true;
-			packet.m_readPos += sizeof(ushort);
+			packet.seekRead(sizeof(ushort), SEEK_CUR);
 			break;
 
 		case MSG_S_KEEPALIVE:
 			receivedKeepalive = Millisecs();
-			packet.m_readPos += sizeof(ushort);
+			packet.seekRead(sizeof(ushort), SEEK_CUR);
 			break;
 
 		default:
@@ -190,7 +190,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 				// TODO: Figure out howtf it's getting ID 4
 				PrintDebug("\t\tSkipping %d bytes for id %02d", length, newType);
-				packet.m_readPos += length;
+				packet.seekRead(length, SEEK_CUR);
 
 				break;
 			}

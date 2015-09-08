@@ -37,6 +37,7 @@ namespace sf
 ////////////////////////////////////////////////////////////
 Packet::Packet() :
 m_readPos(0),
+m_writePos(0),
 m_sendPos(0),
 m_isValid(true)
 {
@@ -54,12 +55,16 @@ Packet::~Packet()
 ////////////////////////////////////////////////////////////
 void Packet::append(const void* data, std::size_t sizeInBytes)
 {
-    if (data && (sizeInBytes > 0))
-    {
-        std::size_t start = m_data.size();
-        m_data.resize(start + sizeInBytes);
-        std::memcpy(&m_data[start], data, sizeInBytes);
-    }
+	if (data == 0 || (sizeInBytes < 1))
+		return;
+
+    std::size_t start = m_data.size();
+
+	if (m_writePos + sizeInBytes >= start)
+		m_data.resize((start + (sizeInBytes - (start - m_writePos))));
+
+    std::memcpy(&m_data[m_writePos], data, sizeInBytes);
+	m_writePos += sizeInBytes;
 }
 
 
@@ -68,6 +73,7 @@ void Packet::clear()
 {
     m_data.clear();
     m_readPos = 0;
+	m_writePos = 0;
     m_isValid = true;
 }
 

@@ -76,6 +76,33 @@ public:
     ////////////////////////////////////////////////////////////
     void append(const void* data, std::size_t sizeInBytes);
 
+	void pos(std::size_t& i, int offset, Uint8 from)
+	{
+		switch (from)
+		{
+			case SEEK_CUR:
+				i += offset;
+				break;
+
+			case SEEK_END:
+				i = m_data.size() - offset;
+				break;
+
+			case SEEK_SET:
+				i = (offset < 0) ? 0 : offset;
+				break;
+		}
+
+		if (i > m_data.size())
+			i = m_data.size();
+	}
+
+	void seekRead(Uint32 offset, Uint8 from = SEEK_CUR) { pos(m_readPos, offset, from); }
+	void seekWrite(Uint32 offset, Uint8 from = SEEK_CUR) { pos(m_writePos, offset, from); }
+
+	size_t posRead() const { return m_readPos; }
+	size_t posWrite() const { return m_writePos; }
+
     ////////////////////////////////////////////////////////////
     /// \brief Clear the packet
     ///
@@ -280,10 +307,11 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    std::vector<char> m_data;    ///< Data stored in the packet
-    std::size_t       m_readPos; ///< Current reading position in the packet
-    std::size_t       m_sendPos; ///< Current send position in the packet (for handling partial sends)
-    bool              m_isValid; ///< Reading state of the packet
+    std::vector<char> m_data;     ///< Data stored in the packet
+    std::size_t       m_readPos;  ///< Current reading position in the packet
+	std::size_t       m_writePos; ///< Current writing position in the packet
+    std::size_t       m_sendPos;  ///< Current send position in the packet (for handling partial sends)
+    bool              m_isValid;  ///< Reading state of the packet
 };
 
 } // namespace sf
