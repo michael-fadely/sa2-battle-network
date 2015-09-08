@@ -314,6 +314,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (PositionThreshold(sendPlayer.Data1.Position, Player1->Data1->Position))
 			RequestPacket(MSG_P_POSITION, fast, safe);
 
+		// TODO: Make less spammy
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 			RequestPacket(MSG_P_SPINTIMER, safe, fast);
 

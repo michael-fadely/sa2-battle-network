@@ -47,6 +47,7 @@ void InputHandler()
 	if (pad->PressedButtons || pad->ReleasedButtons)
 		Broker->Request(MSG_I_BUTTONS, true);
 
+	// TODO: Make less spammy
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 	{
 		if (

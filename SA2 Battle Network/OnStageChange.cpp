@@ -1,5 +1,4 @@
 #include <SA2ModLoader.h>
-#include <thread>			// for this_thread::yield
 #include "Networking.h"		// for MSG
 #include "Globals.h"
 #include "OnStageChange.h"

@@ -1,5 +1,4 @@
 #include <vector>			// obvious
-#include <thread>			// for this_thread::yield
 
 #include <SA2ModLoader.h>	// for everything
 #include "Networking.h"		// for MsgTypes

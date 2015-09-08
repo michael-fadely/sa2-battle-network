@@ -109,6 +109,7 @@
     <ClInclude Include="PacketHandler.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AdventurePacketOverloads.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />

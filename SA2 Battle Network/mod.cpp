@@ -15,8 +15,6 @@
 
 #include "MainThread.h"
 
-#include "OnInput.h"
-#include "OnFrame.h"
 #include "OnGameState.h"
 #include "OnStageChange.h"
 
@@ -110,7 +108,5 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
-	//InitOnInput();
-	//InitOnFrame();
 	InitOnStageChange();
 }
