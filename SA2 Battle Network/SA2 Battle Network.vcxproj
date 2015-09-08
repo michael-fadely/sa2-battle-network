@@ -88,9 +88,7 @@
     <ClInclude Include="AddressList.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
-    <ClInclude Include="OnFrame.h" />
     <ClInclude Include="OnGameState.h" />
-    <ClInclude Include="OnInput.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Common.h" />

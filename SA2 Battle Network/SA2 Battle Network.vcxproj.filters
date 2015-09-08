@@ -66,12 +66,6 @@
     <ClInclude Include="BAMS.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="OnFrame.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="OnInput.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
     <ClInclude Include="Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>

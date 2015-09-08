@@ -5,28 +5,6 @@
 #include "Globals.h"		// for Globals :specialed:
 #include "AddressList.h"	// for FrameCount, FrameIncrement
 
-#include "OnInput.h"
-
-extern "C" void __declspec(dllexport) OnInput()
-{
-	InputHandler();
-}
-
-#pragma region Initialization
-
-void* OnInput_ptr = (void*)0x0077E897;
-
-void InitOnInput()
-{
-	char* buffer = new char[9];
-	memset(buffer, 0xC3, 9);
-	WriteData(OnInput_ptr, buffer, 9);
-	WriteCall(OnInput_ptr, OnInput);
-	delete[] buffer;
-}
-
-#pragma endregion
-
 static const ushort analogThreshold = 16;
 static const ushort analogMax = 220;
 static const uint analogFrames = 8;
@@ -90,4 +68,9 @@ void InputHandler()
 	// HACK: Fixes camera rotation in non-emerald hunting modes.
 	pad->LTriggerPressure = (pad->HeldButtons & Buttons_L) ? UCHAR_MAX : 0;
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
+}
+
+extern "C" void __declspec(dllexport) OnInput()
+{
+	InputHandler();
 }

@@ -176,7 +176,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 				if (ReceivePlayer(newType, packet))
 				{
-					if (GameState >= GameState::INGAME)
+					if (GameState >= GameState::Ingame)
 					{
 						writePlayer = false;
 						PlayerObject::WritePlayer(Player2, &recvPlayer);
@@ -267,7 +267,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 	if (Duration(sentKeepalive) >= 1000)
 		RequestPacket(MSG_S_KEEPALIVE, fast);
 
-	if (GameState > GameState::LOAD_FINISHED && TwoPlayerMode > 0)
+	if (GameState > GameState::LoadFinished && TwoPlayerMode > 0)
 	{
 		if (local.game.CurrentLevel != CurrentLevel)
 		{
@@ -285,7 +285,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 		if (local.system.GameState != GameState)
 			RequestPacket(MSG_S_GAMESTATE, safe, fast);
 
-		if (GameState == GameState::PAUSE && local.system.PauseSelection != PauseSelection)
+		if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
 			RequestPacket(MSG_S_PAUSESEL, safe, fast);
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
@@ -297,13 +297,13 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
 			RequestPacket(MSG_S_2PSPECIALS, safe, fast);
 
-		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::INGAME)
+		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::Ingame)
 			RequestPacket(MSG_S_RINGS, safe, fast);
 	}
 }
 void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
-	if (GameState >= GameState::LOAD_FINISHED && CurrentMenu[0] >= Menu::BATTLE)
+	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
 	{
 		if (Teleport())
 		{
@@ -361,7 +361,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 }
 void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 {
-	if (GameState == GameState::INACTIVE && CurrentMenu[0] == Menu::BATTLE)
+	if (GameState == GameState::Inactive && CurrentMenu[0] == Menu::BATTLE)
 	{
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
@@ -637,7 +637,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 {
-	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::INACTIVE)
+	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::Inactive)
 	{
 		switch (type)
 		{
@@ -669,7 +669,7 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 		return stageReceived = true;
 	}
 
-	if (GameState >= GameState::LOAD_FINISHED)
+	if (GameState >= GameState::LoadFinished)
 	{
 		switch (type)
 		{
@@ -687,7 +687,7 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 			{
 				uint8 recvGameState;
 				packet >> recvGameState;
-				if (GameState >= GameState::NORMAL_RESTART && recvGameState > GameState::LOAD_FINISHED)
+				if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
 					GameState = local.system.GameState = recvGameState;
 
 				break;
@@ -725,7 +725,7 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 }
 bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 {
-	if (GameState >= GameState::LOAD_FINISHED)
+	if (GameState >= GameState::LoadFinished)
 	{
 		writePlayer = (type > MSG_P_START && type < MSG_P_END);
 
@@ -798,7 +798,7 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 }
 bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 {
-	if (GameState == GameState::INACTIVE)
+	if (GameState == GameState::Inactive)
 	{
 		switch (type)
 		{
@@ -888,7 +888,7 @@ void PacketBroker::PreReceive()
 	writeSpecials();
 
 	// HACK: This entire section
-	if (GameState >= GameState::INGAME && Player2 != nullptr)
+	if (GameState >= GameState::Ingame && Player2 != nullptr)
 	{
 		// HACK: Upgrade/Powerup failsafe
 		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
@@ -899,7 +899,7 @@ void PacketBroker::PreReceive()
 			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
 
 		// HACK: Analog failsafe
-		if (GameState == GameState::PAUSE && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))
+		if (GameState == GameState::Pause && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))
 		{
 			recvInput.LeftStickX = 0;
 			recvInput.LeftStickY = 0;
@@ -922,7 +922,7 @@ inline void PacketBroker::writeTimeStop() { TimeStopMode = local.game.TimeStopMo
 // TODO: Remove from this class
 void PacketBroker::ToggleSplitscreen()
 {
-	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
+	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 	{
 		if ((ControllersRaw[0].HeldButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R) ||
 			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].HeldButtons & Buttons_R) ||
@@ -937,7 +937,7 @@ void PacketBroker::ToggleSplitscreen()
 }
 bool PacketBroker::Teleport()
 {
-	if (GameState == GameState::INGAME && TwoPlayerMode > 0)
+	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 	{
 		if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
 		{
