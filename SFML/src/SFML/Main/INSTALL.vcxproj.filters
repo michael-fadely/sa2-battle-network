@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\CMakeFiles\f65abf04e5a093161f7abbfd318d7ad1\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{8479F5D9-CC74-4085-ADED-B0FFF8CD3232}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\ALCheck.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\AlResource.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\AudioDevice.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\Listener.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\Music.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\Sound.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundBuffer.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundBufferRecorder.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\InputSoundFile.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\OutputSoundFile.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundRecorder.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundSource.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundStream.cpp" />
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileFactory.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderFlac.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderOgg.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderWav.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterFlac.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterOgg.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterWav.cpp">
+      <Filter>codecs</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\ALCheck.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\AlResource.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\AudioDevice.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\Export.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\Listener.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\Music.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\Sound.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundBuffer.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundBufferRecorder.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\InputSoundFile.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\OutputSoundFile.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundRecorder.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundSource.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundStream.hpp" />
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundFileFactory.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundFileFactory.inl">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundFileReader.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderFlac.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderOgg.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileReaderWav.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\include\SFML\Audio\SoundFileWriter.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterFlac.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterOgg.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\SoundFileWriterWav.hpp">
+      <Filter>codecs</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Michael\Source Code\SA2 Battle Network\SFML\src\SFML\Audio\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="codecs">
+      <UniqueIdentifier>{526F3B54-7574-454C-9123-C976EF47710F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
