@@ -112,6 +112,4 @@ protected:
 
 	// Binds the UDP socket to the specified port.
 	sf::Socket::Status Bind(const ushort port, const bool isServer);
-	// Sets the time in milliseconds that the last successful connection was established.
-	void SetConnectTime();
 };
