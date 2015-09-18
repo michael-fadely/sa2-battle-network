@@ -7,28 +7,23 @@
 // This class
 #include "PacketHandler.h"
 
-
 using namespace std;
 using namespace sf;
 
 #pragma region PacketHandler
 
-PacketHandler::PacketHandler() : bound(false), connected(false), host(false), start_time(0), Address({})
-{
-	Initialize();
-}
-PacketHandler::~PacketHandler()
-{
-	Disconnect();
-}
-void PacketHandler::Initialize()
+PacketHandler::PacketHandler() : bound(false), connected(false), host(false), Address({})
 {
 	listener.setBlocking(false);
 	socketSafe.setBlocking(false);
 	socketFast.setBlocking(false);
 }
+PacketHandler::~PacketHandler()
+{
+	Disconnect();
+}
 
-sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool block)
+sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 	int error = 0;
@@ -77,6 +72,7 @@ sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool b
 	// Set host state to true to ensure everything knows what to do.
 	host = true;
 
+	// TODO: Handle this stuff elsewhere and take in the user's port as a parameter.
 	// The message ID to confirm we get the right packet.
 	uint8 ID = MSG_NULL;
 	// Create a packet for receiving the local UDP port from the client.
@@ -94,7 +90,6 @@ sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool b
 	packet >> ID;
 	if (ID != MSG_BIND)
 	{
-		ID = MSG_NULL;
 		Disconnect(true);
 		return Socket::Status::Disconnected;
 	}
@@ -102,12 +97,9 @@ sf::Socket::Status PacketHandler::Listen(const unsigned short port, const bool b
 	// Now pull the port out of the packet.
 	packet >> Address.port;
 
-	// Set connection success time to be used by external functions.
-	SetConnectTime();
-
 	return result;
 }
-sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short port, const bool block)
+sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, const bool block)
 {
 	Socket::Status result = Socket::Status::NotReady;
 
@@ -148,6 +140,7 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short
 		// The packet used to send the local UDP port.
 		sf::Packet packet;
 
+		// TODO: Do this elsewhere and/or remove the dependency on the enum.
 		// Now we populate the packet with the ID and the port,
 		// and send it off, retrieving the status.
 		packet << (uint8)MSG_BIND << socketFast.getLocalPort();
@@ -159,9 +152,6 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const unsigned short
 		if (result != Socket::Status::Done)
 			return result;
 
-		// Set connection success time to be used by external functions.
-		SetConnectTime();
-
 		sendFast(packet);
 	}
 
@@ -171,6 +161,7 @@ sf::Socket::Status PacketHandler::Disconnect(const bool received)
 {
 	Socket::Status result = Socket::Status::Disconnected;
 
+	// TODO: Handle this bit elsewhere, remove function parameter
 	if (!received && connected)
 	{
 		Packet disconnect;
@@ -190,7 +181,7 @@ sf::Socket::Status PacketHandler::Disconnect(const bool received)
 	connected = false;
 	return result;
 }
-sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isServer)
+sf::Socket::Status PacketHandler::Bind(const ushort port, const bool isServer)
 {
 	Socket::Status result = Socket::Status::NotReady;
 
@@ -207,11 +198,6 @@ sf::Socket::Status PacketHandler::Bind(const unsigned short port, const bool isS
 sf::Socket::Status PacketHandler::Connect(RemoteAddress address, const bool block)
 {
 	return Connect(address.ip, address.port, block);
-}
-
-inline void PacketHandler::SetConnectTime()
-{
-	start_time = Millisecs();
 }
 
 sf::Socket::Status PacketHandler::Send(PacketEx& packet)

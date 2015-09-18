@@ -24,7 +24,7 @@ public:
 	struct RemoteAddress
 	{
 		sf::IpAddress ip;
-		unsigned short port;
+		ushort port;
 	};
 
 	// Socket lock.
@@ -45,7 +45,7 @@ public:
 	// Listens for incoming connections and accepts them.
 	// This should be used by the server, not the client.
 	// Blocks the calling thread if the parameter block is true.
-	sf::Socket::Status Listen(const unsigned short port = 27015, const bool block = true);
+	sf::Socket::Status Listen(const ushort port = 27015, const bool block = true);
 	// Connects to the address and port in address.
 	// This should be used by the client, not the server.
 	// Blocks the calling thread if the parameter block is true.
@@ -53,7 +53,7 @@ public:
 	// Connects to the address ip on the port port.
 	// This should be used by the client, not the server.
 	// Blocks the calling thread if the parameter block is true.
-	sf::Socket::Status Connect(sf::IpAddress ip, const unsigned short port, const bool block = true);
+	sf::Socket::Status Connect(sf::IpAddress ip, const ushort port, const bool block = true);
 	// Disconnects all sockets
 	// Returns NotReady if none are connected.
 	// If the parameter received is false (default), it sends a disconnect message,
@@ -61,16 +61,13 @@ public:
 	sf::Socket::Status Disconnect(const bool received = false);
 
 	// Returns the state of bound ports.
-	bool isBound() { return bound; }
+	bool isBound() const { return bound; }
 	// Returns the connection state of the packet handler.
-	bool isConnected() { return connected; }
+	bool isConnected() const { return connected; }
 	// Returns the host state of the packet handler.
 	// Returns true if Listen() was called, and false otherwise
 	// or after Connect() has been called.
-	bool isServer() { return host; }
-	// Returns the time in milliseconds that the last successful connection was established.
-	// Returns 0 if none have been established yet.
-	unsigned int ConnectStartTime() { return start_time; }
+	bool isServer() const { return host; }
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function (safe/fast).
@@ -103,9 +100,6 @@ protected:
 	// Value is true if Listen() was called, and false otherwise
 	// or after Connect() has been called.
 	bool host;
-	// The time in milliseconds that the last successful connection was established.
-	// Value is 0 if none have been established yet.
-	unsigned int start_time;
 	// The listener used to establish a connection
 	sf::TcpListener listener;
 	// The address/port to connect to,
@@ -116,11 +110,8 @@ protected:
 	//	Methods	
 	//
 
-	// Initializes the sockets and such.
-	// Would be used for constructor overloads... if there WERE any!
-	void Initialize();
 	// Binds the UDP socket to the specified port.
-	sf::Socket::Status Bind(const unsigned short port, const bool isServer);
+	sf::Socket::Status Bind(const ushort port, const bool isServer);
 	// Sets the time in milliseconds that the last successful connection was established.
 	void SetConnectTime();
 };
