@@ -20,34 +20,15 @@ public:
 		unsigned char major;
 		unsigned char minor;
 		std::string str();
-		bool operator==(const Version& value) { return major == value.major && minor == value.minor; }
-		bool operator!=(const Version& value) { return !(*this == value); }
+		bool operator==(const Version& value) const { return major == value.major && minor == value.minor; }
+		bool operator!=(const Version& value) const { return !(*this == value); }
 	};
 #pragma endregion
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Program"/> class.
-	/// </summary>
-	/// <param name="settings">The settings.</param>
-	/// <param name="host">Indicates if this instance is a server or client.</param>
-	/// <param name="address">The port to listen on if <paramref name="host"/> is true, otherwise the remote address to connect to.</param>
 	Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
 
-	/// <summary>
-	/// Checks if it's safe to start the connection.
-	/// </summary>
-	/// <returns><c>true</c> if safe.</returns>
-	bool CheckConnectOK();
-	/// <summary>
-	/// Attempts to connect in a non-blocking fashion.
-	/// </summary>
-	/// <returns><c>ErrorCode::None</c> on success.</returns>
+	bool CheckConnectOK() const;
 	bool Connect();
-	/// <summary>
-	/// Closes all connections.
-	/// </summary>
-	/// <param name="received">If <c>false</c>, sends a message to all open connections notifying them of the disconnect.</param>
-	/// <param name="code">The error code to set.</param>
 	void Disconnect(const bool received);
 
 	Version remoteVersion;
@@ -61,8 +42,11 @@ private:
 
 	bool isServer;
 	bool setMusic;
+	bool rejected;	// Prevents connection spam upon rejection (client only)
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
 	void ApplySettings(const bool apply);
+	bool StartServer();
+	bool StartClient();
 };

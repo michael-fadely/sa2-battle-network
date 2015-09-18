@@ -7,7 +7,7 @@ class PlayerObject
 public:
 	PlayerObject(ObjectMaster* player);
 	PlayerObject();
-	
+
 	/// <summary>
 	/// Copies CharObj1 and CharObj2 data from an ObjectMaster to this instance.
 	/// </summary>
@@ -34,19 +34,19 @@ public:
 	// Sonic's Obj2Base
 	// Shared with: Shadow, Amy, MetalSonic
 	SonicObj2Base Sonic;
-	
+
 	// Knuckles's Obj2Base
 	// Shared with: Rouge
 	KnucklesObj2Base Knuckles;
-	
+
 	// Mechless Eggman's Obj2Base
 	// Not Shared
 	EggmanObj2Base Eggman;
-	
+
 	// Mech Eggman's Obj2Base
 	// Shared with: Tails Mech
 	MechEggmanObj2Base MechEggman;
-	
+
 	// Mechless Tails's Obj2Base
 	// Not Shared
 	TailsObj2Base Tails;

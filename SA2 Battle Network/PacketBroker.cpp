@@ -136,30 +136,30 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		//cout << (ushort)newType << endl;
 		switch (newType)
 		{
-		case MSG_NULL:
-			PrintDebug("\a>> Reached end of packet.");
-			break;
+			case MSG_NULL:
+				PrintDebug("\a>> Reached end of packet.");
+				break;
 
-		case MSG_COUNT:
-			PrintDebug(">> Received message count?! Malformed packet warning!");
-			break;
+			case MSG_COUNT:
+				PrintDebug(">> Received message count?! Malformed packet warning!");
+				break;
 
-		case MSG_DISCONNECT:
-			PrintDebug(">> Received disconnect request from client.");
-			Globals::Networking->Disconnect(true);
-			break;
+			case MSG_DISCONNECT:
+				PrintDebug(">> Received disconnect request from client.");
+				Globals::Networking->Disconnect(true);
+				break;
 
-		case MSG_READY:
-			isClientReady = true;
-			packet.seekRead(sizeof(ushort), SEEK_CUR);
-			break;
+			case MSG_READY:
+				isClientReady = true;
+				packet.seekRead(sizeof(ushort), SEEK_CUR);
+				break;
 
-		case MSG_S_KEEPALIVE:
-			receivedKeepalive = Millisecs();
-			packet.seekRead(sizeof(ushort), SEEK_CUR);
-			break;
+			case MSG_S_KEEPALIVE:
+				receivedKeepalive = Millisecs();
+				packet.seekRead(sizeof(ushort), SEEK_CUR);
+				break;
 
-		default:
+			default:
 			{
 				ushort length;
 				packet >> length;
@@ -374,65 +374,65 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 
 		switch (CurrentMenu[1])
 		{
-		default:
-			break;
+			default:
+				break;
 
-		case SubMenu2P::S_READY:
-		case SubMenu2P::O_READY:
-			if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
-				RequestPacket(MSG_S_2PREADY, safe);
-			break;
+			case SubMenu2P::S_READY:
+			case SubMenu2P::O_READY:
+				if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
+					RequestPacket(MSG_S_2PREADY, safe);
+				break;
 
-		case SubMenu2P::S_BATTLEMODE:
-			if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
-				RequestPacket(MSG_M_BATTLESEL, safe);
+			case SubMenu2P::S_BATTLEMODE:
+				if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
+					RequestPacket(MSG_M_BATTLESEL, safe);
 
-			break;
+				break;
 
-		case SubMenu2P::S_CHARSEL:
-		case SubMenu2P::O_CHARSEL:
-			// HACK: Character select bug work-around. Details below.
-			// When a button press is missed but the character selected state is synchronized,
-			// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
-			if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
-			{
-				PrintDebug("<> Resetting character selections");
-				CharacterSelectTimer = 0;
-				CurrentMenu[1] = SubMenu2P::O_CHARSEL;
-			}
+			case SubMenu2P::S_CHARSEL:
+			case SubMenu2P::O_CHARSEL:
+				// HACK: Character select bug work-around. Details below.
+				// When a button press is missed but the character selected state is synchronized,
+				// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
+				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::S_CHARSEL)
+				{
+					PrintDebug("<> Resetting character selections");
+					CharacterSelectTimer = 0;
+					CurrentMenu[1] = SubMenu2P::O_CHARSEL;
+				}
 
-			if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
-				RequestPacket(MSG_M_CHARSEL, safe);
-			if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
-				RequestPacket(MSG_M_CHARCHOSEN, safe);
+				if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
+					RequestPacket(MSG_M_CHARSEL, safe);
+				if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
+					RequestPacket(MSG_M_CHARCHOSEN, safe);
 
-			// I hate this so much
-			if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
-				|| (local.menu.AltCharacterShadow != AltCharacterShadow)
-				|| (local.menu.AltCharacterTails != AltCharacterTails)
-				|| (local.menu.AltCharacterEggman != AltCharacterEggman)
-				|| (local.menu.AltCharacterKnuckles != AltCharacterKnuckles)
-				|| (local.menu.AltCharacterRouge != AltCharacterRouge))
-			{
-				RequestPacket(MSG_M_ALTCHAR, safe);
-			}
+				// I hate this so much
+				if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
+					|| (local.menu.AltCharacterShadow != AltCharacterShadow)
+					|| (local.menu.AltCharacterTails != AltCharacterTails)
+					|| (local.menu.AltCharacterEggman != AltCharacterEggman)
+					|| (local.menu.AltCharacterKnuckles != AltCharacterKnuckles)
+					|| (local.menu.AltCharacterRouge != AltCharacterRouge))
+				{
+					RequestPacket(MSG_M_ALTCHAR, safe);
+				}
 
-			break;
+				break;
 
-		case SubMenu2P::S_STAGESEL:
-			if (firstMenuEntry
-				|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
-				|| local.menu.BattleOptionsButton != BattleOptionsButton)
-			{
-				RequestPacket(MSG_M_STAGESEL, safe);
-			}
-			break;
+			case SubMenu2P::S_STAGESEL:
+				if (firstMenuEntry
+					|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
+					|| local.menu.BattleOptionsButton != BattleOptionsButton)
+				{
+					RequestPacket(MSG_M_STAGESEL, safe);
+				}
+				break;
 
-		case SubMenu2P::S_BATTLEOPT:
-			if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
-				RequestPacket(MSG_M_BATTLEOPTSEL, safe);
+			case SubMenu2P::S_BATTLEOPT:
+				if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
+					RequestPacket(MSG_M_BATTLEOPTSEL, safe);
 
-			break;
+				break;
 		}
 	}
 }
@@ -443,184 +443,184 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 
 	switch (packetType)
 	{
-	default:
-		return false;
+		default:
+			return false;
 
 #pragma region Input
 
-	case MSG_I_ANALOG:
-		out << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-		sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-		sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
-		break;
+		case MSG_I_ANALOG:
+			out << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
+			sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
+			sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+			break;
 
-	case MSG_I_BUTTONS:
-		out << ControllersRaw[0].HeldButtons;
-		sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
-		break;
+		case MSG_I_BUTTONS:
+			out << ControllersRaw[0].HeldButtons;
+			sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
+			break;
 
 #pragma endregion
 
 #pragma region Menu
 
-	case MSG_M_ALTCHAR:
-		out << AltCharacterSonic << AltCharacterShadow
-			<< AltCharacterTails << AltCharacterEggman
-			<< AltCharacterKnuckles << AltCharacterRouge;
+		case MSG_M_ALTCHAR:
+			out << AltCharacterSonic << AltCharacterShadow
+				<< AltCharacterTails << AltCharacterEggman
+				<< AltCharacterKnuckles << AltCharacterRouge;
 
-		local.menu.AltCharacterSonic = AltCharacterSonic;
-		local.menu.AltCharacterShadow = AltCharacterShadow;
-		local.menu.AltCharacterTails = AltCharacterTails;
-		local.menu.AltCharacterEggman = AltCharacterEggman;
-		local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
-		local.menu.AltCharacterRouge = AltCharacterRouge;
-		break;
+			local.menu.AltCharacterSonic = AltCharacterSonic;
+			local.menu.AltCharacterShadow = AltCharacterShadow;
+			local.menu.AltCharacterTails = AltCharacterTails;
+			local.menu.AltCharacterEggman = AltCharacterEggman;
+			local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
+			local.menu.AltCharacterRouge = AltCharacterRouge;
+			break;
 
-	case MSG_M_BATTLESEL:
-		out << BattleSelection;
-		local.menu.BattleSelection = BattleSelection;
-		break;
+		case MSG_M_BATTLESEL:
+			out << BattleSelection;
+			local.menu.BattleSelection = BattleSelection;
+			break;
 
-	case MSG_M_BATTLEOPTSEL:
-		out << BattleOptionsSelection << BattleOptionsBack;
-		local.menu.BattleOptionsSelection = BattleOptionsSelection;
-		local.menu.BattleOptionsBack = BattleOptionsBack;
-		break;
+		case MSG_M_BATTLEOPTSEL:
+			out << BattleOptionsSelection << BattleOptionsBack;
+			local.menu.BattleOptionsSelection = BattleOptionsSelection;
+			local.menu.BattleOptionsBack = BattleOptionsBack;
+			break;
 
-	case MSG_M_CHARCHOSEN:
-		out << CharacterSelected[0];
-		local.menu.CharacterSelected[0] = CharacterSelected[0];
-		break;
+		case MSG_M_CHARCHOSEN:
+			out << CharacterSelected[0];
+			local.menu.CharacterSelected[0] = CharacterSelected[0];
+			break;
 
-	case MSG_M_CHARSEL:
-		out << CharacterSelection[0];
-		local.menu.CharacterSelection[0] = CharacterSelection[0];
-		break;
+		case MSG_M_CHARSEL:
+			out << CharacterSelection[0];
+			local.menu.CharacterSelection[0] = CharacterSelection[0];
+			break;
 
-	case MSG_M_STAGESEL:
-		out << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
-		local.menu.StageSelection2P[0] = StageSelection2P[0];
-		local.menu.StageSelection2P[1] = StageSelection2P[1];
-		local.menu.BattleOptionsButton = BattleOptionsButton;
-		break;
+		case MSG_M_STAGESEL:
+			out << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+			local.menu.StageSelection2P[0] = StageSelection2P[0];
+			local.menu.StageSelection2P[1] = StageSelection2P[1];
+			local.menu.BattleOptionsButton = BattleOptionsButton;
+			break;
 
 #pragma endregion
 
 #pragma region Player
 
-		// BEFORE YOU FORGET:
-		// The reason sendPlayer is not updated here is because it's done in a separate function all at once.
-		// Don't freak out!
+			// BEFORE YOU FORGET:
+			// The reason sendPlayer is not updated here is because it's done in a separate function all at once.
+			// Don't freak out!
 
-	case MSG_P_ACTION:
-		out << Player1->Data1->Action;
-		break;
+		case MSG_P_ACTION:
+			out << Player1->Data1->Action;
+			break;
 
-	case MSG_P_STATUS:
-		out << Player1->Data1->Status;
-		break;
+		case MSG_P_STATUS:
+			out << Player1->Data1->Status;
+			break;
 
-	case MSG_P_ROTATION:
-		speedTimer = rotateTimer = Millisecs();
-		out << Player1->Data1->Rotation;
-		break;
+		case MSG_P_ROTATION:
+			speedTimer = rotateTimer = Millisecs();
+			out << Player1->Data1->Rotation;
+			break;
 
-	case MSG_P_POSITION:
-		// Informs other conditions that it shouldn't request
-		// another position out so soon
-		positionTimer = Millisecs();
-		out << Player1->Data1->Position;
-		break;
+		case MSG_P_POSITION:
+			// Informs other conditions that it shouldn't request
+			// another position out so soon
+			positionTimer = Millisecs();
+			out << Player1->Data1->Position;
+			break;
 
-	case MSG_P_SCALE:
-		out << Player1->Data1->Scale;
-		break;
+		case MSG_P_SCALE:
+			out << Player1->Data1->Scale;
+			break;
 
-	case MSG_P_POWERUPS:
-		PrintDebug("<< Sending powerups");
-		out << Player1->Data2->Powerups;
-		break;
+		case MSG_P_POWERUPS:
+			PrintDebug("<< Sending powerups");
+			out << Player1->Data2->Powerups;
+			break;
 
-	case MSG_P_UPGRADES:
-		PrintDebug("<< Sending upgrades");
-		out << Player1->Data2->Upgrades;
-		break;
+		case MSG_P_UPGRADES:
+			PrintDebug("<< Sending upgrades");
+			out << Player1->Data2->Upgrades;
+			break;
 
-	case MSG_P_HP:
-		out << Player1->Data2->MechHP;
-		break;
+		case MSG_P_HP:
+			out << Player1->Data2->MechHP;
+			break;
 
-	case MSG_P_SPEED:
-		rotateTimer = speedTimer = Millisecs();
-		out << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
-		break;
+		case MSG_P_SPEED:
+			rotateTimer = speedTimer = Millisecs();
+			out << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+			break;
 
-	case MSG_P_ANIMATION:
-		out << Player1->Data2->AnimInfo.Next;
-		break;
+		case MSG_P_ANIMATION:
+			out << Player1->Data2->AnimInfo.Next;
+			break;
 
-	case MSG_P_SPINTIMER:
-		out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-		break;
+		case MSG_P_SPINTIMER:
+			out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+			break;
 
 #pragma endregion
 
 #pragma region System
 
-	case MSG_S_KEEPALIVE:
-		sentKeepalive = Millisecs();
-		break;
+		case MSG_S_KEEPALIVE:
+			sentKeepalive = Millisecs();
+			break;
 
-	case MSG_S_2PREADY:
-		out << PlayerReady[0];
-		local.menu.PlayerReady[0] = PlayerReady[0];
-		break;
+		case MSG_S_2PREADY:
+			out << PlayerReady[0];
+			local.menu.PlayerReady[0] = PlayerReady[0];
+			break;
 
-	case MSG_S_2PSPECIALS:
-		out.append(P1SpecialAttacks, sizeof(char) * 3);
-		memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
-		break;
+		case MSG_S_2PSPECIALS:
+			out.append(P1SpecialAttacks, sizeof(char) * 3);
+			memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
+			break;
 
-	case MSG_S_BATTLEOPT:
-		out.append(BattleOptions, BattleOptions_Length);
-		memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
-		break;
+		case MSG_S_BATTLEOPT:
+			out.append(BattleOptions, BattleOptions_Length);
+			memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
+			break;
 
-	case MSG_S_GAMESTATE:
-		out << GameState;
-		PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
-		local.system.GameState = GameState;
-		break;
+		case MSG_S_GAMESTATE:
+			out << GameState;
+			PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
+			local.system.GameState = GameState;
+			break;
 
-	case MSG_S_PAUSESEL:
-		out << PauseSelection;
-		local.system.PauseSelection = PauseSelection;
-		break;
+		case MSG_S_PAUSESEL:
+			out << PauseSelection;
+			local.system.PauseSelection = PauseSelection;
+			break;
 
-	case MSG_S_RINGS:
-		out << RingCount[0];
-		local.game.RingCount[0] = RingCount[0];
-		break;
+		case MSG_S_RINGS:
+			out << RingCount[0];
+			local.game.RingCount[0] = RingCount[0];
+			break;
 
-	case MSG_S_TIME:
-		out << TimerMinutes << TimerSeconds << TimerFrames;
-		memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
-		break;
+		case MSG_S_TIME:
+			out << TimerMinutes << TimerSeconds << TimerFrames;
+			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
+			break;
 
-	case MSG_S_TIMESTOP:
-		PrintDebug("<< Sending Time Stop");
+		case MSG_S_TIMESTOP:
+			PrintDebug("<< Sending Time Stop");
 
-		// Swap the Time Stop value, as this is connected to player number,
-		// and Player 1 and 2 are relative to the game instance.
-		out << (int8)(TimeStopMode * 5 % 3);
+			// Swap the Time Stop value, as this is connected to player number,
+			// and Player 1 and 2 are relative to the game instance.
+			out << (int8)(TimeStopMode * 5 % 3);
 
-		local.game.TimeStopMode = TimeStopMode;
-		break;
+			local.game.TimeStopMode = TimeStopMode;
+			break;
 
-	case MSG_S_STAGE:
-		PrintDebug("<< Sending stage: %d", CurrentLevel);
-		out << CurrentLevel;
-		break;
+		case MSG_S_STAGE:
+			PrintDebug("<< Sending stage: %d", CurrentLevel);
+			out << CurrentLevel;
+			break;
 
 #pragma endregion
 
@@ -641,16 +641,16 @@ bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 	{
 		switch (type)
 		{
-		default:
-			return false;
+			default:
+				return false;
 
-			RECEIVED(MSG_I_BUTTONS);
-			packet >> recvInput.HeldButtons;
-			break;
+				RECEIVED(MSG_I_BUTTONS);
+				packet >> recvInput.HeldButtons;
+				break;
 
-			RECEIVED(MSG_I_ANALOG);
-			packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
-			break;
+				RECEIVED(MSG_I_ANALOG);
+				packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
+				break;
 		}
 
 		return true;
@@ -673,49 +673,49 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 	{
 		switch (type)
 		{
-		default:
-			return false;
+			default:
+				return false;
 
-		case MSG_S_TIME:
-			packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
-			TimerMinutes = local.game.TimerMinutes;
-			TimerSeconds = local.game.TimerSeconds;
-			TimerFrames = local.game.TimerFrames;
-			break;
-
-			RECEIVED(MSG_S_GAMESTATE);
-			{
-				uint8 recvGameState;
-				packet >> recvGameState;
-				if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
-					GameState = local.system.GameState = recvGameState;
-
+			case MSG_S_TIME:
+				packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
+				TimerMinutes = local.game.TimerMinutes;
+				TimerSeconds = local.game.TimerSeconds;
+				TimerFrames = local.game.TimerFrames;
 				break;
-			}
 
-			RECEIVED(MSG_S_PAUSESEL);
-			packet >> local.system.PauseSelection;
-			PauseSelection = local.system.PauseSelection;
-			break;
+				RECEIVED(MSG_S_GAMESTATE);
+				{
+					uint8 recvGameState;
+					packet >> recvGameState;
+					if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
+						GameState = local.system.GameState = recvGameState;
 
-			RECEIVED(MSG_S_TIMESTOP);
-			packet >> local.game.TimeStopMode;
-			writeTimeStop();
-			break;
+					break;
+				}
 
-			RECEIVED(MSG_S_2PSPECIALS);
-			for (int i = 0; i < 3; i++)
-				packet >> local.game.P2SpecialAttacks[i];
+				RECEIVED(MSG_S_PAUSESEL);
+				packet >> local.system.PauseSelection;
+				PauseSelection = local.system.PauseSelection;
+				break;
 
-			writeSpecials();
-			break;
+				RECEIVED(MSG_S_TIMESTOP);
+				packet >> local.game.TimeStopMode;
+				writeTimeStop();
+				break;
 
-			RECEIVED(MSG_S_RINGS);
-			packet >> local.game.RingCount[1];
-			writeRings();
+				RECEIVED(MSG_S_2PSPECIALS);
+				for (int i = 0; i < 3; i++)
+					packet >> local.game.P2SpecialAttacks[i];
 
-			PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
-			break;
+				writeSpecials();
+				break;
+
+				RECEIVED(MSG_S_RINGS);
+				packet >> local.game.RingCount[1];
+				writeRings();
+
+				PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
+				break;
 		}
 
 		return true;
@@ -731,64 +731,64 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 		switch (type)
 		{
-		default:
-			return false;
+			default:
+				return false;
 
-			RECEIVED(MSG_P_ACTION);
-			// TODO: Add "Do Next Action" to status bits, and also document status bits
-			packet >> recvPlayer.Data1.Action;
-			break;
-
-			RECEIVED(MSG_P_STATUS);
-			packet >> recvPlayer.Data1.Status;
-			break;
-
-			RECEIVED(MSG_P_ROTATION);
-			packet >> recvPlayer.Data1.Rotation;
-			break;
-
-			RECEIVED(MSG_P_POSITION);
-			packet >> recvPlayer.Data1.Position;
-			break;
-
-			RECEIVED(MSG_P_SCALE);
-			packet >> recvPlayer.Data1.Scale;
-			break;
-
-			RECEIVED(MSG_P_POWERUPS);
-			{
-				int powerups = 0;
-				packet >> powerups;
-				recvPlayer.Data2.Powerups = (Powerups)powerups;
+				RECEIVED(MSG_P_ACTION);
+				// TODO: Add "Do Next Action" to status bits, and also document status bits
+				packet >> recvPlayer.Data1.Action;
 				break;
-			}
 
-			RECEIVED(MSG_P_UPGRADES);
-			{
-				int upgrades = 0;
-				packet >> upgrades;
-				recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
+				RECEIVED(MSG_P_STATUS);
+				packet >> recvPlayer.Data1.Status;
 				break;
-			}
 
-			RECEIVED(MSG_P_HP);
-			packet >> recvPlayer.Data2.MechHP;
-			PrintDebug(">> Received HP update. (%f)", recvPlayer.Data2.MechHP);
-			break;
+				RECEIVED(MSG_P_ROTATION);
+				packet >> recvPlayer.Data1.Rotation;
+				break;
 
-			RECEIVED(MSG_P_SPEED);
-			packet >> recvPlayer.Data2.HSpeed;
-			packet >> recvPlayer.Data2.VSpeed;
-			packet >> recvPlayer.Data2.PhysData.BaseSpeed;
-			break;
+				RECEIVED(MSG_P_POSITION);
+				packet >> recvPlayer.Data1.Position;
+				break;
 
-			RECEIVED(MSG_P_ANIMATION);
-			packet >> recvPlayer.Data2.AnimInfo.Next;
-			break;
+				RECEIVED(MSG_P_SCALE);
+				packet >> recvPlayer.Data1.Scale;
+				break;
 
-			RECEIVED(MSG_P_SPINTIMER);
-			packet >> recvPlayer.Sonic.SpindashTimer;
-			break;
+				RECEIVED(MSG_P_POWERUPS);
+				{
+					int powerups = 0;
+					packet >> powerups;
+					recvPlayer.Data2.Powerups = (Powerups)powerups;
+					break;
+				}
+
+				RECEIVED(MSG_P_UPGRADES);
+				{
+					int upgrades = 0;
+					packet >> upgrades;
+					recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
+					break;
+				}
+
+				RECEIVED(MSG_P_HP);
+				packet >> recvPlayer.Data2.MechHP;
+				PrintDebug(">> Received HP update. (%f)", recvPlayer.Data2.MechHP);
+				break;
+
+				RECEIVED(MSG_P_SPEED);
+				packet >> recvPlayer.Data2.HSpeed;
+				packet >> recvPlayer.Data2.VSpeed;
+				packet >> recvPlayer.Data2.PhysData.BaseSpeed;
+				break;
+
+				RECEIVED(MSG_P_ANIMATION);
+				packet >> recvPlayer.Data2.AnimInfo.Next;
+				break;
+
+				RECEIVED(MSG_P_SPINTIMER);
+				packet >> recvPlayer.Sonic.SpindashTimer;
+				break;
 		}
 
 		return writePlayer;
@@ -802,74 +802,74 @@ bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 	{
 		switch (type)
 		{
-		default:
-			return false;
+			default:
+				return false;
 
-			RECEIVED(MSG_S_2PREADY);
-			packet >> local.menu.PlayerReady[1];
-			PlayerReady[1] = local.menu.PlayerReady[1];
+				RECEIVED(MSG_S_2PREADY);
+				packet >> local.menu.PlayerReady[1];
+				PlayerReady[1] = local.menu.PlayerReady[1];
 
-			PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
-			break;
+				PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
+				break;
 
-			RECEIVED(MSG_M_CHARSEL);
-			packet >> local.menu.CharacterSelection[1];
-			CharacterSelection[1] = local.menu.CharacterSelection[1];
-			break;
+				RECEIVED(MSG_M_CHARSEL);
+				packet >> local.menu.CharacterSelection[1];
+				CharacterSelection[1] = local.menu.CharacterSelection[1];
+				break;
 
-			RECEIVED(MSG_M_CHARCHOSEN);
-			packet >> local.menu.CharacterSelected[1];
-			CharacterSelected[1] = local.menu.CharacterSelected[1];
-			break;
+				RECEIVED(MSG_M_CHARCHOSEN);
+				packet >> local.menu.CharacterSelected[1];
+				CharacterSelected[1] = local.menu.CharacterSelected[1];
+				break;
 
-			RECEIVED(MSG_M_ALTCHAR);
-			packet >> local.menu.AltCharacterSonic
-				>> local.menu.AltCharacterShadow
-				>> local.menu.AltCharacterTails
-				>> local.menu.AltCharacterEggman
-				>> local.menu.AltCharacterKnuckles
-				>> local.menu.AltCharacterRouge;
+				RECEIVED(MSG_M_ALTCHAR);
+				packet >> local.menu.AltCharacterSonic
+					>> local.menu.AltCharacterShadow
+					>> local.menu.AltCharacterTails
+					>> local.menu.AltCharacterEggman
+					>> local.menu.AltCharacterKnuckles
+					>> local.menu.AltCharacterRouge;
 
-			AltCharacterSonic = local.menu.AltCharacterSonic;
-			AltCharacterShadow = local.menu.AltCharacterShadow;
-			AltCharacterTails = local.menu.AltCharacterTails;
-			AltCharacterEggman = local.menu.AltCharacterEggman;
-			AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
-			AltCharacterRouge = local.menu.AltCharacterRouge;
+				AltCharacterSonic = local.menu.AltCharacterSonic;
+				AltCharacterShadow = local.menu.AltCharacterShadow;
+				AltCharacterTails = local.menu.AltCharacterTails;
+				AltCharacterEggman = local.menu.AltCharacterEggman;
+				AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
+				AltCharacterRouge = local.menu.AltCharacterRouge;
 
-			break;
+				break;
 
-			RECEIVED(MSG_S_BATTLEOPT);
-			for (int i = 0; i < 4; i++)
-				packet >> local.menu.BattleOptions[i];
-			memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
+				RECEIVED(MSG_S_BATTLEOPT);
+				for (int i = 0; i < 4; i++)
+					packet >> local.menu.BattleOptions[i];
+				memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
 
-			break;
+				break;
 
-			RECEIVED(MSG_M_BATTLEOPTSEL);
-			packet >> local.menu.BattleOptionsSelection
-				>> local.menu.BattleOptionsBack;
-			BattleOptionsSelection = local.menu.BattleOptionsSelection;
-			BattleOptionsBack = local.menu.BattleOptionsBack;
+				RECEIVED(MSG_M_BATTLEOPTSEL);
+				packet >> local.menu.BattleOptionsSelection
+					>> local.menu.BattleOptionsBack;
+				BattleOptionsSelection = local.menu.BattleOptionsSelection;
+				BattleOptionsBack = local.menu.BattleOptionsBack;
 
-			break;
+				break;
 
-			RECEIVED(MSG_M_STAGESEL);
-			packet >> local.menu.StageSelection2P[0]
-				>> local.menu.StageSelection2P[1]
-				>> local.menu.BattleOptionsButton;
+				RECEIVED(MSG_M_STAGESEL);
+				packet >> local.menu.StageSelection2P[0]
+					>> local.menu.StageSelection2P[1]
+					>> local.menu.BattleOptionsButton;
 
-			StageSelection2P[0] = local.menu.StageSelection2P[0];
-			StageSelection2P[1] = local.menu.StageSelection2P[1];
-			BattleOptionsButton = local.menu.BattleOptionsButton;
+				StageSelection2P[0] = local.menu.StageSelection2P[0];
+				StageSelection2P[1] = local.menu.StageSelection2P[1];
+				BattleOptionsButton = local.menu.BattleOptionsButton;
 
-			break;
+				break;
 
-			RECEIVED(MSG_M_BATTLESEL);
-			packet >> local.menu.BattleSelection;
-			BattleSelection = local.menu.BattleSelection;
+				RECEIVED(MSG_M_BATTLESEL);
+				packet >> local.menu.BattleSelection;
+				BattleSelection = local.menu.BattleSelection;
 
-			break;
+				break;
 		}
 
 		return true;
@@ -877,7 +877,6 @@ bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-
 
 #pragma endregion
 #pragma region Crap

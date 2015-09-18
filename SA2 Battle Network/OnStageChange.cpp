@@ -27,7 +27,7 @@ DataPointer(short, isFirstStageLoad, 0x01748B94);
 void SetCurrentLevel(int stage)
 {
 	using namespace sa2bn::Globals;
-	
+
 	word_1934B84 = CurrentLevel;
 
 	if (isFirstStageLoad)
@@ -52,7 +52,7 @@ void SetCurrentLevel(int stage)
 	else
 	{
 		PrintDebug("<> Waiting for stage number...");
-		
+
 		if (!Broker->WaitForPlayers(Broker->stageReceived))
 			return;
 

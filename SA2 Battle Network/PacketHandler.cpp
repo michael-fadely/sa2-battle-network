@@ -39,7 +39,6 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 			result = listener.listen(port);
 		} while (block && result == Socket::Status::NotReady);
 
-
 		// If there was an error, throw an exception.
 		// If the result is otherwise non-critical and blocking is disabled, return its result.
 		if (result == Socket::Status::Error)

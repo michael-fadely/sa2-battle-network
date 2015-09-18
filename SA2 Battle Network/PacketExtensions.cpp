@@ -25,7 +25,7 @@ void PacketEx::Initialize()
 {
 	empty = true;
 	messageCount = 0;
-	
+
 	if (MessageTypes != nullptr)
 		delete[] MessageTypes;
 
@@ -47,7 +47,6 @@ bool PacketEx::addType(uint8 type)
 	messageCount++;
 	return MessageTypes[type] = true;
 }
-
 
 sf::Packet& operator <<(sf::Packet& packet, const char& data)
 {

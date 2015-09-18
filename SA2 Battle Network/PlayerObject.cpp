@@ -38,7 +38,7 @@ void PlayerObject::Copy(ObjectMaster* source)
 
 	if (source == nullptr)
 		return;
-	
+
 	Data1.Action				= source->Data1->Action;
 	Data1.Status				= source->Data1->Status;
 	Data1.Rotation				= source->Data1->Rotation;
@@ -56,36 +56,36 @@ void PlayerObject::Copy(ObjectMaster* source)
 
 	switch (source->Data2->CharID2)
 	{
-	default:
-		break;
+		default:
+			break;
 
-	case Characters_Sonic:
-	case Characters_Shadow:
-	case Characters_Amy:
-	case Characters_MetalSonic:
-		Sonic.SpindashTimer = ((SonicCharObj2*)source->Data2)->SpindashTimer;
-		break;
+		case Characters_Sonic:
+		case Characters_Shadow:
+		case Characters_Amy:
+		case Characters_MetalSonic:
+			Sonic.SpindashTimer = ((SonicCharObj2*)source->Data2)->SpindashTimer;
+			break;
 
-	case Characters_MechTails:
-	case Characters_MechEggman:
-		Data2.MechHP = source->Data2->MechHP;
-		break;
+		case Characters_MechTails:
+		case Characters_MechEggman:
+			Data2.MechHP = source->Data2->MechHP;
+			break;
 
-		/*
-	case Characters_Tails:
-		break;
+			/*
+		case Characters_Tails:
+			break;
 
-	case Characters_Eggman:
-		break;
+		case Characters_Eggman:
+			break;
 
-	case Characters_Knuckles:
-	case Characters_Rouge:
-		break;
-			
-	case Characters_SuperSonic:
-	case Characters_SuperShadow:
-		break;
-		*/
+		case Characters_Knuckles:
+		case Characters_Rouge:
+			break;
+
+		case Characters_SuperSonic:
+		case Characters_SuperShadow:
+			break;
+			*/
 	}
 }
 
@@ -93,7 +93,7 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 {
 	if (source == nullptr)
 		return;
-	
+
 	destination->Data1->Action				= source->Data1.Action;
 	destination->Data1->Status				= source->Data1.Status;
 	destination->Data1->Rotation			= source->Data1.Rotation;
@@ -111,37 +111,36 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 
 	switch (destination->Data2->CharID2)
 	{
-	default:
-		break;
+		default:
+			break;
 
-	case Characters_Sonic:
-	case Characters_Shadow:
-	case Characters_Amy:
-	case Characters_MetalSonic:
-		((SonicCharObj2*)destination->Data2)->SpindashTimer = source->Sonic.SpindashTimer;
-		break;
+		case Characters_Sonic:
+		case Characters_Shadow:
+		case Characters_Amy:
+		case Characters_MetalSonic:
+			((SonicCharObj2*)destination->Data2)->SpindashTimer = source->Sonic.SpindashTimer;
+			break;
 
-	case Characters_MechTails:
-	case Characters_MechEggman:
-		destination->Data2->MechHP = source->Data2.MechHP;
-		break;
+		case Characters_MechTails:
+		case Characters_MechEggman:
+			destination->Data2->MechHP = source->Data2.MechHP;
+			break;
 
-		/*
-	case Characters_Tails:
-		break;
+			/*
+		case Characters_Tails:
+			break;
 
-	case Characters_Eggman:
-		break;
+		case Characters_Eggman:
+			break;
 
-	case Characters_Knuckles:
-	case Characters_Rouge:
-		break;
+		case Characters_Knuckles:
+		case Characters_Rouge:
+			break;
 
-
-	case Characters_SuperSonic:
-	case Characters_SuperShadow:
-		break;
-		*/
+		case Characters_SuperSonic:
+		case Characters_SuperShadow:
+			break;
+			*/
 	}
 }
 
