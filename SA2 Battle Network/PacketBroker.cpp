@@ -210,6 +210,7 @@ bool PacketBroker::ConnectionTimedOut() const
 	return timedOut;
 }
 
+// TODO: Proper condition registration by message ID, unique ID, etc
 bool PacketBroker::WaitForPlayers(bool& condition)
 {
 	if (!condition)

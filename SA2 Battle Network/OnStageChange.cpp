@@ -46,6 +46,7 @@ void SetCurrentLevel(int stage)
 		Broker->Request(MSG_S_STAGE, true);
 		Broker->Finalize();
 
+		// Client sends back MSG_READY
 		if (!Broker->WaitForPlayers(Broker->isClientReady))
 			return;
 	}
@@ -53,6 +54,7 @@ void SetCurrentLevel(int stage)
 	{
 		PrintDebug("<> Waiting for stage number...");
 
+		// Server sends MSG_S_STAGE
 		if (!Broker->WaitForPlayers(Broker->stageReceived))
 			return;
 
