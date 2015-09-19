@@ -19,6 +19,7 @@ enum MsgTypes : unsigned char
 	MSG_CONNECTED,			// Connection setup successful
 	MSG_READY,				// Inidicates stage load completion
 	MSG_DISCONNECT,			// Request disconnect
+	MSG_END,
 
 	MSG_I_START,			// Marker: Start of input messages
 

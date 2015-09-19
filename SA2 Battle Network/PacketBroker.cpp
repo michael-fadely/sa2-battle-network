@@ -161,6 +161,12 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			default:
 			{
+				if (newType < MSG_END)
+				{
+					packet.clear();
+					break;
+				}
+
 				ushort length;
 				packet >> length;
 
@@ -188,7 +194,6 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				if (ReceiveMenu(newType, packet))
 					break;
 
-				// TODO: Figure out howtf it's getting ID 4
 				PrintDebug("\t\tSkipping %d bytes for id %02d", length, newType);
 				packet.seekRead(length, SEEK_CUR);
 
