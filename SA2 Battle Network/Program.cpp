@@ -13,7 +13,7 @@ using namespace std;
 using namespace chrono;
 using namespace sa2bn;
 
-const char* musicConnecting		= "chao_k_net_connect.adx";
+const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
 const char* musicConnected		= "chao_k_net_fine.adx";
 const char* musicDisconnected	= "chao_k_net_fault.adx";
 const char* musicDefault		= "btl_sel.adx";
