@@ -1,6 +1,6 @@
 #pragma once
 
-#include <LazyTypedefs.h>
+#include "typedefs.h"
 
 struct MemStruct;
 

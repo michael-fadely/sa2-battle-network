@@ -10,7 +10,6 @@
 #include <cmath>						// for abs
 
 // Global Includes
-#include <LazyTypedefs.h>
 #include <WinSock2.h>					// for htons
 
 // Local Includes

@@ -1,7 +1,7 @@
 #include <vector>
 #include <map>
 
-#include <LazyTypedefs.h>
+#include "typedefs.h"
 #include "LazyMemory.h"
 
 #include "nop.h"

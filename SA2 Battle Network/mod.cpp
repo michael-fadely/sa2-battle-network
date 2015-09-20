@@ -7,8 +7,7 @@
 #include <ShellAPI.h>		// for CommandLinetoArgvW
 #include <SA2ModLoader.h>
 
-#include <LazyTypedefs.h>
-
+#include "typedefs.h"
 #include "Globals.h"		// PacketHandler, Program, PacketBroker
 #include "Networking.h"		// for MSG_COUNT
 #include "PacketHandler.h"	// for RemoteAddress

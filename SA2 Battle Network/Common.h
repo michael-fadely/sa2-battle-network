@@ -1,8 +1,7 @@
 // TODO: DESTROY!
 #pragma once
 
-#include <LazyTypedefs.h>
-#include <LazySleepFor.h>
+#include "typedefs.h"
 #include "Globals.h"
 
 // GetTickCount() wrapper.

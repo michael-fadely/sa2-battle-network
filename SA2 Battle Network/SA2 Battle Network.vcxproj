@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;G:\Libraries;..\SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\SFML\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
@@ -71,7 +71,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;NDEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;G:\Libraries;..\SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\SFML\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
@@ -105,6 +105,7 @@
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="PacketExtensions.h" />
     <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdventurePacketOverloads.cpp" />

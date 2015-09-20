@@ -1,6 +1,6 @@
 #pragma once
 
-#include <LazyTypedefs.h>
+#include "typedefs.h"
 
 #include "PlayerObject.h"			// for PlayerObject
 #include "MemoryStruct.h"			// for MemStruct

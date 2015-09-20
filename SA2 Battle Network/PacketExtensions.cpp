@@ -1,5 +1,5 @@
 #include <SFML/Network.hpp>
-#include <LazyTypedefs.h>
+#include "typedefs.h"
 
 #include "PacketExtensions.h"
 
