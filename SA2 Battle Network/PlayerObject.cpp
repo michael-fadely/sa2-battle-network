@@ -143,7 +143,3 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 			*/
 	}
 }
-
-void PlayerObject::Teleport(ObjectMaster* target, PlayerObject* destination)
-{
-}

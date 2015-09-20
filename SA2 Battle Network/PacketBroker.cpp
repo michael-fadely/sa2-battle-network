@@ -310,10 +310,21 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
 	{
-		if (Teleport())
+		if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
-			RequestPacket(MSG_P_POSITION, safe, fast);
-			RequestPacket(MSG_P_SPEED, safe, fast);
+			if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
+			{
+				// Teleport to recvPlayer
+				PrintDebug("<> Teleporting to other player...");;
+
+				Player1->Data1->Position = recvPlayer.Data1.Position;
+				Player1->Data1->Rotation = recvPlayer.Data1.Rotation;
+				Player1->Data2->HSpeed = 0.0f;
+				Player1->Data2->VSpeed = 0.0f;
+
+				RequestPacket(MSG_P_POSITION, safe, fast);
+				RequestPacket(MSG_P_SPEED, safe, fast);
+			}
 		}
 
 		if (PositionThreshold(sendPlayer.Data1.Position, Player1->Data1->Position))
@@ -938,21 +949,6 @@ void PacketBroker::ToggleSplitscreen()
 				SplitscreenMode = 1;
 		}
 	}
-}
-bool PacketBroker::Teleport()
-{
-	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
-	{
-		if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
-		{
-			// Teleport to recvPlayer
-			PrintDebug("<> Teleporting to other player...");;
-			PlayerObject::Teleport(Player1, &recvPlayer);
-			return true;
-		}
-	}
-
-	return false;
 }
 
 #pragma endregion

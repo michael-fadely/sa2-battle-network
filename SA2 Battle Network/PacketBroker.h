@@ -92,8 +92,6 @@ private:
 	void writeSpecials();
 	void writeTimeStop();
 	void ToggleSplitscreen();
-	// Returns true if the player has been teleported.
-	bool Teleport();
 
 	//
 	// Members

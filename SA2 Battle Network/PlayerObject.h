@@ -19,12 +19,6 @@ public:
 	/// <param name="destination">The destination ObjectMaster to apply changes to.</param>
 	/// <param name="source">The changes to apply.</param>
 	static void WritePlayer(ObjectMaster* destination, PlayerObject* source);
-	/// <summary>
-	/// Teleports an ObjectMaster to a location stored in a PlayerObject
-	/// </summary>
-	/// <param name="target">The player to teleport.</param>
-	/// <param name="destination">The player to teleport to.</param>
-	static void Teleport(ObjectMaster* target, PlayerObject* destination);
 
 	CharObj1 Data1;
 	CharObj2 Data2;
