@@ -12,7 +12,8 @@ static uint lastFrame = 0;
 
 void InputHandler()
 {
-	using namespace sa2bn::Globals;
+	using namespace sa2bn;
+	using namespace Globals;
 
 	if (!isInitialized() || !isConnected())
 		return;
@@ -23,7 +24,7 @@ void InputHandler()
 
 #pragma region Send
 	if (pad->PressedButtons || pad->ReleasedButtons)
-		Broker->Request(MSG_I_BUTTONS, true);
+		Broker->Request(Message::I_Buttons, true);
 
 	// TODO: Make less spammy
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
@@ -34,11 +35,11 @@ void InputHandler()
 			)
 		{
 			lastFrame = FrameCount;
-			Broker->Request(MSG_I_ANALOG, false);
+			Broker->Request(Message::I_Analog, false);
 		}
 		else if (!pad->LeftStickX && !pad->LeftStickY)
 		{
-			Broker->Request(MSG_I_ANALOG, true);
+			Broker->Request(Message::I_Analog, true);
 		}
 	}
 

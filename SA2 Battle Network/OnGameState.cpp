@@ -11,7 +11,8 @@ void* escape_addr = (void*)0x0043AAEE;
 
 static void __cdecl OnGameState()
 {
-	using namespace sa2bn::Globals;
+	using namespace sa2bn;
+	using namespace Globals;
 
 	// This is here because we overwrite its assignment with a call
 	// in the original code.
@@ -21,7 +22,7 @@ static void __cdecl OnGameState()
 		return;
 
 	sf::Packet packet;
-	packet << (uint8)MSG_READY;
+	packet << (uint8)Message::N_Ready;
 	Networking->sendSafe(packet);
 
 	Broker->WaitForPlayers(Broker->isClientReady);

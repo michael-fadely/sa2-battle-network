@@ -25,7 +25,7 @@ void PacketEx::Initialize()
 	if (MessageTypes != nullptr)
 		delete[] MessageTypes;
 
-	MessageTypes = new bool[MSG_COUNT]();
+	MessageTypes = new bool[sa2bn::Message::Count]();
 }
 
 bool PacketEx::isInPacket(const uint8 type) const

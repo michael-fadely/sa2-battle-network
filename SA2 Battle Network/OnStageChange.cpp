@@ -26,7 +26,8 @@ DataPointer(short, isFirstStageLoad, 0x01748B94);
 
 void SetCurrentLevel(int stage)
 {
-	using namespace sa2bn::Globals;
+	using namespace sa2bn;
+	using namespace Globals;
 
 	word_1934B84 = CurrentLevel;
 
@@ -43,10 +44,10 @@ void SetCurrentLevel(int stage)
 	{
 		CurrentLevel = stage;
 
-		Broker->Request(MSG_S_STAGE, true);
+		Broker->Request(Message::S_Stage, true);
 		Broker->Finalize();
 
-		// Client sends back MSG_READY
+		// Client sends back Message::READY
 		if (!Broker->WaitForPlayers(Broker->isClientReady))
 			return;
 	}
@@ -54,14 +55,14 @@ void SetCurrentLevel(int stage)
 	{
 		PrintDebug("<> Waiting for stage number...");
 
-		// Server sends MSG_S_STAGE
+		// Server sends Message::S_STAGE
 		if (!Broker->WaitForPlayers(Broker->stageReceived))
 			return;
 
 		PrintDebug(">> Received stage change: %d (was %d)", CurrentLevel, stage);
 
 		sf::Packet packet;
-		packet << (uint8)MSG_READY;
+		packet << (uint8)Message::N_Ready;
 
 		Networking->sendSafe(packet);
 	}
