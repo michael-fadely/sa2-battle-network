@@ -9,6 +9,7 @@
 
 #include <SFML/Network.hpp>
 #include <mutex>
+#include "typedefs.h"
 #include "PacketExtensions.h"
 
 class PacketHandler
@@ -58,7 +59,7 @@ public:
 	// Returns NotReady if none are connected.
 	// If the parameter received is false (default), it sends a disconnect message,
 	// otherwise it does not, and simply closes all sockets.
-	sf::Socket::Status Disconnect(const bool received = false);
+	void Disconnect();
 
 	// Returns the state of bound ports.
 	bool isBound() const { return bound; }
@@ -67,7 +68,17 @@ public:
 	// Returns the host state of the packet handler.
 	// Returns true if Listen() was called, and false otherwise
 	// or after Connect() has been called.
-	bool isServer() const { return host; }
+	bool isServer() const { return host; }	
+	/// <summary>
+	/// Gets the local port of the UDP socket.
+	/// </summary>
+	/// <returns></returns>
+	ushort getLocalPort() const { return socketFast.getLocalPort(); }	
+	/// <summary>
+	/// Sets the remote port for the UDP socket.
+	/// </summary>
+	/// <param name="port">The port.</param>
+	void setRemotePort(ushort port);
 
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate send function (safe/fast).

@@ -17,7 +17,7 @@ extern "C" __declspec(dllexport) void OnFrame()
 
 	if (!Globals::Program->CheckConnectOK())
 	{
-		Globals::Program->Disconnect(false);
+		Globals::Program->Disconnect();
 		return;
 	}
 
@@ -26,7 +26,7 @@ extern "C" __declspec(dllexport) void OnFrame()
 	if (Globals::Broker->ConnectionTimedOut())
 	{
 		PrintDebug("<> Connection timed out.");
-		Globals::Program->Disconnect(true);
+		Globals::Program->Disconnect();
 	}
 
 	Globals::Broker->SendSystem();

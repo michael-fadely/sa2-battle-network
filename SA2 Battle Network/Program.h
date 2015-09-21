@@ -29,7 +29,7 @@ public:
 
 	bool CheckConnectOK() const;
 	bool Connect();
-	void Disconnect(const bool received);
+	void Disconnect();
 
 	Version remoteVersion;
 

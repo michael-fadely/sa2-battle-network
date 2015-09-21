@@ -145,7 +145,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			case MSG_DISCONNECT:
 				PrintDebug(">> Received disconnect request from client.");
-				Globals::Networking->Disconnect(true);
+				Globals::Networking->Disconnect();
 				break;
 
 			case MSG_READY:
@@ -223,7 +223,7 @@ bool PacketBroker::WaitForPlayers(bool& condition)
 			if (ConnectionTimedOut())
 			{
 				PrintDebug("<> Connection timed out while waiting for players.");
-				Globals::Program->Disconnect(true);
+				Globals::Program->Disconnect();
 				return condition = false;
 			}
 

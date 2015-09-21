@@ -82,12 +82,12 @@ bool Program::Connect()
 	return result;
 }
 
-void Program::Disconnect(bool received)
+void Program::Disconnect()
 {
 	setMusic = false;
 
 	PrintDebug("<> Disconnecting...");
-	Globals::Networking->Disconnect(received);
+	Globals::Networking->Disconnect();
 
 	ApplySettings(false);
 
@@ -147,7 +147,6 @@ bool Program::StartServer()
 	}
 
 	packet >> remoteVersion;
-	packet.clear();
 
 	if (versionNum != remoteVersion)
 	{
@@ -162,6 +161,21 @@ bool Program::StartServer()
 		return false;
 	}
 
+	packet >> id;
+
+	if (id != MSG_BIND)
+	{
+		PrintDebug(">> Error receiving local port from client (ID mismatch).");
+		Globals::Networking->Disconnect();
+
+		return false;
+	}
+
+	ushort remoteport;
+	packet >> remoteport;
+	Globals::Networking->setRemotePort(remoteport);
+
+	packet.clear();
 	packet << (uint8)MSG_VERSION_OK;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
@@ -171,8 +185,8 @@ bool Program::StartServer()
 	}
 
 	packet.clear();
-	packet << (uint8)MSG_SETTINGS << clientSettings.noSpecials;
-	packet << (uint8)MSG_CONNECTED;
+	packet << (uint8)MSG_SETTINGS << clientSettings.noSpecials
+		<< (uint8)MSG_CONNECTED;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
@@ -203,8 +217,9 @@ bool Program::StartClient()
 	if (!CheckConnectOK())
 		return false;
 
-	packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor;
-	uint8 id;
+	// HACK: Why is the socket accessible?
+	packet << (uint8)MSG_VERSION_CHECK << versionNum.major << versionNum.minor
+		<< (uint8)MSG_BIND << Globals::Networking->getLocalPort();
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 	{
@@ -215,6 +230,7 @@ bool Program::StartClient()
 	packet.clear();
 
 	// TODO: Timeout on both of these loops.
+	uint8 id = MSG_NULL;
 	do
 	{
 		if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
