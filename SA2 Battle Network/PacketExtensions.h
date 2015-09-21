@@ -38,9 +38,6 @@ public:
 	// This can be changed at any time before it is sent.
 	bool isSafe;
 
-	// Sets the global maximum message types for all packets.
-	static void SetMessageTypeCount(const uint8 msgCount);
-
 private:
 	void Initialize();
 
@@ -49,9 +46,6 @@ private:
 	bool* MessageTypes;
 	// The number of messages currently in the packet
 	uint32 messageCount;
-	// The global maximum number of message types handled by all packets.
-	// This can be changed using SetMessageTypeCount
-	static uint8 MessageTypeCount;
 };
 
 sf::Packet& operator <<(sf::Packet& packet, const char& data);

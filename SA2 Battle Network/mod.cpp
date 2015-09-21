@@ -9,7 +9,6 @@
 
 #include "typedefs.h"
 #include "Globals.h"		// PacketHandler, Program, PacketBroker
-#include "Networking.h"		// for MSG_COUNT
 #include "PacketHandler.h"	// for RemoteAddress
 
 #include "MainThread.h"
@@ -100,7 +99,6 @@ void MainThread(int argc, wchar_t** argv)
 
 	using namespace sa2bn;
 
-	PacketEx::SetMessageTypeCount(MSG_COUNT);
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();
 	Globals::Program = new Program(Settings, isServer, Address);

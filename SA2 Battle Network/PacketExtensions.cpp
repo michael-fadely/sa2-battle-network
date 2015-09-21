@@ -1,15 +1,11 @@
 #include <SFML/Network.hpp>
+#include "Networking.h"
 #include "typedefs.h"
 
 #include "PacketExtensions.h"
 
-// Static variables
-uint8 PacketEx::MessageTypeCount = 0xFF;
-void PacketEx::SetMessageTypeCount(const uint8 msgCount) { MessageTypeCount = msgCount; }
-
 PacketEx::PacketEx(const uint8 msgCount, const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
 {
-	SetMessageTypeCount(msgCount);
 	Initialize();
 }
 PacketEx::PacketEx(const bool safe) : isSafe(safe), MessageTypes(nullptr)
@@ -29,7 +25,7 @@ void PacketEx::Initialize()
 	if (MessageTypes != nullptr)
 		delete[] MessageTypes;
 
-	MessageTypes = new bool[MessageTypeCount]();
+	MessageTypes = new bool[MSG_COUNT]();
 }
 
 bool PacketEx::isInPacket(const uint8 type) const

@@ -1,4 +1,3 @@
-
 #include <Winsock2.h>
 
 #include "Common.h"			// for Millisecs(), LazyTypedefs
@@ -8,7 +7,6 @@
 #include "PacketHandler.h"
 
 using namespace std;
-using namespace sf;
 
 #pragma region PacketHandler
 
@@ -25,7 +23,7 @@ PacketHandler::~PacketHandler()
 
 sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
 	int error = 0;
 
 	if (!bound)
@@ -37,13 +35,13 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 		do
 		{
 			result = listener.listen(port);
-		} while (block && result == Socket::Status::NotReady);
+		} while (block && result == sf::Socket::Status::NotReady);
 
 		// If there was an error, throw an exception.
 		// If the result is otherwise non-critical and blocking is disabled, return its result.
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-		if (!block && result != Socket::Status::Done)
+		if (!block && result != sf::Socket::Status::Done)
 			return result;
 
 		bound = true;
@@ -53,13 +51,13 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 	do
 	{
 		result = listener.accept(socketSafe);
-	} while (block && result == Socket::Status::NotReady);
+	} while (block && result == sf::Socket::Status::NotReady);
 
 	// Once again, throw an exception if necessary,
 	// otherwise simply return the result.
-	if (result == Socket::Status::Error)
+	if (result == sf::Socket::Status::Error)
 		throw error = WSAGetLastError();
-	if (result != Socket::Status::Done)
+	if (result != sf::Socket::Status::Done)
 		return result;
 
 	// Pull the remote address out of the socket
@@ -71,7 +69,7 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 	// Set host state to true to ensure everything knows what to do.
 	host = true;
 
-	// TODO: Handle this stuff elsewhere and take in the user's port as a parameter.
+	// TODO: Handle this stuff elsewhere and take in the user's port as a parameter.  (Everything form here onward)
 	// The message ID to confirm we get the right packet.
 	uint8 ID = MSG_NULL;
 	// Create a packet for receiving the local UDP port from the client.
@@ -80,7 +78,7 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 
 	// Wait for the packet, check the status, blah blah blah.
 	// You get the idea at this point.
-	if ((result = recvSafe(packet, true)) != Socket::Status::Done)
+	if ((result = recvSafe(packet, true)) != sf::Socket::Status::Done)
 		return result;
 
 	// Now to check the packet ID.
@@ -90,7 +88,7 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 	if (ID != MSG_BIND)
 	{
 		Disconnect(true);
-		return Socket::Status::Disconnected;
+		return sf::Socket::Status::Disconnected;
 	}
 
 	// Now pull the port out of the packet.
@@ -100,7 +98,7 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 }
 sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, const bool block)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
 	if (!connected)
 	{
@@ -122,13 +120,13 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, c
 		do
 		{
 			result = socketSafe.connect(ip, port);
-		} while (block && result == Socket::Status::NotReady);
+		} while (block && result == sf::Socket::Status::NotReady);
 
 		// If there was an error, throw an exception.
 		// If the result is otherwise non-critical and blocking is disabled, return its result.
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-		if (!block && result != Socket::Status::Done)
+		if (!block && result != sf::Socket::Status::Done)
 			return result;
 
 		// Set connection state to true to allow use of communication functions.
@@ -139,16 +137,16 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, c
 		// The packet used to send the local UDP port.
 		sf::Packet packet;
 
-		// TODO: Do this elsewhere and/or remove the dependency on the enum.
+		// TODO: Do this elsewhere and/or remove the dependency on the enum. (from here to end of scope)
 		// Now we populate the packet with the ID and the port,
 		// and send it off, retrieving the status.
 		packet << (uint8)MSG_BIND << socketFast.getLocalPort();
 		result = sendSafe(packet);
 
 		// Same deal as last time...
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-		if (result != Socket::Status::Done)
+		if (result != sf::Socket::Status::Done)
 			return result;
 
 		sendFast(packet);
@@ -158,18 +156,18 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, c
 }
 sf::Socket::Status PacketHandler::Disconnect(const bool received)
 {
-	Socket::Status result = Socket::Status::Disconnected;
+	sf::Socket::Status result = sf::Socket::Status::Disconnected;
 
 	// TODO: Handle this bit elsewhere, remove function parameter
 	if (!received && connected)
 	{
-		Packet disconnect;
+		sf::Packet disconnect;
 		disconnect << (uint8)MSG_DISCONNECT;
 
 		do
 		{
 			result = socketSafe.send(disconnect);
-		} while (result == Socket::Status::NotReady);
+		} while (result == sf::Socket::Status::NotReady);
 	}
 
 	socketSafe.disconnect();
@@ -182,12 +180,12 @@ sf::Socket::Status PacketHandler::Disconnect(const bool received)
 }
 sf::Socket::Status PacketHandler::Bind(const ushort port, const bool isServer)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
-	if ((result = socketFast.bind((isServer) ? port : Socket::AnyPort)) != Socket::Status::Done)
+	if ((result = socketFast.bind((isServer) ? port : sf::Socket::AnyPort)) != sf::Socket::Status::Done)
 	{
 		int error = 0;
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
 	}
 
@@ -202,26 +200,19 @@ sf::Socket::Status PacketHandler::Connect(RemoteAddress address, const bool bloc
 sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
 	if (!packet.isEmpty())
-	{
-		if (packet.isSafe)
-			return sendSafe(packet);
-		else
-			return sendFast(packet);
-	}
+		return packet.isSafe ? sendSafe(packet) : sendFast(packet);
 
-	return Socket::Status::NotReady;
+	return sf::Socket::Status::NotReady;
 }
 sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
 {
-	if (packet.isSafe)
-		return recvSafe(packet, block);
-	else
-		return recvFast(packet, block);
+	return packet.isSafe ? recvSafe(packet, block) : recvFast(packet, block);
 }
 
-sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
+sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
+
 	if (connected)
 	{
 		int error = 0;
@@ -230,18 +221,20 @@ sf::Socket::Status PacketHandler::sendSafe(Packet& packet)
 		do
 		{
 			result = socketSafe.send(packet);
-		} while (result == Socket::Status::NotReady);
+		} while (result == sf::Socket::Status::NotReady);
 
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
 
 		lockSafe.unlock();
 	}
+
 	return result;
 }
-sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::recvSafe(sf::Packet& packet, const bool block)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
+
 	if (connected)
 	{
 		int error = 0;
@@ -250,18 +243,20 @@ sf::Socket::Status PacketHandler::recvSafe(Packet& packet, const bool block)
 		do
 		{
 			result = socketSafe.receive(packet);
-		} while (block && result == Socket::Status::NotReady);
+		} while (block && result == sf::Socket::Status::NotReady);
 
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
 
 		lockSafe.unlock();
 	}
+
 	return result;
 }
-sf::Socket::Status PacketHandler::sendFast(Packet& packet)
+sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
+
 	if (connected)
 	{
 		int error = 0;
@@ -270,18 +265,20 @@ sf::Socket::Status PacketHandler::sendFast(Packet& packet)
 		do
 		{
 			result = socketFast.send(packet, Address.ip, Address.port);
-		} while (result == Socket::Status::NotReady);
+		} while (result == sf::Socket::Status::NotReady);
 
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
 
 		lockFast.unlock();
 	}
+
 	return result;
 }
-sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::recvFast(sf::Packet& packet, const bool block)
 {
-	Socket::Status result = Socket::Status::NotReady;
+	sf::Socket::Status result = sf::Socket::Status::NotReady;
+
 	if (connected)
 	{
 		RemoteAddress recvaddr = {};
@@ -292,15 +289,16 @@ sf::Socket::Status PacketHandler::recvFast(Packet& packet, const bool block)
 		do
 		{
 			result = socketFast.receive(packet, recvaddr.ip, recvaddr.port);
-		} while (block && result == Socket::Status::NotReady);
+		} while (block && result == sf::Socket::Status::NotReady);
 
-		if (result == Socket::Status::Error)
+		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
 		if (recvaddr.ip != Address.ip)
-			result = Socket::Status::NotReady;
+			result = sf::Socket::Status::NotReady;
 
 		lockFast.unlock();
 	}
+
 	return result;
 }
 

@@ -26,12 +26,9 @@ public:
 	/// <param name="type">The message type.</param>
 	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
-	bool inline Request(uint8 type, bool isSafe)
+	bool Request(uint8 type, bool isSafe)
 	{
-		if (isSafe)
-			return RequestPacket(type, safe, fast);
-		else
-			return RequestPacket(type, fast, safe);
+		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast);
 	}
 
 	/// <summary>
@@ -39,9 +36,9 @@ public:
 	/// </summary>
 	void Finalize();
 
-	inline void SendSystem()	{ SendSystem(safe, fast); }
-	inline void SendPlayer()	{ SendPlayer(safe, fast); }
-	inline void SendMenu()		{ SendMenu(safe, fast); }
+	void SendSystem()	{ SendSystem(safe, fast); }
+	void SendPlayer()	{ SendPlayer(safe, fast); }
+	void SendMenu()		{ SendMenu(safe, fast); }
 
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(bool& condition);
