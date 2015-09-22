@@ -33,4 +33,17 @@ extern "C" __declspec(dllexport) void OnFrame()
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();
+
+	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
+	{
+		if ((ControllersRaw[0].HeldButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R) ||
+			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].HeldButtons & Buttons_R) ||
+			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R))
+		{
+			if (SplitscreenMode == 1)
+				SplitscreenMode = 2;
+			else if (SplitscreenMode == 2)
+				SplitscreenMode = 1;
+		}
+	}
 }

@@ -108,12 +108,7 @@ void PacketBroker::ReceiveLoop()
 
 void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 {
-	sf::Socket::Status status;
-
-	if (safe)
-		status = Globals::Networking->recvSafe(packet);
-	else
-		status = Globals::Networking->recvFast(packet);
+	sf::Socket::Status status = safe ? Globals::Networking->recvSafe(packet) : Globals::Networking->recvFast(packet);
 
 	if (status != sf::Socket::Status::Done)
 		return;
@@ -937,26 +932,6 @@ inline void PacketBroker::writeSpecials() const
 inline void PacketBroker::writeTimeStop()
 {
 	TimeStopMode = local.game.TimeStopMode;
-}
-
-#pragma endregion
-#pragma region Toggles
-
-// TODO: Remove from this class
-void PacketBroker::ToggleSplitscreen() const
-{
-	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
-	{
-		if ((ControllersRaw[0].HeldButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R) ||
-			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].HeldButtons & Buttons_R) ||
-			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R))
-		{
-			if (SplitscreenMode == 1)
-				SplitscreenMode = 2;
-			else if (SplitscreenMode == 2)
-				SplitscreenMode = 1;
-		}
-	}
 }
 
 #pragma endregion

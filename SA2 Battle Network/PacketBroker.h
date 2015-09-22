@@ -88,7 +88,6 @@ private:
 	void writeRings();
 	void writeSpecials() const;
 	void writeTimeStop();
-	void ToggleSplitscreen() const;
 
 	//
 	// Members
