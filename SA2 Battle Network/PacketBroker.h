@@ -11,7 +11,7 @@
 class PacketBroker
 {
 public:
-	PacketBroker(uint timeout);
+	explicit PacketBroker(uint timeout);
 	void Initialize();
 
 	//
@@ -86,9 +86,9 @@ private:
 
 	// Pretty much all of these are just so I can be lazy
 	void writeRings();
-	void writeSpecials();
+	void writeSpecials() const;
 	void writeTimeStop();
-	void ToggleSplitscreen();
+	void ToggleSplitscreen() const;
 
 	//
 	// Members

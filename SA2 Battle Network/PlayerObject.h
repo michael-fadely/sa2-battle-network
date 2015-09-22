@@ -5,7 +5,7 @@
 class PlayerObject
 {
 public:
-	PlayerObject(ObjectMaster* player);
+	explicit PlayerObject(ObjectMaster* player);
 	PlayerObject();
 
 	/// <summary>

@@ -1,14 +1,11 @@
 #include "stdafx.h"
 
-#include <thread>
 #include <chrono>
 
 #include "Common.h"
 #include "AddressList.h"
 #include "LazyMemory.h"
-
 #include "nop.h"
-
 #include "MemoryManagement.h"
 
 using namespace std;
@@ -91,8 +88,6 @@ void MemManage::nopP2Input(const bool doNop)
 		//waitFrame(5);
 		nop::restore(ADDR_P2INOP);
 	}
-
-	return;
 }
 
 void MemManage::swapSpawn(const bool swapstart)

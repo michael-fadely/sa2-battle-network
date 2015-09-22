@@ -5,7 +5,7 @@
 class PacketEx : public sf::Packet
 {
 public:
-	PacketEx(const bool safe);
+	explicit PacketEx(const bool safe);
 	~PacketEx();
 
 	bool isInPacket(const uint8 type) const;

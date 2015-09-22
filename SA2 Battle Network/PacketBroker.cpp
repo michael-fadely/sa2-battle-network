@@ -926,15 +926,24 @@ void PacketBroker::PostReceive()
 	writeSpecials();
 }
 
-inline void PacketBroker::writeRings() { RingCount[1] = local.game.RingCount[1]; }
-inline void PacketBroker::writeSpecials() { memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3); }
-inline void PacketBroker::writeTimeStop() { TimeStopMode = local.game.TimeStopMode; }
+inline void PacketBroker::writeRings()
+{
+	RingCount[1] = local.game.RingCount[1];
+}
+inline void PacketBroker::writeSpecials() const
+{
+	memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
+}
+inline void PacketBroker::writeTimeStop()
+{
+	TimeStopMode = local.game.TimeStopMode;
+}
 
 #pragma endregion
 #pragma region Toggles
 
 // TODO: Remove from this class
-void PacketBroker::ToggleSplitscreen()
+void PacketBroker::ToggleSplitscreen() const
 {
 	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 	{

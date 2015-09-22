@@ -2,7 +2,7 @@
 
 struct GameState
 {
-	enum GameStates : char
+	enum GameStates : unsigned char
 	{
 		Inactive,
 		Loading,
@@ -60,7 +60,7 @@ struct GameState
 
 struct Menu
 {
-	enum Menus : char
+	enum Menus : unsigned char
 	{
 		TITLE,
 		MAIN,
@@ -88,7 +88,7 @@ struct Menu
 // O is Out (exit transition)
 struct SubMenu2P
 {
-	enum SubMenus : char
+	enum SubMenus : unsigned char
 	{
 		S_NULL,
 		I_START,
