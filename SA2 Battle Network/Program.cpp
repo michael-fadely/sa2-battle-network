@@ -4,7 +4,7 @@
 #include <SFML/Network.hpp>
 
 #include "Globals.h"			// for Globals :specialed:
-#include "Networking.h"			// for MSG
+#include "Networking.h"
 #include "MemoryManagement.h"	// for MemManage
 #include "CommonEnums.h"		// for Menu, SubMenu2P
 #include "AddressList.h"		// for CurrentMenu

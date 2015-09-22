@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include <SA2ModLoader.h>
-#include "Networking.h"		// for MSG
+#include "Networking.h"
 #include "Globals.h"
 #include "OnStageChange.h"
 

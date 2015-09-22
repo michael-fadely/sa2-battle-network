@@ -16,7 +16,7 @@
 #include "Common.h"
 #include "CommonEnums.h"
 
-#include "Networking.h"					// for MSG
+#include "Networking.h"
 #include "PacketExtensions.h"			// for PacketEx
 #include "AdventurePacketOverloads.h"
 

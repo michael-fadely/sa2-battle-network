@@ -3,7 +3,7 @@
 #include <cmath>			// for abs
 
 #include <SA2ModLoader.h>	// for everything
-#include "Networking.h"		// for MSG
+#include "Networking.h"
 #include "Globals.h"		// for Globals :specialed:
 #include "AddressList.h"	// for FrameCount, FrameIncrement
 
