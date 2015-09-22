@@ -19,7 +19,7 @@ public:
 	{
 		unsigned char major;
 		unsigned char minor;
-		std::string str();
+		std::string str() const;
 		bool operator==(const Version& value) const { return major == value.major && minor == value.minor; }
 		bool operator!=(const Version& value) const { return !(*this == value); }
 	};
@@ -33,7 +33,7 @@ public:
 
 	Version remoteVersion;
 
-	static Version versionNum;
+	static const Version versionNum;
 	static const std::string version;
 
 private:

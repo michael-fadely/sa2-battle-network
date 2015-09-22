@@ -12,13 +12,9 @@
 #include "Program.h"
 
 using namespace std;
-using namespace chrono;
 using namespace nethax;
 
-const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
-const char* musicConnected		= "chao_k_net_fine.adx";
-const char* musicDisconnected	= "chao_k_net_fault.adx";
-const char* musicDefault		= "btl_sel.adx";
+#pragma region Embedded Types
 
 sf::Packet& operator <<(sf::Packet& packet, const Program::Version& data)
 {
@@ -29,16 +25,21 @@ sf::Packet& operator >>(sf::Packet& packet, Program::Version& data)
 	return packet >> data.major >> data.minor;
 }
 
-#pragma region Embedded Types
-
-Program::Version Program::versionNum = { 3, 1 };
-const std::string Program::version = "SA2:BN Version: " + Program::versionNum.str();
-std::string Program::Version::str()
+std::string Program::Version::str() const
 {
 	return to_string(major) + "." + to_string(minor);
 }
 
 #pragma endregion
+
+
+const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
+const char* musicConnected		= "chao_k_net_fine.adx";
+const char* musicDisconnected	= "chao_k_net_fault.adx";
+const char* musicDefault		= "btl_sel.adx";
+
+const Program::Version	Program::versionNum	= { 3, 1 };
+const std::string		Program::version	= "SA2:BN Version: " + Program::versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 	remoteVersion(Program::versionNum), clientSettings(settings), Address(address), isServer(host), setMusic(false), rejected(false)
