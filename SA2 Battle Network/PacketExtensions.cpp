@@ -6,11 +6,7 @@
 
 #include "PacketExtensions.h"
 
-PacketEx::PacketEx(const uint8 msgCount, const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
-{
-	Initialize();
-}
-PacketEx::PacketEx(const bool safe) : isSafe(safe), MessageTypes(nullptr)
+PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
 {
 	Initialize();
 }

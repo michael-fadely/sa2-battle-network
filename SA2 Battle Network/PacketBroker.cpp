@@ -11,9 +11,6 @@
 // Standard Includes
 #include <cmath>						// for abs
 
-// Global Includes
-#include <WinSock2.h>					// for htons
-
 // Local Includes
 #include "Globals.h"					// for Globals :specialed:
 #include "Common.h"

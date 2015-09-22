@@ -5,9 +5,6 @@
 class PacketEx : public sf::Packet
 {
 public:
-	// Constructs a new instance, setting the global maximum message types to msgCount.
-	PacketEx(const uint8 msgCount, const bool safe);
-	// Constructs a new instance
 	PacketEx(const bool safe);
 	~PacketEx();
 
