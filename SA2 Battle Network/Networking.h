@@ -40,7 +40,7 @@ namespace nethax
 			M_BattleSelection,
 			M_BattleConfigSelection,
 			M_CharacterChosen,
-			M_CharacterSElection,
+			M_CharacterSelection,
 			M_StageSelection,
 
 			M_END,				// Marker: End of menu messages

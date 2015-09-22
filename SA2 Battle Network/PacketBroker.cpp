@@ -45,7 +45,7 @@ uint positionTimer = 0;
 uint rotateTimer = 0;
 uint speedTimer = 0;
 
-static inline bool PositionThreshold(const Vertex& last, const Vertex& current)
+static bool PositionThreshold(const Vertex& last, const Vertex& current)
 {
 	return (fabs(last.x - current.x) >= positionThreshold
 		|| fabs(last.y - current.y) >= positionThreshold
@@ -53,7 +53,7 @@ static inline bool PositionThreshold(const Vertex& last, const Vertex& current)
 		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
-static inline bool RotationThreshold(const Rotation& last, const Rotation& current)
+static bool RotationThreshold(const Rotation& last, const Rotation& current)
 {
 	return (abs(last.x - current.x) >= rotateThreshold
 		|| abs(last.y - current.y) >= rotateThreshold
@@ -61,7 +61,7 @@ static inline bool RotationThreshold(const Rotation& last, const Rotation& curre
 		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
-static inline bool SpeedThreshold(const float last, const float current)
+static bool SpeedThreshold(const float last, const float current)
 {
 	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= max((speedThreshold * current), speedThreshold));
 }
@@ -412,7 +412,7 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 				}
 
 				if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
-					RequestPacket(Message::M_CharacterSElection, safe);
+					RequestPacket(Message::M_CharacterSelection, safe);
 				if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
 					RequestPacket(Message::M_CharacterChosen, safe);
 
@@ -502,7 +502,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 			local.menu.CharacterSelected[0] = CharacterSelected[0];
 			break;
 
-		case Message::M_CharacterSElection:
+		case Message::M_CharacterSelection:
 			out << CharacterSelection[0];
 			local.menu.CharacterSelection[0] = CharacterSelection[0];
 			break;
@@ -822,7 +822,7 @@ bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
 				PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
 				break;
 
-				RECEIVED(Message::M_CharacterSElection);
+				RECEIVED(Message::M_CharacterSelection);
 				packet >> local.menu.CharacterSelection[1];
 				CharacterSelection[1] = local.menu.CharacterSelection[1];
 				break;
