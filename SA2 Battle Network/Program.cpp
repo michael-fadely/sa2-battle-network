@@ -220,7 +220,6 @@ bool Program::StartClient()
 	if (!CheckConnectOK())
 		return false;
 
-	// HACK: Why is the socket accessible?
 	packet << (uint8)Message::N_VersionCheck << versionNum.major << versionNum.minor
 		<< (uint8)Message::N_Bind << Globals::Networking->getLocalPort();
 
