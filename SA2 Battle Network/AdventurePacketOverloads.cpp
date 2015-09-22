@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "AdventurePacketOverloads.h"
 
 sf::Packet& operator <<(sf::Packet& packet, const Rotation& data)

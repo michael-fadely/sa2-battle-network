@@ -1,6 +1,6 @@
-#include <Winsock2.h>
+#include "stdafx.h"
 
-// This class
+#include <Winsock2.h>
 #include "PacketHandler.h"
 
 using namespace std;

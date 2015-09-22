@@ -1,5 +1,6 @@
-#include <SA2ModLoader.h>
+#include "stdafx.h"
 
+#include <SA2ModLoader.h>
 #include "Globals.h"			// for Globals :specialed:
 
 using namespace nethax;

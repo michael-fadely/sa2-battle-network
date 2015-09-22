@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <cmath>			// for abs
 
 #include <SA2ModLoader.h>	// for everything

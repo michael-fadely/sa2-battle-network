@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 // Defines
 #define RECV_VERBOSE(type) case type: PrintDebug(">> [%06d] " #type, FrameCount)
 #define RECV_CONCISE(type) case type:

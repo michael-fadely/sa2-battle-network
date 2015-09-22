@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <SFML/Network.hpp>
 #include "Networking.h"
 #include "typedefs.h"

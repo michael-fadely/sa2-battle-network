@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <vector>			// obvious
 
 #include <SA2ModLoader.h>	// for everything

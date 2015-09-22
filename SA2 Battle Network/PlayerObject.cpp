@@ -1,5 +1,6 @@
-#include "ModLoaderExtensions.h"
+#include "stdafx.h"
 
+#include "ModLoaderExtensions.h"
 #include "PlayerObject.h"
 
 PlayerObject::PlayerObject(ObjectMaster* player)

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <SA2ModLoader.h>
 #include "Networking.h"		// for MSG
 #include "Globals.h"
