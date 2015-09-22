@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-namespace sa2bn
+namespace nethax
 {
 	namespace Globals
 	{

@@ -8,7 +8,7 @@
 	When receiving player messages, we check if the type is > P_START and < P_END.
 */
 
-namespace sa2bn
+namespace nethax
 {
 	namespace Message
 	{

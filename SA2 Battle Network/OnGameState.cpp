@@ -11,7 +11,7 @@ void* escape_addr = (void*)0x0043AAEE;
 
 static void __cdecl OnGameState()
 {
-	using namespace sa2bn;
+	using namespace nethax;
 	using namespace Globals;
 
 	// This is here because we overwrite its assignment with a call

@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace chrono;
-using namespace sa2bn;
+using namespace nethax;
 
 const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
 const char* musicConnected		= "chao_k_net_fine.adx";

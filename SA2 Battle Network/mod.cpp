@@ -97,7 +97,7 @@ void MainThread(int argc, wchar_t** argv)
 	}
 #pragma endregion
 
-	using namespace sa2bn;
+	using namespace nethax;
 
 	Globals::ProcessID = GetCurrentProcess();
 	Globals::Networking = new PacketHandler();

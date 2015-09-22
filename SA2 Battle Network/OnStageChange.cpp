@@ -26,7 +26,7 @@ DataPointer(short, isFirstStageLoad, 0x01748B94);
 
 void SetCurrentLevel(int stage)
 {
-	using namespace sa2bn;
+	using namespace nethax;
 	using namespace Globals;
 
 	word_1934B84 = CurrentLevel;

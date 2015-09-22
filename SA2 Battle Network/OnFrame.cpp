@@ -2,7 +2,7 @@
 
 #include "Globals.h"			// for Globals :specialed:
 
-using namespace sa2bn;
+using namespace nethax;
 
 extern "C" __declspec(dllexport) void OnFrame()
 {

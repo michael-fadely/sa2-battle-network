@@ -31,7 +31,7 @@
 
 // Namespaces
 using namespace std;
-using namespace sa2bn;
+using namespace nethax;
 
 #pragma region science
 

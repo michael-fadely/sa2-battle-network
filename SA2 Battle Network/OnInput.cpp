@@ -12,7 +12,7 @@ static uint lastFrame = 0;
 
 void InputHandler()
 {
-	using namespace sa2bn;
+	using namespace nethax;
 	using namespace Globals;
 
 	if (!isInitialized() || !isConnected())

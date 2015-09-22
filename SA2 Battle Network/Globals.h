@@ -5,7 +5,7 @@
 #include "Program.h"
 #include <WTypes.h>
 
-namespace sa2bn
+namespace nethax
 {
 	namespace Globals
 	{
