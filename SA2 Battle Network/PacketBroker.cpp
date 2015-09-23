@@ -218,7 +218,6 @@ bool PacketBroker::ConnectionTimedOut() const
 #endif
 }
 
-// TODO: Proper condition registration by message ID, unique ID, etc
 bool PacketBroker::WaitForPlayers(nethax::Message::_Message id)
 {
 	auto it = things.find(id);
