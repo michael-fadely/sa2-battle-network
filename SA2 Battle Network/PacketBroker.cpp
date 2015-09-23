@@ -37,13 +37,13 @@ using namespace nethax;
 // TODO: Re-evaluate all this science.
 // TODO: Consider using the same timer for all three.
 
-const float positionThreshold = 16;
-const int rotateThreshold = toBAMS(11.25);
-const float speedThreshold = 0.1F;
+static const float	positionThreshold	= 16.0f;
+static const int	rotateThreshold		= toBAMS(11.25);
+static const float	speedThreshold		= 0.1f;
 
-uint positionTimer = 0;
-uint rotateTimer = 0;
-uint speedTimer = 0;
+static uint positionTimer = 0;
+static uint rotateTimer = 0;
+static uint speedTimer = 0;
 
 static bool PositionThreshold(const Vertex& last, const Vertex& current)
 {
@@ -200,7 +200,11 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 bool PacketBroker::ConnectionTimedOut() const
 {
+#ifdef _DEBUG
+	return false;
+#else
 	return timedOut;
+#endif
 }
 
 // TODO: Proper condition registration by message ID, unique ID, etc
