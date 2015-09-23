@@ -225,7 +225,7 @@ bool PacketBroker::WaitForPlayers(bool& condition)
 				return condition = false;
 			}
 
-			std::this_thread::yield();
+			this_thread::yield();
 		} while (!condition);
 
 		PrintDebug(">> All players ready. Resuming game.");
