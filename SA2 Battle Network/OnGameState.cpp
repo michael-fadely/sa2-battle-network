@@ -11,6 +11,8 @@
 DataPointer(uint, dword_174B058, 0x174B058);
 void* escape_addr = (void*)0x0043AAEE;
 
+// Note that the name is misleading. This only happens when the gamestate changes to Ingame.
+// TODO: Real OnGameState
 static void __cdecl OnGameState()
 {
 	using namespace nethax;
