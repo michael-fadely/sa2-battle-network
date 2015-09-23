@@ -86,11 +86,10 @@ void PacketBroker::Initialize()
 	wroteP2Start	= false;
 	writePlayer		= false;
 	sendSpinTimer	= false;
-	isClientReady	= false;
-	stageReceived	= false;
 	timedOut		= false;
 
 	receivedKeepalive = sentKeepalive = 0;
+	things.clear();
 }
 
 void PacketBroker::ReceiveLoop()
@@ -143,9 +142,17 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				break;
 
 			case Message::N_Ready:
-				isClientReady = true;
-				packet.seekRead(sizeof(ushort), SEEK_CUR);
+			{
+				uint8 id; packet >> id;
+
+				auto it = things.find((Message::_Message)id);
+				if (it != things.end())
+					it->second = true;
+				else
+					things[(Message::_Message)id] = true;
+
 				break;
+			}
 
 			case Message::S_KeepAlive:
 				receivedKeepalive = Millisecs();
@@ -154,6 +161,10 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			default:
 			{
+				auto it = things.find((Message::_Message)newType);
+				if (it != things.end())
+					it->second = true;
+
 				if (newType < Message::N_END)
 				{
 					packet.clear();
@@ -208,31 +219,40 @@ bool PacketBroker::ConnectionTimedOut() const
 }
 
 // TODO: Proper condition registration by message ID, unique ID, etc
-bool PacketBroker::WaitForPlayers(bool& condition)
+bool PacketBroker::WaitForPlayers(nethax::Message::_Message id)
 {
-	if (!condition)
+	auto it = things.find(id);
+	if (it == things.end())
 	{
-		PrintDebug("<> Waiting for players...");
-
-		do
-		{
-			ReceiveLoop();
-
-			if (ConnectionTimedOut())
-			{
-				PrintDebug("<> Connection timed out while waiting for players.");
-				Globals::Program->Disconnect();
-				return condition = false;
-			}
-
-			this_thread::yield();
-		} while (!condition);
-
-		PrintDebug(">> All players ready. Resuming game.");
+		// TODO: make not bad
+		things[id] = false;
+		it = things.find(id);
 	}
 
-	condition = false;
+	while (!it->second)
+	{
+		ReceiveLoop();
+
+		if (ConnectionTimedOut())
+		{
+			PrintDebug("<> Connection timed out while waiting for players.");
+			Globals::Program->Disconnect();
+			return false;
+		}
+
+		this_thread::yield();
+	}
+
+	PrintDebug(">> All players ready. Resuming game.");
+	things.erase(it);
 	return true;
+}
+
+void PacketBroker::SendReady(nethax::Message::_Message id) const
+{
+	sf::Packet packet;
+	packet << (uint8)Message::N_Ready << (uint8)id;
+	Globals::Networking->sendSafe(packet);
 }
 
 void PacketBroker::SetConnectTime()
@@ -679,8 +699,7 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 		int level;
 		packet >> level;
 		CurrentLevel = level;
-
-		return stageReceived = true;
+		return true;
 	}
 
 	if (GameState >= GameState::LoadFinished)

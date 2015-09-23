@@ -23,11 +23,8 @@ static void __cdecl OnGameState()
 	if (!isInitialized() || !isConnected())
 		return;
 
-	sf::Packet packet;
-	packet << (uint8)Message::N_Ready;
-	Networking->sendSafe(packet);
-
-	Broker->WaitForPlayers(Broker->isClientReady);
+	Broker->SendReady(Message::S_GameState);
+	Broker->WaitForPlayers(Message::S_GameState);
 }
 
 void InitOnGameState()

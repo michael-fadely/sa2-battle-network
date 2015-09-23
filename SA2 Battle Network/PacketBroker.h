@@ -7,6 +7,8 @@
 
 #include <SFML/Network.hpp>			// for sf::Packet
 #include "PacketExtensions.h"		// for PacketEx
+#include "Networking.h"
+#include <unordered_map>
 
 class PacketBroker
 {
@@ -41,11 +43,10 @@ public:
 	void SendMenu()		{ SendMenu(safe, fast); }
 
 	bool ConnectionTimedOut() const;
-	bool WaitForPlayers(bool& condition);
+	bool WaitForPlayers(nethax::Message::_Message id);
+	void SendReady(nethax::Message::_Message id) const;
 	void SetConnectTime();
 
-	bool isClientReady;	// HACK: Dirty, dirty hack.
-	bool stageReceived;	// HACK: Dirty, dirty hack.
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
 
@@ -53,6 +54,8 @@ private:
 	//
 	// Methods
 	//
+
+	std::unordered_map<nethax::Message::_Message, bool> things;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
 	bool RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
