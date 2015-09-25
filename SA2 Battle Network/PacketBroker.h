@@ -55,6 +55,7 @@ private:
 	// Methods
 	//
 
+	// TODO: Consider an integer instead of a boolean for multiple wait requests.
 	std::unordered_map<nethax::Message::_Message, bool> things;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn

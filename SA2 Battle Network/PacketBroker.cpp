@@ -238,11 +238,7 @@ bool PacketBroker::WaitForPlayers(nethax::Message::_Message id)
 {
 	auto it = things.find(id);
 	if (it == things.end())
-	{
-		// TODO: make not bad
-		things[id] = false;
-		it = things.find(id);
-	}
+		it = things.insert(it, pair<Message::_Message, bool>(id, false));
 
 	while (!it->second)
 	{
