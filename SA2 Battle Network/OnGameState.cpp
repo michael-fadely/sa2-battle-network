@@ -25,8 +25,8 @@ static void __cdecl OnGameState()
 	if (!isInitialized() || !isConnected())
 		return;
 
-	Broker->SendReady(Message::S_GameState);
-	Broker->WaitForPlayers(Message::S_GameState);
+	Broker->SendReady(MessageID::S_GameState);
+	Broker->WaitForPlayers(MessageID::S_GameState);
 }
 
 void InitOnGameState()

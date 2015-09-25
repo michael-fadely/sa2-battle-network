@@ -28,7 +28,7 @@ public:
 	/// <param name="type">The message type.</param>
 	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
-	bool Request(const nethax::Message::_Message type, bool isSafe)
+	bool Request(const nethax::MessageID type, bool isSafe)
 	{
 		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast);
 	}
@@ -43,8 +43,8 @@ public:
 	void SendMenu()		{ SendMenu(safe, fast); }
 
 	bool ConnectionTimedOut() const;
-	bool WaitForPlayers(nethax::Message::_Message id);
-	void SendReady(const nethax::Message::_Message id) const;
+	bool WaitForPlayers(nethax::MessageID id);
+	void SendReady(const nethax::MessageID id) const;
 	void SetConnectTime();
 
 	const uint ConnectionTimeout;
@@ -56,16 +56,16 @@ private:
 	//
 
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.
-	std::unordered_map<nethax::Message::_Message, bool> things;
+	std::unordered_map<nethax::MessageID, bool> things;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
-	bool RequestPacket(const nethax::Message::_Message packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
 	// Requests that the packet type packetType is added to packetAddTo.
-	bool RequestPacket(const nethax::Message::_Message packetType, PacketEx& packetAddTo);
+	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo);
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet
-	bool AddPacket(const nethax::Message::_Message packetType, PacketEx& packet);
+	bool AddPacket(const nethax::MessageID packetType, PacketEx& packet);
 
 	void Receive(sf::Packet& packet, const bool safe);
 
@@ -77,13 +77,13 @@ private:
 	void SendMenu(PacketEx& safe, PacketEx& fast);
 
 	// Receive and write Input
-	bool ReceiveInput(const nethax::Message::_Message type, sf::Packet& packet);
+	bool ReceiveInput(const nethax::MessageID type, sf::Packet& packet);
 	// Receive game/system variables
-	bool ReceiveSystem(const nethax::Message::_Message type, sf::Packet& packet);
+	bool ReceiveSystem(const nethax::MessageID type, sf::Packet& packet);
 	// Receive and queue write of Player variables
-	bool ReceivePlayer(const nethax::Message::_Message type, sf::Packet& packet);
+	bool ReceivePlayer(const nethax::MessageID type, sf::Packet& packet);
 	// Receive and write Menu variables
-	bool ReceiveMenu(const nethax::Message::_Message type, sf::Packet& packet);
+	bool ReceiveMenu(const nethax::MessageID type, sf::Packet& packet);
 
 	void PreReceive();
 	void PostReceive();

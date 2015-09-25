@@ -46,18 +46,18 @@ void SetCurrentLevel(int stage)
 	{
 		CurrentLevel = stage;
 
-		Broker->SendReady(Message::S_Stage);
-		Broker->Request(Message::S_Stage, true);
+		Broker->SendReady(MessageID::S_Stage);
+		Broker->Request(MessageID::S_Stage, true);
 		Broker->Finalize();
 
-		if (!Broker->WaitForPlayers(Message::S_Stage))
+		if (!Broker->WaitForPlayers(MessageID::S_Stage))
 			return;
 	}
 	else
 	{
 		PrintDebug("<> Waiting for stage number...");
 
-		if (!Broker->WaitForPlayers(Message::S_Stage))
+		if (!Broker->WaitForPlayers(MessageID::S_Stage))
 		{
 			CurrentLevel = stage;
 			return;
@@ -65,7 +65,7 @@ void SetCurrentLevel(int stage)
 
 		PrintDebug(">> Received stage change: %d (was %d)", CurrentLevel, stage);
 
-		Broker->SendReady(Message::S_Stage);
+		Broker->SendReady(MessageID::S_Stage);
 	}
 
 	PrintDebug(">> Stage received. Resuming game.");

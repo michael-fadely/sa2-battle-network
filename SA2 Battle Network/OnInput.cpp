@@ -26,7 +26,7 @@ void InputHandler()
 
 #pragma region Send
 	if (pad->PressedButtons || pad->ReleasedButtons)
-		Broker->Request(Message::I_Buttons, true);
+		Broker->Request(MessageID::I_Buttons, true);
 
 	// TODO: Make less spammy
 	if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
@@ -37,11 +37,11 @@ void InputHandler()
 			)
 		{
 			lastFrame = FrameCount;
-			Broker->Request(Message::I_Analog, false);
+			Broker->Request(MessageID::I_Analog, false);
 		}
 		else if (!pad->LeftStickX && !pad->LeftStickY)
 		{
-			Broker->Request(Message::I_Analog, true);
+			Broker->Request(MessageID::I_Analog, true);
 		}
 	}
 

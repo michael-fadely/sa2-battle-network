@@ -31,15 +31,15 @@ void PacketEx::Initialize()
 	if (MessageTypes != nullptr)
 		delete[] MessageTypes;
 
-	MessageTypes = new bool[nethax::Message::Count]();
+	MessageTypes = new bool[(int)nethax::MessageID::Count]();
 }
 
-bool PacketEx::isInPacket(const nethax::Message::_Message type) const
+bool PacketEx::isInPacket(const nethax::MessageID type) const
 {
-	return MessageTypes[type];
+	return MessageTypes[(int)type];
 }
 
-bool PacketEx::addType(const nethax::Message::_Message type)
+bool PacketEx::addType(const nethax::MessageID type)
 {
 	if (isInPacket(type))
 		return false;
@@ -47,7 +47,7 @@ bool PacketEx::addType(const nethax::Message::_Message type)
 	empty = false;
 	*this << type;
 	messageCount++;
-	return MessageTypes[type] = true;
+	return MessageTypes[(int)type] = true;
 }
 
 sf::Packet& operator <<(sf::Packet& packet, const char& data)
@@ -59,14 +59,14 @@ sf::Packet& operator >>(sf::Packet& packet, char& data)
 	return packet >> (signed char&)data;
 }
 
-sf::Packet& operator<<(sf::Packet& packet, const nethax::Message::_Message& data)
+sf::Packet& operator<<(sf::Packet& packet, const nethax::MessageID& data)
 {
 	return packet << (uint8)data;
 }
 
-sf::Packet& operator>>(sf::Packet& packet, nethax::Message::_Message& data)
+sf::Packet& operator>>(sf::Packet& packet, nethax::MessageID& data)
 {
 	uint8 d;
-	packet >> d; data = (nethax::Message::_Message)d;
+	packet >> d; data = (nethax::MessageID)d;
 	return packet;
 }

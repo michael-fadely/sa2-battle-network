@@ -141,9 +141,9 @@ bool Program::StartServer()
 		return false;
 	}
 
-	Message::_Message id;
+	MessageID id;
 	packet >> id;
-	if (id != Message::N_VersionCheck)
+	if (id != MessageID::N_VersionCheck)
 	{
 		PrintDebug(">> Received malformed packet from client!");
 		return false;
@@ -157,7 +157,7 @@ bool Program::StartServer()
 		PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
 		PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
-		packet << Message::N_VersionMismatch << versionNum;
+		packet << MessageID::N_VersionMismatch << versionNum;
 		Globals::Networking->sendSafe(packet);
 		packet.clear();
 
@@ -166,7 +166,7 @@ bool Program::StartServer()
 
 	packet >> id;
 
-	if (id != Message::N_Bind)
+	if (id != MessageID::N_Bind)
 	{
 		PrintDebug(">> Error receiving local port from client (ID mismatch).");
 		Globals::Networking->Disconnect();
@@ -179,7 +179,7 @@ bool Program::StartServer()
 	Globals::Networking->setRemotePort(remoteport);
 
 	packet.clear();
-	packet << Message::N_VersionOK;
+	packet << MessageID::N_VersionOK;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
@@ -188,8 +188,8 @@ bool Program::StartServer()
 	}
 
 	packet.clear();
-	packet << Message::N_Settings << clientSettings.noSpecials
-		<< Message::N_Connected;
+	packet << MessageID::N_Settings << clientSettings.noSpecials
+		<< MessageID::N_Connected;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
@@ -220,8 +220,8 @@ bool Program::StartClient()
 	if (!CheckConnectOK())
 		return false;
 
-	packet << Message::N_VersionCheck << versionNum.major << versionNum.minor
-		<< Message::N_Bind << Globals::Networking->getLocalPort();
+	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor
+		<< MessageID::N_Bind << Globals::Networking->getLocalPort();
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 	{
@@ -232,7 +232,7 @@ bool Program::StartClient()
 	packet.clear();
 
 	// TODO: Timeout on both of these loops.
-	Message::_Message id = Message::None;
+	MessageID id = MessageID::None;
 	do
 	{
 		if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
@@ -252,29 +252,29 @@ bool Program::StartClient()
 					rejected = true;
 					return false;
 
-				case Message::N_VersionMismatch:
+				case MessageID::N_VersionMismatch:
 					packet >> remoteVersion;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 					rejected = true;
 					return false;
 
-				case Message::N_VersionOK:
+				case MessageID::N_VersionOK:
 					PrintDebug(">> Version match!");
 					break;
 
 					// This is only used for specials right now.
-				case Message::N_Settings:
+				case MessageID::N_Settings:
 					packet >> clientSettings.noSpecials;
 					PrintDebug(">> Specials %s by server.", clientSettings.noSpecials ? "disabled" : "enabled");
 					break;
 
-				case Message::N_Connected:
+				case MessageID::N_Connected:
 					PrintDebug("<< Connected!");
 					break;
 			}
 		}
-	} while (id != Message::N_Connected);
+	} while (id != MessageID::N_Connected);
 
 	return true;
 }
