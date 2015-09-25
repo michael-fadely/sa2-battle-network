@@ -66,6 +66,9 @@ static bool SpeedThreshold(const float last, const float current)
 	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= max((speedThreshold * current), speedThreshold));
 }
 
+// TODO: Exclude potentially problematic status bits (i.e DoNextAction, OnPath)
+static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status_Unknown2 | Status_Unknown3 | Status_Unknown4 | Status_Unknown5 | Status_Unknown6);
+
 #pragma endregion
 
 /*
@@ -304,6 +307,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 
 	if (GameState > GameState::LoadFinished && TwoPlayerMode > 0)
 	{
+		// TODO: Remove local CurrentLevel
 		if (local.game.CurrentLevel != CurrentLevel)
 		{
 			RingCount[0] = 0;
@@ -364,7 +368,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 			RequestPacket(MessageID::P_SpinTimer, safe, fast);
 
-		if (sendPlayer.Data1.Action != Player1->Data1->Action || sendPlayer.Data1.Status != Player1->Data1->Status)
+		if (sendPlayer.Data1.Action != Player1->Data1->Action || (sendPlayer.Data1.Status & status_mask) != (Player1->Data1->Status & status_mask))
 		{
 			// This "pickup crash fix" only fixed it by NEVER SENDING THE ACTION! Good job, me!
 			// sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15 || sendPlayer.Data1.Action == 0x20
