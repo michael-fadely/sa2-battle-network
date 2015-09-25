@@ -115,4 +115,5 @@ private:
 
 	bool timedOut;
 	uint sentKeepalive, receivedKeepalive;
+	ushort lastSequence;
 };

@@ -6,6 +6,8 @@
 
 #include "PacketExtensions.h"
 
+ushort PacketEx::sequence = 0;
+
 PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
 {
 	Initialize();
@@ -17,6 +19,12 @@ PacketEx::~PacketEx()
 
 void PacketEx::Initialize()
 {
+	if (!isSafe)
+	{
+		sequence %= USHRT_MAX;
+		*this << ++sequence;
+	}
+
 	empty = true;
 	messageCount = 0;
 

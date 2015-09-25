@@ -89,6 +89,7 @@ void PacketBroker::Initialize()
 	timedOut		= false;
 
 	receivedKeepalive = sentKeepalive = 0;
+	lastSequence = 0;
 	things.clear();
 }
 
@@ -113,6 +114,20 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		return;
 
 	uint8 lastType = Message::None;
+
+	if (!safe)
+	{
+		ushort sequence = 0;
+		packet >> sequence;
+
+		if (sequence == 0 || sequence <= lastSequence)
+		{
+			PrintDebug(">> Received out of order packet. Rejecting.");
+			return;
+		}
+
+		lastSequence = sequence % USHRT_MAX;
+	}
 
 	while (!packet.endOfPacket())
 	{
@@ -161,6 +176,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			default:
 			{
+				// TODO: Consider removing this and treating the key as just a value instead of a message type.
 				auto it = things.find((Message::_Message)newType);
 				if (it != things.end())
 					it->second = true;

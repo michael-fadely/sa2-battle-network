@@ -43,6 +43,8 @@ private:
 	bool* MessageTypes;
 	// The number of messages currently in the packet
 	uint32 messageCount;
+	// UDP packet sequence number
+	static ushort sequence;
 };
 
 sf::Packet& operator <<(sf::Packet& packet, const char& data);
