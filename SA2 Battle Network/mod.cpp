@@ -74,7 +74,7 @@ void MainThread(int argc, wchar_t** argv)
 		}
 		else if ((!wcscmp(argv[i], L"--timeout") || !wcscmp(argv[i], L"-t")) && (i + 1) < argc)
 		{
-			timeout = min(2500, _wtoi(argv[++i]));
+			timeout = max(2500, _wtoi(argv[++i]));
 			validArguments = true;
 		}
 		// Configuration
