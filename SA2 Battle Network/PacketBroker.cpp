@@ -784,7 +784,6 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 				return false;
 
 			RECEIVED(MessageID::P_Action);
-				// TODO: Add "Do Next Action" to status bits, and also document status bits
 				packet >> recvPlayer.Data1.Action;
 				break;
 
