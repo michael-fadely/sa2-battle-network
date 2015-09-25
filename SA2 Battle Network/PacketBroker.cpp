@@ -132,7 +132,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 	while (!packet.endOfPacket())
 	{
-		nethax::MessageID newType;
+		MessageID newType;
 		packet >> newType;
 
 		if (newType == lastType)
