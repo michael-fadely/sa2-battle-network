@@ -694,11 +694,11 @@ bool PacketBroker::ReceiveInput(const nethax::MessageID type, sf::Packet& packet
 			default:
 				return false;
 
-				RECEIVED(MessageID::I_Buttons);
+			RECEIVED(MessageID::I_Buttons);
 				packet >> recvInput.HeldButtons;
 				break;
 
-				RECEIVED(MessageID::I_Analog);
+			RECEIVED(MessageID::I_Analog);
 				packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
 				break;
 		}
@@ -732,34 +732,34 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 				TimerFrames = local.game.TimerFrames;
 				break;
 
-				RECEIVED(MessageID::S_GameState);
-				{
-					uint8 recvGameState;
-					packet >> recvGameState;
-					if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
-						GameState = local.system.GameState = recvGameState;
+			RECEIVED(MessageID::S_GameState);
+			{
+				uint8 recvGameState;
+				packet >> recvGameState;
+				if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
+					GameState = local.system.GameState = recvGameState;
 
-					break;
-				}
+				break;
+			}
 
-				RECEIVED(MessageID::S_PauseSelection);
+			RECEIVED(MessageID::S_PauseSelection);
 				packet >> local.system.PauseSelection;
 				PauseSelection = local.system.PauseSelection;
 				break;
 
-				RECEIVED(MessageID::S_TimeStop);
+			RECEIVED(MessageID::S_TimeStop);
 				packet >> local.game.TimeStopMode;
 				writeTimeStop();
 				break;
 
-				RECEIVED(MessageID::S_2PSpecials);
+			RECEIVED(MessageID::S_2PSpecials);
 				for (int i = 0; i < 3; i++)
 					packet >> local.game.P2SpecialAttacks[i];
 
 				writeSpecials();
 				break;
 
-				RECEIVED(MessageID::S_Rings);
+			RECEIVED(MessageID::S_Rings);
 				packet >> local.game.RingCount[1];
 				writeRings();
 
@@ -783,59 +783,59 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 			default:
 				return false;
 
-				RECEIVED(MessageID::P_Action);
+			RECEIVED(MessageID::P_Action);
 				// TODO: Add "Do Next Action" to status bits, and also document status bits
 				packet >> recvPlayer.Data1.Action;
 				break;
 
-				RECEIVED(MessageID::P_Status);
+			RECEIVED(MessageID::P_Status);
 				packet >> recvPlayer.Data1.Status;
 				break;
 
-				RECEIVED(MessageID::P_Rotation);
+			RECEIVED(MessageID::P_Rotation);
 				packet >> recvPlayer.Data1.Rotation;
 				break;
 
-				RECEIVED(MessageID::P_Position);
+			RECEIVED(MessageID::P_Position);
 				packet >> recvPlayer.Data1.Position;
 				break;
 
-				RECEIVED(MessageID::P_Scale);
+			RECEIVED(MessageID::P_Scale);
 				packet >> recvPlayer.Data1.Scale;
 				break;
 
-				RECEIVED(MessageID::P_Powerups);
-				{
-					int powerups = 0;
-					packet >> powerups;
-					recvPlayer.Data2.Powerups = (Powerups)powerups;
-					break;
-				}
+			RECEIVED(MessageID::P_Powerups);
+			{
+				int powerups = 0;
+				packet >> powerups;
+				recvPlayer.Data2.Powerups = (Powerups)powerups;
+				break;
+			}
 
-				RECEIVED(MessageID::P_Upgrades);
-				{
-					int upgrades = 0;
-					packet >> upgrades;
-					recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
-					break;
-				}
+			RECEIVED(MessageID::P_Upgrades);
+			{
+				int upgrades = 0;
+				packet >> upgrades;
+				recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
+				break;
+			}
 
-				RECEIVED(MessageID::P_HP);
+			RECEIVED(MessageID::P_HP);
 				packet >> recvPlayer.Data2.MechHP;
 				PrintDebug(">> Received HP update. (%f)", recvPlayer.Data2.MechHP);
 				break;
 
-				RECEIVED(MessageID::P_Speed);
+			RECEIVED(MessageID::P_Speed);
 				packet >> recvPlayer.Data2.HSpeed;
 				packet >> recvPlayer.Data2.VSpeed;
 				packet >> recvPlayer.Data2.PhysData.BaseSpeed;
 				break;
 
-				RECEIVED(MessageID::P_Animation);
+			RECEIVED(MessageID::P_Animation);
 				packet >> recvPlayer.Data2.AnimInfo.Next;
 				break;
 
-				RECEIVED(MessageID::P_SpinTimer);
+			RECEIVED(MessageID::P_SpinTimer);
 				packet >> recvPlayer.Sonic.SpindashTimer;
 				break;
 		}
@@ -854,24 +854,24 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 			default:
 				return false;
 
-				RECEIVED(MessageID::S_2PReady);
+			RECEIVED(MessageID::S_2PReady);
 				packet >> local.menu.PlayerReady[1];
 				PlayerReady[1] = local.menu.PlayerReady[1];
 
 				PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
 				break;
 
-				RECEIVED(MessageID::M_CharacterSelection);
+			RECEIVED(MessageID::M_CharacterSelection);
 				packet >> local.menu.CharacterSelection[1];
 				CharacterSelection[1] = local.menu.CharacterSelection[1];
 				break;
 
-				RECEIVED(MessageID::M_CharacterChosen);
+			RECEIVED(MessageID::M_CharacterChosen);
 				packet >> local.menu.CharacterSelected[1];
 				CharacterSelected[1] = local.menu.CharacterSelected[1];
 				break;
 
-				RECEIVED(MessageID::M_AltCharacter);
+			RECEIVED(MessageID::M_AltCharacter);
 				packet >> local.menu.AltCharacterSonic
 					>> local.menu.AltCharacterShadow
 					>> local.menu.AltCharacterTails
@@ -888,14 +888,14 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 
 				break;
 
-				RECEIVED(MessageID::S_BattleOptions);
+			RECEIVED(MessageID::S_BattleOptions);
 				for (int i = 0; i < 4; i++)
 					packet >> local.menu.BattleOptions[i];
 				memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
 
 				break;
 
-				RECEIVED(MessageID::M_BattleConfigSelection);
+			RECEIVED(MessageID::M_BattleConfigSelection);
 				packet >> local.menu.BattleOptionsSelection
 					>> local.menu.BattleOptionsBack;
 				BattleOptionsSelection = local.menu.BattleOptionsSelection;
@@ -903,7 +903,7 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 
 				break;
 
-				RECEIVED(MessageID::M_StageSelection);
+			RECEIVED(MessageID::M_StageSelection);
 				packet >> local.menu.StageSelection2P[0]
 					>> local.menu.StageSelection2P[1]
 					>> local.menu.BattleOptionsButton;
@@ -914,7 +914,7 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 
 				break;
 
-				RECEIVED(MessageID::M_BattleSelection);
+			RECEIVED(MessageID::M_BattleSelection);
 				packet >> local.menu.BattleSelection;
 				BattleSelection = local.menu.BattleSelection;
 

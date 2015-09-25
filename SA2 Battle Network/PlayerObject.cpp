@@ -95,8 +95,18 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 	if (source == nullptr)
 		return;
 
-	destination->Data1->Action				= source->Data1.Action;
-	destination->Data1->Status				= source->Data1.Status;
+	destination->Data1->Status = source->Data1.Status;
+	
+	if (source->Data1.Action == 0)
+	{
+		destination->Data1->Action = 0;
+	}
+	else if (source->Data1.Action != destination->Data1->Action)
+	{
+		destination->Data1->NextAction = source->Data1.Action;
+		destination->Data1->Status |= Status_DoNextAction;
+	}
+
 	destination->Data1->Rotation			= source->Data1.Rotation;
 	destination->Data1->Position			= source->Data1.Position;
 	destination->Data1->Scale				= source->Data1.Scale;
