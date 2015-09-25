@@ -34,12 +34,12 @@ void PacketEx::Initialize()
 	MessageTypes = new bool[nethax::Message::Count]();
 }
 
-bool PacketEx::isInPacket(const uint8 type) const
+bool PacketEx::isInPacket(const nethax::Message::_Message type) const
 {
 	return MessageTypes[type];
 }
 
-bool PacketEx::addType(uint8 type)
+bool PacketEx::addType(const nethax::Message::_Message type)
 {
 	if (isInPacket(type))
 		return false;
@@ -57,4 +57,16 @@ sf::Packet& operator <<(sf::Packet& packet, const char& data)
 sf::Packet& operator >>(sf::Packet& packet, char& data)
 {
 	return packet >> (signed char&)data;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const nethax::Message::_Message& data)
+{
+	return packet << (uint8)data;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, nethax::Message::_Message& data)
+{
+	uint8 d;
+	packet >> d; data = (nethax::Message::_Message)d;
+	return packet;
 }

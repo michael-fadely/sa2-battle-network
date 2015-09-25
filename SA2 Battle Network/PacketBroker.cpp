@@ -113,7 +113,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 	if (status != sf::Socket::Status::Done)
 		return;
 
-	uint8 lastType = Message::None;
+	Message::_Message lastType = Message::None;
 
 	if (!safe)
 	{
@@ -131,7 +131,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 	while (!packet.endOfPacket())
 	{
-		uint8 newType;
+		nethax::Message::_Message newType;
 		packet >> newType;
 
 		if (newType == lastType)
@@ -158,13 +158,13 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			case Message::N_Ready:
 			{
-				uint8 id; packet >> id;
+				Message::_Message id; packet >> id;
 
-				auto it = things.find((Message::_Message)id);
+				auto it = things.find(id);
 				if (it != things.end())
 					it->second = true;
 				else
-					things[(Message::_Message)id] = true;
+					things[id] = true;
 
 				break;
 			}
@@ -177,7 +177,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			default:
 			{
 				// TODO: Consider removing this and treating the key as just a value instead of a message type.
-				auto it = things.find((Message::_Message)newType);
+				auto it = things.find(newType);
 				if (it != things.end())
 					it->second = true;
 
@@ -259,10 +259,10 @@ bool PacketBroker::WaitForPlayers(nethax::Message::_Message id)
 	return true;
 }
 
-void PacketBroker::SendReady(nethax::Message::_Message id) const
+void PacketBroker::SendReady(const nethax::Message::_Message id) const
 {
 	sf::Packet packet;
-	packet << (uint8)Message::N_Ready << (uint8)id;
+	packet << Message::N_Ready << id;
 	Globals::Networking->sendSafe(packet);
 }
 
@@ -271,14 +271,14 @@ void PacketBroker::SetConnectTime()
 	receivedKeepalive = sentKeepalive = Millisecs();
 }
 
-bool PacketBroker::RequestPacket(const uint8 packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+bool PacketBroker::RequestPacket(const nethax::Message::_Message packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
 {
 	if (!packetIsIn.isInPacket(packetType))
 		return RequestPacket(packetType, packetAddTo);
 
 	return false;
 }
-bool PacketBroker::RequestPacket(const uint8 packetType, PacketEx& packetAddTo)
+bool PacketBroker::RequestPacket(const nethax::Message::_Message packetType, PacketEx& packetAddTo)
 {
 	if (packetType >= Message::N_Disconnect && packetAddTo.addType(packetType))
 		return AddPacket(packetType, packetAddTo);
@@ -482,7 +482,7 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 	}
 }
 
-bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
+bool PacketBroker::AddPacket(const nethax::Message::_Message packetType, PacketEx& packet)
 {
 	sf::Packet out;
 
@@ -680,7 +680,7 @@ bool PacketBroker::AddPacket(const uint8 packetType, PacketEx& packet)
 #pragma endregion
 #pragma region Receive
 
-bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveInput(const nethax::Message::_Message type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::Inactive)
 	{
@@ -703,7 +703,7 @@ bool PacketBroker::ReceiveInput(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveSystem(const nethax::Message::_Message type, sf::Packet& packet)
 {
 	if (type == Message::S_Stage)
 	{
@@ -767,7 +767,7 @@ bool PacketBroker::ReceiveSystem(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceivePlayer(const nethax::Message::_Message type, sf::Packet& packet)
 {
 	if (GameState >= GameState::LoadFinished)
 	{
@@ -840,7 +840,7 @@ bool PacketBroker::ReceivePlayer(uint8 type, sf::Packet& packet)
 
 	return false;
 }
-bool PacketBroker::ReceiveMenu(uint8 type, sf::Packet& packet)
+bool PacketBroker::ReceiveMenu(const nethax::Message::_Message type, sf::Packet& packet)
 {
 	if (GameState == GameState::Inactive)
 	{
