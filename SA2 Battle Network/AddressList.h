@@ -15,6 +15,7 @@
 #define ADDR_TIMESTOP		0x0174AFF7
 
 DataPointer(char, TimeStopMode, ADDR_TIMESTOP);
+DataArray(char, SpecialActivateTimer, 0x0174AFF3, 2);
 
 #pragma endregion
 

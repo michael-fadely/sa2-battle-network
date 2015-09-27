@@ -756,6 +756,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 				for (int i = 0; i < 3; i++)
 					packet >> local.game.P2SpecialAttacks[i];
 
+				SpecialActivateTimer[1] = 60;
 				writeSpecials();
 				break;
 
