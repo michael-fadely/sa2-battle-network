@@ -50,8 +50,7 @@ void PlayerObject::Copy(ObjectMaster* source)
 	Data2.CharID2				= source->Data2->CharID2;
 	Data2.Powerups				= source->Data2->Powerups;
 	Data2.Upgrades				= source->Data2->Upgrades;
-	Data2.HSpeed				= source->Data2->HSpeed;
-	Data2.VSpeed				= source->Data2->VSpeed;
+	Data2.Speed					= source->Data2->Speed;
 	Data2.PhysData.BaseSpeed	= source->Data2->PhysData.BaseSpeed;
 	Data2.AnimInfo.Next			= source->Data2->AnimInfo.Next;
 
@@ -115,8 +114,7 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 	destination->Data2->CharID2				= source->Data2.CharID2;
 	destination->Data2->Powerups			= source->Data2.Powerups;
 	destination->Data2->Upgrades			= source->Data2.Upgrades;
-	destination->Data2->HSpeed				= source->Data2.HSpeed;
-	destination->Data2->VSpeed				= source->Data2.VSpeed;
+	destination->Data2->Speed				= source->Data2.Speed;
 	destination->Data2->PhysData.BaseSpeed	= source->Data2.PhysData.BaseSpeed;
 	destination->Data2->AnimInfo.Next		= source->Data2.AnimInfo.Next;
 

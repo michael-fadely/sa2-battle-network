@@ -45,12 +45,10 @@ static uint positionTimer = 0;
 static uint rotateTimer = 0;
 static uint speedTimer = 0;
 
-static bool PositionThreshold(const Vertex& last, const Vertex& current)
+static bool PositionThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
-	return (fabs(last.x - current.x) >= positionThreshold
-		|| fabs(last.y - current.y) >= positionThreshold
-		|| fabs(last.z - current.z) >= positionThreshold
-		|| /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
+	// HACK: Right now this basically means it only sends on a timer.
+	return (abs(CheckDistance(&last, &current)) >= positionThreshold || /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(positionTimer) >= 10000);
 }
 
 static bool RotationThreshold(const Rotation& last, const Rotation& current)
@@ -61,6 +59,7 @@ static bool RotationThreshold(const Rotation& last, const Rotation& current)
 		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
+// TODO: float -> NJS_VECTOR, CheckDistance
 static bool SpeedThreshold(const float last, const float current)
 {
 	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= max((speedThreshold * current), speedThreshold));
@@ -353,8 +352,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 
 				Player1->Data1->Position = recvPlayer.Data1.Position;
 				Player1->Data1->Rotation = recvPlayer.Data1.Rotation;
-				Player1->Data2->HSpeed = 0.0f;
-				Player1->Data2->VSpeed = 0.0f;
+				Player1->Data2->Speed = {};
 
 				RequestPacket(MessageID::P_Position, safe, fast);
 				RequestPacket(MessageID::P_Speed, safe, fast);
@@ -382,13 +380,16 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 				RequestPacket(MessageID::P_SpinTimer, safe, fast);
 		}
 
-		if (RotationThreshold(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
-			|| (SpeedThreshold(sendPlayer.Data2.HSpeed, Player1->Data2->HSpeed) || SpeedThreshold(sendPlayer.Data2.VSpeed, Player1->Data2->VSpeed))
-			|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
+		if (Player1->Data1->Action != 18)
 		{
-			RequestPacket(MessageID::P_Rotation, fast, safe);
-			RequestPacket(MessageID::P_Position, fast, safe);
-			RequestPacket(MessageID::P_Speed, fast, safe);
+			if (RotationThreshold(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
+				|| (SpeedThreshold(sendPlayer.Data2.Speed.x, Player1->Data2->Speed.x) || SpeedThreshold(sendPlayer.Data2.Speed.y, Player1->Data2->Speed.y))
+				|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
+			{
+				RequestPacket(MessageID::P_Rotation, fast, safe);
+				RequestPacket(MessageID::P_Position, fast, safe);
+				RequestPacket(MessageID::P_Speed, fast, safe);
+			}
 		}
 
 		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(Vertex)) != 0)
@@ -602,7 +603,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 		case MessageID::P_Speed:
 			rotateTimer = speedTimer = Millisecs();
-			out << Player1->Data2->HSpeed << Player1->Data2->VSpeed << Player1->Data2->PhysData.BaseSpeed;
+			out << Player1->Data2->Speed << Player1->Data2->PhysData.BaseSpeed;
 			break;
 
 		case MessageID::P_Animation:
@@ -826,8 +827,7 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 				break;
 
 			RECEIVED(MessageID::P_Speed);
-				packet >> recvPlayer.Data2.HSpeed;
-				packet >> recvPlayer.Data2.VSpeed;
+				packet >> recvPlayer.Data2.Speed;
 				packet >> recvPlayer.Data2.PhysData.BaseSpeed;
 				break;
 
