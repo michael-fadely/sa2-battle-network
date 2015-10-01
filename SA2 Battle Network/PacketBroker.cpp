@@ -70,10 +70,6 @@ static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status
 
 #pragma endregion
 
-/*
-//	Memory Handler Class
-*/
-
 PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), safe(true), fast(false)
 {
 	Initialize();
@@ -92,7 +88,7 @@ void PacketBroker::Initialize()
 
 	receivedKeepalive = sentKeepalive = 0;
 	lastSequence = 0;
-	things.clear();
+	WaitRequests.clear();
 }
 
 void PacketBroker::ReceiveLoop()
@@ -163,11 +159,11 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			{
 				MessageID id; packet >> id;
 
-				auto it = things.find(id);
-				if (it != things.end())
+				auto it = WaitRequests.find(id);
+				if (it != WaitRequests.end())
 					it->second = true;
 				else
-					things[id] = true;
+					WaitRequests[id] = true;
 
 				break;
 			}
@@ -180,8 +176,8 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			default:
 			{
 				// TODO: Consider removing this and treating the key as just a value instead of a message type.
-				auto it = things.find(newType);
-				if (it != things.end())
+				auto it = WaitRequests.find(newType);
+				if (it != WaitRequests.end())
 					it->second = true;
 
 				if (newType < MessageID::N_END)
@@ -239,9 +235,9 @@ bool PacketBroker::ConnectionTimedOut() const
 
 bool PacketBroker::WaitForPlayers(nethax::MessageID id)
 {
-	auto it = things.find(id);
-	if (it == things.end())
-		it = things.insert(it, pair<MessageID, bool>(id, false));
+	auto it = WaitRequests.find(id);
+	if (it == WaitRequests.end())
+		it = WaitRequests.insert(it, pair<MessageID, bool>(id, false));
 
 	while (!it->second)
 	{
@@ -258,7 +254,7 @@ bool PacketBroker::WaitForPlayers(nethax::MessageID id)
 	}
 
 	PrintDebug(">> All players ready. Resuming game.");
-	things.erase(it);
+	WaitRequests.erase(it);
 	return true;
 }
 

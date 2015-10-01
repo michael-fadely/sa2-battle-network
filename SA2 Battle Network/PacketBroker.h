@@ -14,14 +14,9 @@ class PacketBroker
 {
 public:
 	explicit PacketBroker(uint timeout);
+
 	void Initialize();
-
-	//
-	// Methods
-	//
-
 	void ReceiveLoop();
-
 	/// <summary>
 	/// Requests the specified message type to be added to the outbound packets.
 	/// </summary>
@@ -34,7 +29,7 @@ public:
 	}
 
 	/// <summary>
-	/// Finalizes this instance, sending queued packets.
+	/// Finalizes this frame, sending queued packets.
 	/// </summary>
 	void Finalize();
 
@@ -51,12 +46,8 @@ public:
 	ControllerData recvInput, sendInput;
 
 private:
-	//
-	// Methods
-	//
-
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.
-	std::unordered_map<nethax::MessageID, bool> things;
+	std::unordered_map<nethax::MessageID, bool> WaitRequests;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
 	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
@@ -76,26 +67,16 @@ private:
 	// Read and send Menu variables
 	void SendMenu(PacketEx& safe, PacketEx& fast);
 
-	// Receive and write Input
 	bool ReceiveInput(const nethax::MessageID type, sf::Packet& packet);
-	// Receive game/system variables
 	bool ReceiveSystem(const nethax::MessageID type, sf::Packet& packet);
-	// Receive and queue write of Player variables
 	bool ReceivePlayer(const nethax::MessageID type, sf::Packet& packet);
-	// Receive and write Menu variables
 	bool ReceiveMenu(const nethax::MessageID type, sf::Packet& packet);
-
+	
 	void PreReceive();
 	void PostReceive();
-
-	// Pretty much all of these are just so I can be lazy
 	void writeRings();
 	void writeSpecials() const;
 	void writeTimeStop();
-
-	//
-	// Members
-	//
 
 	PacketEx safe, fast;
 	PlayerObject recvPlayer, sendPlayer;

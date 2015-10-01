@@ -24,19 +24,19 @@ struct MemStruct
 	struct MenuVars
 	{
 		// The current parent menu and its sub menu
-		uint32 main, sub;
-		uint8 P2Start;
-		int32 PlayerReady[2];
+		uint32	main, sub;
+		uint8	P2Start;
+		int32	PlayerReady[2];
 
-		uint32 StageSelection2P[2];
-		uint8 BattleSelection;
-		uint32 CharacterSelection[2];
+		uint32	StageSelection2P[2];
+		uint8	BattleSelection;
+		uint32	CharacterSelection[2];
 
-		int8 CharacterSelected[2];
+		int8	CharacterSelected[2];
 
-		int8 AltCharacterSonic, AltCharacterShadow;
-		int8 AltCharacterTails, AltCharacterEggman;
-		int8 AltCharacterKnuckles, AltCharacterRouge;
+		int8	AltCharacterSonic,		AltCharacterShadow;
+		int8	AltCharacterTails,		AltCharacterEggman;
+		int8	AltCharacterKnuckles,	AltCharacterRouge;
 
 		// Battle Options button selected on stage select
 		int8 BattleOptionsButton;
@@ -56,7 +56,7 @@ struct MemStruct
 		int8 TimerMinutes, TimerSeconds, TimerFrames;
 		// Ring count.
 		// First index is Player 1, second index is Player 2.
-		uint16 RingCount[2];
+		int16 RingCount[2];
 		// Current stage.
 		uint8 CurrentLevel;
 
