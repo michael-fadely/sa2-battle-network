@@ -59,10 +59,10 @@ static bool RotationThreshold(const Rotation& last, const Rotation& current)
 		|| Duration(rotateTimer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
-// TODO: float -> NJS_VECTOR, CheckDistance
-static bool SpeedThreshold(const float last, const float current)
+static bool SpeedThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
-	return last != current && (Duration(speedTimer) >= 10000 || abs(last - current) >= max((speedThreshold * current), speedThreshold));
+	float m = (float)VectorLength(&current);
+	return (Duration(speedTimer) >= 10000 || abs(CheckDistance(&last, &current)) >= max((speedThreshold * m), speedThreshold));
 }
 
 // TODO: Exclude potentially problematic status bits (i.e DoNextAction, OnPath)
@@ -139,7 +139,6 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			break;
 		}
 
-		//cout << (ushort)newType << endl;
 		switch (newType)
 		{
 			case MessageID::None:
@@ -379,7 +378,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (Player1->Data1->Action != 18)
 		{
 			if (RotationThreshold(sendPlayer.Data1.Rotation, Player1->Data1->Rotation)
-				|| (SpeedThreshold(sendPlayer.Data2.Speed.x, Player1->Data2->Speed.x) || SpeedThreshold(sendPlayer.Data2.Speed.y, Player1->Data2->Speed.y))
+				|| (SpeedThreshold(sendPlayer.Data2.Speed, Player1->Data2->Speed))
 				|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 			{
 				RequestPacket(MessageID::P_Rotation, fast, safe);
@@ -388,7 +387,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 			}
 		}
 
-		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(Vertex)) != 0)
+		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
 			RequestPacket(MessageID::P_Scale, safe, fast);
 
 		if (Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman)

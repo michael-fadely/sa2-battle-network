@@ -9,7 +9,7 @@ struct SonicObj2Base
 	char field_1B8[432];
 	short SpindashTimer;
 	char filler[42];
-	TexList* TextureList;
+	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 };
@@ -19,8 +19,8 @@ struct SonicObj2Base
 struct KnucklesObj2Base
 {
 	char field_1B8[568];
-	TexList* TextureList;
-	TexList* EffectTextureList;
+	NJS_TEXLIST* TextureList;
+	NJS_TEXLIST* EffectTextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 	char field_400[32];
@@ -31,7 +31,7 @@ struct KnucklesObj2Base
 struct EggmanObj2Base
 {
 	char field_1B8[424];
-	TexList* TextureList;
+	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 };
@@ -41,8 +41,8 @@ struct EggmanObj2Base
 struct MechEggmanObj2Base
 {
 	char field_1B8[652];
-	TexList* CommonTextureList;
-	TexList* TextureList;
+	NJS_TEXLIST* CommonTextureList;
+	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 };
@@ -52,7 +52,7 @@ struct MechEggmanObj2Base
 struct TailsObj2Base
 {
 	char field_1B8[504];
-	TexList* TextureList;
+	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 	char field_3BC[36];
@@ -63,7 +63,7 @@ struct TailsObj2Base
 struct SuperSonicObj2Base
 {
 	char field_1B8[440];
-	TexList* TextureList;
+	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
 	AnimationIndex* MotionList;
 };
