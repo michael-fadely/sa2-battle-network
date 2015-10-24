@@ -1,54 +1,12 @@
+#define ADDR_WINDOWACTIVE	0x00401899
+#define ADDR_P2INOP			0x0077E88C
+
 #include "stdafx.h"
 
-#include <chrono>
-
-#include "Common.h"
-#include "AddressList.h"
+#include "typedefs.h"
 #include "LazyMemory.h"
 #include "nop.h"
 #include "MemoryManagement.h"
-
-using namespace std;
-using namespace chrono;
-
-inline uint32 MemManage::getElapsedFrames(const uint32 lastFrameCount)
-{
-	return (FrameCount - lastFrameCount);
-}
-
-bool MemManage::elapsedFrames(const uint32 currentFrameCount, const uint32 frameCount)
-{
-	uint32 result = getElapsedFrames(currentFrameCount);
-
-	//if (result > frameCount)
-	//	cout << "[elapsedFrames] Warning: Elapsed frames exceeded specified wait count. [" << result << " > " << frameCount << "]" << endl;
-
-	return (result >= frameCount);
-}
-
-/*
-void MemManage::waitFrame(const uint32 frameCount, const uint32 lastFrame)
-{
-	uint32 frames = 0;
-	uint32 last = 0;
-
-	if (lastFrame == 0)
-		last = FrameCount;
-	else
-		last = lastFrame;
-
-	while (frames < frameCount)
-	{
-		frames = getElapsedFrames(last);
-		SleepFor((milliseconds)1);
-	}
-
-	if (frames > frameCount)
-		cout << "[waitFrame] Warning: Elapsed frames exceeded specified duration. [" << frames << " > " << frameCount << "]" << endl;
-
-	return;
-}
-*/
 
 void MemManage::keepActive(const bool doNop)
 {
@@ -118,25 +76,6 @@ void MemManage::swapCharsel(const bool swapcharsel)
 	}
 }
 
-// Returns true if both input structures have been initalized.
-bool MemManage::InputInitalized()
-{
-	return (ControllerPtr1 != nullptr && ControllerPtr2 != nullptr);
-}
-
-/*
-void MemManage::waitInputInit()
-{
-	if (!InputInitalized())
-		PrintDebug("Waiting for input structures to initialize...");
-
-	while (!InputInitalized())
-		std::this_thread::yield();
-
-	return;
-}
-*/
-
 void MemManage::swapInput(const bool doNop)
 {
 	PrintDebug("<> Swapping input devices...");
@@ -146,15 +85,13 @@ void MemManage::swapInput(const bool doNop)
 	else
 		nop::restore(0x00441BCA);
 
-	//waitInputInit();
-
-	ControllerData* p1ptr = ControllerPtr1;
-	ControllerData* p2ptr = ControllerPtr2;
+	ControllerData* p1ptr = ControllerPtr[0];
+	ControllerData* p2ptr = ControllerPtr[1];
 
 	PrintDebug("<> %08X %08X", p1ptr, p2ptr);
 
-	ControllerPtr1 = p2ptr;
-	ControllerPtr2 = p1ptr;
+	ControllerPtr[0] = p2ptr;
+	ControllerPtr[1] = p1ptr;
 
 	PrintDebug("<> Swap complete.");
 }

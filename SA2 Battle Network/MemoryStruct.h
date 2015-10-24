@@ -7,7 +7,7 @@ struct MemStruct
 	struct SystemVars
 	{
 		// The current Game State (loading, ingame, paused, etc)
-		uint8 GameState;
+		int16 GameState;
 		// The player number that last paused the game
 		uint8 PlayerPaused;
 		// The current 2Player mode.
@@ -58,7 +58,7 @@ struct MemStruct
 		// First index is Player 1, second index is Player 2.
 		int16 RingCount[2];
 		// Current stage.
-		uint8 CurrentLevel;
+		int16 CurrentLevel;
 
 		int8 P1SpecialAttacks[3];
 		int8 P2SpecialAttacks[3];
