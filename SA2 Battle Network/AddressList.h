@@ -40,3 +40,6 @@ DataPointer(char, AltCharacterTails,	0x01D1B8ED);
 DataPointer(char, AltCharacterEggman,	0x01D1B901);
 DataPointer(char, AltCharacterKnuckles,	0x01D1B915);
 DataPointer(char, AltCharacterRouge,	0x01D1B929);
+
+#define ADDR_WINDOWACTIVE	0x00401899
+#define ADDR_P2INOP			0x0077E88C

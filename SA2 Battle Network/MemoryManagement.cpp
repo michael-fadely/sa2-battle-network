@@ -1,9 +1,7 @@
-#define ADDR_WINDOWACTIVE	0x00401899
-#define ADDR_P2INOP			0x0077E88C
-
 #include "stdafx.h"
 
 #include "typedefs.h"
+#include "AddressList.h"
 #include "LazyMemory.h"
 #include "nop.h"
 #include "MemoryManagement.h"
