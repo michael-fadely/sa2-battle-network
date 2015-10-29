@@ -3,7 +3,7 @@
 #include <vector>			// obvious
 
 #include <SA2ModLoader.h>	// for everything
-#include "Networking.h"		// for MsgTypes
+#include "Networking.h"		// for MessageID
 #include "Globals.h"		// for Globals :specialed:
 
 #include "OnGameState.h"
