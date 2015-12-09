@@ -37,3 +37,5 @@
 #include "Program.h"
 #include "nop.h"
 #include "typedefs.h"
+#include "Trampoline.h"
+#include "AddRingsTest.h"

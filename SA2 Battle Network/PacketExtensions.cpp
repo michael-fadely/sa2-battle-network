@@ -39,9 +39,9 @@ bool PacketEx::isInPacket(const nethax::MessageID type) const
 	return MessageTypes[(int)type];
 }
 
-bool PacketEx::addType(const nethax::MessageID type)
+bool PacketEx::addType(const nethax::MessageID type, bool allowDuplicates)
 {
-	if (isInPacket(type))
+	if (!allowDuplicates && isInPacket(type))
 		return false;
 
 	empty = false;

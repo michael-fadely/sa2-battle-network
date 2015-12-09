@@ -25,6 +25,8 @@
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 
+#include "AddRingsTest.h"
+
 // This Class
 #include "PacketBroker.h"
 
@@ -133,11 +135,13 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		MessageID newType;
 		packet >> newType;
 
+        /*
 		if (newType == lastType)
 		{
 			PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
 			break;
 		}
+        */
 
 		switch (newType)
 		{
@@ -269,16 +273,16 @@ void PacketBroker::SetConnectTime()
 	receivedKeepalive = sentKeepalive = Millisecs();
 }
 
-bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn)
+bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates)
 {
-	if (!packetIsIn.isInPacket(packetType))
+	if (allowDuplicates || !packetIsIn.isInPacket(packetType))
 		return RequestPacket(packetType, packetAddTo);
 
 	return false;
 }
-bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo)
+bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, bool allowDuplicates)
 {
-	if (packetType >= MessageID::N_Disconnect && packetAddTo.addType(packetType))
+	if (packetType >= MessageID::N_Disconnect && packetAddTo.addType(packetType, allowDuplicates))
 		return AddPacket(packetType, packetAddTo);
 
 	return false;
@@ -303,10 +307,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 	{
 		// TODO: Remove local CurrentLevel
 		if (local.game.CurrentLevel != CurrentLevel)
-		{
-			RingCount[0] = 0;
-			local.game.RingCount[0] = 0;
-
+        {
 			sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
 				|| Player1->Data2->CharID2 == Characters_Shadow
 				|| Player1->Data2->CharID2 == Characters_Amy
@@ -329,9 +330,6 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
 			RequestPacket(MessageID::S_2PSpecials, safe, fast);
-
-		if (local.game.RingCount[0] != RingCount[0] && GameState == GameState::Ingame)
-			RequestPacket(MessageID::S_Rings, safe, fast);
 	}
 }
 void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
@@ -644,8 +642,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::S_Rings:
-			out << RingCount[0];
-			local.game.RingCount[0] = RingCount[0];
+            out << RingCount[0] << DirtyRingHack;
 			break;
 
 		case MessageID::S_Time:
@@ -757,11 +754,18 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 				break;
 
 			RECEIVED(MessageID::S_Rings);
-				packet >> local.game.RingCount[1];
-				writeRings();
+            {
+                short rings;
+                int diff;
 
-				PrintDebug(">> Ring Count Change %d", local.game.RingCount[1]);
-				break;
+                packet >> rings >> diff;
+                PrintDebug(">> RING CHANGE: %d + %d", rings, diff);
+
+                RingCount[1] = rings;
+                AddRingsOriginal(1, diff);
+
+                break;
+            }
 		}
 
 		return true;
@@ -927,7 +931,6 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 
 void PacketBroker::PreReceive()
 {
-	writeRings();
 	writeSpecials();
 
 	// HACK: This entire section
@@ -951,14 +954,9 @@ void PacketBroker::PreReceive()
 }
 void PacketBroker::PostReceive()
 {
-	writeRings();
 	writeSpecials();
 }
 
-inline void PacketBroker::writeRings()
-{
-	RingCount[1] = local.game.RingCount[1];
-}
 inline void PacketBroker::writeSpecials() const
 {
 	memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);

@@ -21,9 +21,10 @@ public:
 	/// Requests the specified message type to be added to the outbound packets.
 	/// </summary>
 	/// <param name="type">The message type.</param>
-	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
+    /// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
+    /// <param name="allowDuplicates">If set to <c>true</c>, ignores duplicate types.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
-	bool Request(const nethax::MessageID type, bool isSafe)
+	bool Request(const nethax::MessageID type, bool isSafe, bool allowDuplicates = false)
 	{
 		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast);
 	}
@@ -50,9 +51,9 @@ private:
 	std::unordered_map<nethax::MessageID, bool> WaitRequests;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
-	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn);
+	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates = false);
 	// Requests that the packet type packetType is added to packetAddTo.
-	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo);
+	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, bool allowDuplicates = false);
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet
@@ -74,7 +75,6 @@ private:
 	
 	void PreReceive();
 	void PostReceive();
-	void writeRings();
 	void writeSpecials() const;
 	void writeTimeStop();
 

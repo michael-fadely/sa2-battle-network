@@ -54,9 +54,6 @@ struct MemStruct
 		// Ingame time.
 		// First index is minutes, followed by seconds and centiseconds.
 		int8 TimerMinutes, TimerSeconds, TimerFrames;
-		// Ring count.
-		// First index is Player 1, second index is Player 2.
-		int16 RingCount[2];
 		// Current stage.
 		int16 CurrentLevel;
 

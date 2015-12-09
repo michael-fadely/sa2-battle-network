@@ -92,6 +92,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AddressList.h" />
+    <ClInclude Include="AddRingsTest.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
     <ClInclude Include="OnGameState.h" />
@@ -112,9 +113,11 @@
     <ClInclude Include="PacketExtensions.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Trampoline.h" />
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AddRingsTest.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
@@ -134,6 +137,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Trampoline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mod.ini" />
