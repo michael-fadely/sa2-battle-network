@@ -156,13 +156,13 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			case MessageID::N_Ready:
 			{
-				MessageID id; packet >> id;
+				MessageID waitID; packet >> waitID;
 
-				auto it = WaitRequests.find(id);
+				auto it = WaitRequests.find(waitID);
 				if (it != WaitRequests.end())
 					it->second = true;
 				else
-					WaitRequests[id] = true;
+					WaitRequests[waitID] = true;
 
 				break;
 			}
@@ -708,7 +708,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 {
 	if (type == MessageID::S_Stage)
 	{
-		int level;
+		short level;
 		packet >> level;
 		CurrentLevel = level;
 		return true;

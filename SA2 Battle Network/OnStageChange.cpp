@@ -46,9 +46,9 @@ void SetCurrentLevel(int stage)
 	{
 		CurrentLevel = stage;
 
-		Broker->SendReady(MessageID::S_Stage);
 		Broker->Request(MessageID::S_Stage, true);
 		Broker->Finalize();
+		Broker->SendReady(MessageID::S_Stage);
 
 		if (!Broker->WaitForPlayers(MessageID::S_Stage))
 			return;
