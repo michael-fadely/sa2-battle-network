@@ -135,13 +135,13 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		MessageID newType;
 		packet >> newType;
 
-        /*
+		/*
 		if (newType == lastType)
 		{
 			PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
 			break;
 		}
-        */
+		*/
 
 		switch (newType)
 		{
@@ -307,7 +307,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 	{
 		// TODO: Remove local CurrentLevel
 		if (local.game.CurrentLevel != CurrentLevel)
-        {
+		{
 			sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
 				|| Player1->Data2->CharID2 == Characters_Shadow
 				|| Player1->Data2->CharID2 == Characters_Amy
@@ -642,7 +642,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::S_Rings:
-            out << RingCount[0] << DirtyRingHack;
+			out << RingCount[0] << DirtyRingHack;
 			break;
 
 		case MessageID::S_Time:
@@ -754,18 +754,18 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 				break;
 
 			RECEIVED(MessageID::S_Rings);
-            {
-                short rings;
-                int diff;
+			{
+				short rings;
+				int diff;
 
-                packet >> rings >> diff;
-                PrintDebug(">> RING CHANGE: %d + %d", rings, diff);
+				packet >> rings >> diff;
+				PrintDebug(">> RING CHANGE: %d + %d", rings, diff);
 
-                RingCount[1] = rings;
-                AddRingsOriginal(1, diff);
+				RingCount[1] = rings;
+				AddRingsOriginal(1, diff);
 
-                break;
-            }
+				break;
+			}
 		}
 
 		return true;

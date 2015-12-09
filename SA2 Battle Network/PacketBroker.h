@@ -21,8 +21,8 @@ public:
 	/// Requests the specified message type to be added to the outbound packets.
 	/// </summary>
 	/// <param name="type">The message type.</param>
-    /// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
-    /// <param name="allowDuplicates">If set to <c>true</c>, ignores duplicate types.</param>
+	/// <param name="isSafe">If set to <c>true</c>, the request will be added to the safe packet.</param>
+	/// <param name="allowDuplicates">If set to <c>true</c>, ignores duplicate types.</param>
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
 	bool Request(const nethax::MessageID type, bool isSafe, bool allowDuplicates = false)
 	{
