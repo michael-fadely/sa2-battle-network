@@ -7,16 +7,16 @@
 
 using namespace nethax;
 
-void hax3(int8 playerNum, int32 numRings);
+void AddRings_cpp(int8 playerNum, int32 numRings);
 
-void __declspec(naked) hax2()
+void __declspec(naked) AddRings_asm()
 {
 	__asm
 	{
 		push edx
 		push eax
 
-		call hax3
+		call AddRings_cpp
 
 		pop eax
 		pop edx
@@ -25,10 +25,10 @@ void __declspec(naked) hax2()
 	}
 }
 
-Trampoline hax((size_t)AddRingsPtr, (size_t)0x0044CE16, hax2);
+Trampoline AddRingsHax((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
 int DirtyRingHack = 0;
 
-void hax3(int8 playerNum, int32 numRings)
+void AddRings_cpp(int8 playerNum, int32 numRings)
 {
 	if (Globals::isConnected())
 	{
@@ -40,7 +40,7 @@ void hax3(int8 playerNum, int32 numRings)
 		Globals::Broker->Request(MessageID::S_Rings, true);
 	}
 
-	void* target = hax.Target();
+	void* target = AddRingsHax.Target();
 	__asm
 	{
 		mov al, [playerNum]

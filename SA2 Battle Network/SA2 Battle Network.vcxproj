@@ -91,6 +91,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AddHPTest.h" />
     <ClInclude Include="AddressList.h" />
     <ClInclude Include="AddRingsTest.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
@@ -117,6 +118,7 @@
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AddHPTest.cpp" />
     <ClCompile Include="AddRingsTest.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
     <ClCompile Include="OnFrame.cpp" />

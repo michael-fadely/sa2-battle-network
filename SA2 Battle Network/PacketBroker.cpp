@@ -26,6 +26,7 @@
 #include "AddressList.h"
 
 #include "AddRingsTest.h"
+#include "AddHPTest.h"
 
 // This Class
 #include "PacketBroker.h"
@@ -388,12 +389,6 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
 			RequestPacket(MessageID::P_Scale, safe, fast);
 
-		if (Player1->Data2->CharID == Characters_MechTails || Player1->Data2->CharID == Characters_MechEggman)
-		{
-			if (sendPlayer.Data2.MechHP != Player1->Data2->MechHP)
-				RequestPacket(MessageID::P_HP, safe, fast);
-		}
-
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
 			RequestPacket(MessageID::P_Powerups, safe, fast);
 
@@ -591,7 +586,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::P_HP:
-			out << Player1->Data2->MechHP;
+			out << Player1->Data2->MechHP << DirtyHPHack;
 			break;
 
 		case MessageID::P_Speed:
@@ -821,8 +816,13 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 			}
 
 			RECEIVED(MessageID::P_HP);
-				packet >> recvPlayer.Data2.MechHP;
-				PrintDebug(">> Received HP update. (%f)", recvPlayer.Data2.MechHP);
+				float hp, diff;
+				packet >> hp >> diff;
+				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
+
+				recvPlayer.Data2.MechHP = hp;
+				Player2->Data2->MechHP = hp;
+				AddHPOriginal(1, diff);
 				break;
 
 			RECEIVED(MessageID::P_Speed);
@@ -939,10 +939,6 @@ void PacketBroker::PreReceive()
 		// HACK: Upgrade/Powerup failsafe
 		Player2->Data2->Powerups = recvPlayer.Data2.Powerups;
 		Player2->Data2->Upgrades = recvPlayer.Data2.Upgrades;
-
-		// HACK: Mech HP synchronization fix. This REALLY sucks.
-		if (Player2->Data2->CharID2 == Characters_MechEggman || Player2->Data2->CharID2 == Characters_MechTails)
-			Player2->Data2->MechHP = recvPlayer.Data2.MechHP;
 
 		// HACK: Analog failsafe
 		if (GameState == GameState::Pause && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))

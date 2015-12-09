@@ -105,6 +105,9 @@
     <ClInclude Include="Trampoline.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
+    <ClInclude Include="AddHPTest.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -160,6 +163,9 @@
     </ClCompile>
     <ClCompile Include="Trampoline.cpp">
       <Filter>Source Files\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="AddHPTest.cpp">
+      <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

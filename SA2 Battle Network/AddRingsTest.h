@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Trampoline.h"
-#include <SA2ModLoader/SA2Functions.h>
 
-extern Trampoline hax;
+extern Trampoline AddRingsHax;
 extern int DirtyRingHack;
 
 static inline void AddRingsOriginal(char playerNum, int numRings)
 {
-	void* fptr = hax.Target();
+	void* fptr = AddRingsHax.Target();
 	__asm
 	{
 		mov edx, [numRings]
