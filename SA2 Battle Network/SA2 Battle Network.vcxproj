@@ -96,6 +96,7 @@
     <ClInclude Include="AddRingsTest.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
+    <ClInclude Include="HurtPlayerTest.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="Program.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="AddHPTest.cpp" />
     <ClCompile Include="AddRingsTest.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
+    <ClCompile Include="HurtPlayerTest.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />

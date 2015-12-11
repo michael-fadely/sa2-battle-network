@@ -58,6 +58,8 @@ namespace nethax
 		P_Animation,
 		// Sonic
 		P_SpinTimer,
+		P_Hurt,
+		P_Kill,
 
 		P_END,				// Marker: End of player messages
 		S_START,			// Marker: Start of system messages

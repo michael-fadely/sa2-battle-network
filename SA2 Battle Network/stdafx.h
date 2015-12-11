@@ -39,3 +39,4 @@
 #include "typedefs.h"
 #include "Trampoline.h"
 #include "AddRingsTest.h"
+#include "HurtPlayerTest.h"

@@ -27,6 +27,7 @@
 
 #include "AddRingsTest.h"
 #include "AddHPTest.h"
+#include "HurtPlayerTest.h"
 
 // This Class
 #include "PacketBroker.h"
@@ -586,6 +587,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::P_HP:
+			PrintDebug("<< HP SEND: %f, %f", Player1->Data2->MechHP, DirtyHPHack);
 			out << Player1->Data2->MechHP << DirtyHPHack;
 			break;
 
@@ -600,6 +602,12 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 		case MessageID::P_SpinTimer:
 			out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+			break;
+
+		case MessageID::P_Hurt:
+			break;
+
+		case MessageID::P_Kill:
 			break;
 
 #pragma endregion
@@ -837,6 +845,19 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 			RECEIVED(MessageID::P_SpinTimer);
 				packet >> recvPlayer.Sonic.SpindashTimer;
 				break;
+
+			RECEIVED(MessageID::P_Hurt);
+			{
+				FunctionPointer(void, target, (int playerNum), HurtPlayerHax.Target());
+				target(1);
+				break;
+			}
+
+			RECEIVED(MessageID::P_Kill);
+			{
+				KillPlayerOriginal(1);
+				break;
+			}
 		}
 
 		return writePlayer;

@@ -108,6 +108,9 @@
     <ClInclude Include="AddHPTest.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="HurtPlayerTest.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -165,6 +168,9 @@
       <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="AddHPTest.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="HurtPlayerTest.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>
