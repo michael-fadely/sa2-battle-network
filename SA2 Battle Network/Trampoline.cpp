@@ -11,9 +11,8 @@
 /// <param name="start">Start offset (address of function).</param>
 /// <param name="end">End offset.</param>
 /// <param name="func">Your detour function.</param>
-/// <param name="restore">if set to <c>true</c>, restores the original code on destruct.</param>
-Trampoline::Trampoline(size_t start, size_t end, DetourFunction func, bool restore) :
-	target(nullptr), detour(nullptr), codeData(nullptr), codeSize(0), originalSize(0), restoreCode(restore)
+Trampoline::Trampoline(size_t start, size_t end, DetourFunction func) :
+	target(nullptr), detour(nullptr), codeData(nullptr), codeSize(0), originalSize(0)
 {
 	if (start > end)
 		throw std::exception("Start address cannot exceed end address.");
@@ -48,9 +47,5 @@ Trampoline::Trampoline(size_t start, size_t end, DetourFunction func, bool resto
 Trampoline::~Trampoline()
 {
 	if (codeData)
-	{
-		if (restoreCode)
-			memcpy(target, codeData, originalSize);
 		VirtualFree(codeData, codeSize, MEM_DECOMMIT);
-	}
 }

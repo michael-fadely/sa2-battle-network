@@ -7,6 +7,7 @@ typedef void(*DetourFunction)(void);
 
 // TODO: Better documentation
 // TODO: Clearer member names
+// TODO: Code restoration
 
 class Trampoline
 {
@@ -25,8 +26,7 @@ public:
 	/// <param name="start">Start offset (address of function).</param>
 	/// <param name="end">End offset.</param>
 	/// <param name="func">Your detour function.</param>
-	/// <param name="restore">if set to <c>true</c>, restores the original code on destruct.</param>
-	Trampoline(size_t start, size_t end, DetourFunction func, bool restore = false);
+	Trampoline(size_t start, size_t end, DetourFunction func);
 	~Trampoline();
 
 	// Pointer to original code.
