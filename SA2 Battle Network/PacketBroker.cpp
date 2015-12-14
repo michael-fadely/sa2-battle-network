@@ -809,7 +809,7 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::P_Powerups);
 			{
-				int powerups = 0;
+				short powerups = 0;
 				packet >> powerups;
 				recvPlayer.Data2.Powerups = (Powerups)powerups;
 				break;
