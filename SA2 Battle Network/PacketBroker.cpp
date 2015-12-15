@@ -137,6 +137,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		MessageID newType;
 		packet >> newType;
 
+        // TODO: Re-implement packet loop failsafe using read offset.
 		/*
 		if (newType == lastType)
 		{
@@ -730,7 +731,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::S_GameState);
 			{
-				uint8 recvGameState;
+				short recvGameState;
 				packet >> recvGameState;
 				if (GameState >= GameState::NormalRestart && recvGameState > GameState::LoadFinished)
 					GameState = local.system.GameState = recvGameState;

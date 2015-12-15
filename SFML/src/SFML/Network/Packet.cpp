@@ -30,6 +30,7 @@
 #include <SFML/System/String.hpp>
 #include <cstring>
 #include <cwchar>
+#include <exception>
 
 
 namespace sf
@@ -579,6 +580,9 @@ Packet& Packet::operator <<(const String& data)
 ////////////////////////////////////////////////////////////
 bool Packet::checkSize(std::size_t size)
 {
+    if (m_readPos + size > m_data.size())
+        throw std::exception("Read size exceeded data size");
+
     m_isValid = m_isValid && (m_readPos + size <= m_data.size());
 
     return m_isValid;
