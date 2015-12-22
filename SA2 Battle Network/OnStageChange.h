@@ -1,6 +1,4 @@
 #pragma once
 
-void InitOnStageChange();
-void OnStageChange();
-int SetCurrentLevel_asm(int stage);
-void SetCurrentLevel(int stage);
+void SetCurrentLevel_asm();
+void __cdecl SetCurrentLevel(short stage);

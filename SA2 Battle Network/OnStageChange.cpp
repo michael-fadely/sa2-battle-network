@@ -1,50 +1,50 @@
 #include "stdafx.h"
 
 #include <SA2ModLoader.h>
+#include "Trampoline.h"
 #include "Networking.h"
 #include "Globals.h"
 #include "OnStageChange.h"
 
-void* SetCurrentLevel_ptr = (void*)0x0043D8A0;
+//DataPointer(short, isFirstStageLoad, 0x01748B94);
 
-void InitOnStageChange()
-{
-	WriteJump(SetCurrentLevel_ptr, SetCurrentLevel_asm);
-}
+Trampoline SetCurrentLevelHax(0x0043D8A0, 0x0043D8A7, SetCurrentLevel_asm);
 
-int __declspec(naked) SetCurrentLevel_asm(int stage)
+void __declspec(naked) SetCurrentLevel_asm()
 {
 	__asm
 	{
 		push eax
 		call SetCurrentLevel
 		pop eax
-		retn
+		ret
 	}
 }
 
-DataPointer(short, word_1934B84, 0x01934B84);
-DataPointer(short, isFirstStageLoad, 0x01748B94);
+inline void SetCurrentLevel_Original(short stage)
+{
+	void* original = SetCurrentLevelHax.Target();
+	__asm
+	{
+		mov ax, stage
+		call original
+	}
+}
 
-void SetCurrentLevel(int stage)
+void __cdecl SetCurrentLevel(short stage)
 {
 	using namespace nethax;
 	using namespace Globals;
 
-	word_1934B84 = CurrentLevel;
-
-	if (isFirstStageLoad)
-		isFirstStageLoad = 0;
-
 	if (!isInitialized() || !isConnected())
 	{
-		CurrentLevel = stage;
+		SetCurrentLevel_Original(stage);
 		return;
 	}
 
 	if (Networking->isServer())
 	{
-		CurrentLevel = stage;
+		SetCurrentLevel_Original(stage);
 
 		Broker->Request(MessageID::S_Stage, true);
 		Broker->Finalize();
@@ -59,7 +59,7 @@ void SetCurrentLevel(int stage)
 
 		if (!Broker->WaitForPlayers(MessageID::S_Stage))
 		{
-			CurrentLevel = stage;
+			SetCurrentLevel_Original(stage);
 			return;
 		}
 

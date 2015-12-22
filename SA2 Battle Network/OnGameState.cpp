@@ -13,7 +13,7 @@ void* escape_addr = (void*)0x0043AAEE;
 
 // Note that the name is misleading. This only happens when the gamestate changes to Ingame.
 // TODO: Real OnGameState
-static void __cdecl OnGameState()
+static void __stdcall OnGameState()
 {
 	using namespace nethax;
 	using namespace Globals;
@@ -32,8 +32,5 @@ static void __cdecl OnGameState()
 void InitOnGameState()
 {
 	// TODO: Make revertable
-	// Adding nops first because the existing instruction smaller than a call.
-	std::vector<uint8> patch(5, 0x90);
-	WriteData(escape_addr, patch.data(), patch.size());
 	WriteCall(escape_addr, OnGameState);
 }

@@ -112,5 +112,4 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
-	InitOnStageChange();
 }
