@@ -38,7 +38,7 @@ extern "C"
 
 void MainThread(int argc, wchar_t** argv)
 {
-	if (argc < 3)
+	if (argc < 2)
 	{
 		PrintDebug("[SA2:BN] Insufficient parameters.");
 		return;
@@ -81,6 +81,7 @@ void MainThread(int argc, wchar_t** argv)
 		else if (!wcscmp(argv[i], L"--no-specials"))
 		{
 			Settings.noSpecials = true;
+			MemManage::nop2PSpecials(true);
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
@@ -91,6 +92,7 @@ void MainThread(int argc, wchar_t** argv)
 		else if (!wcscmp(argv[i], L"--keep-active"))
 		{
 			Settings.KeepWindowActive = true;
+			MemManage::keepActive(true);
 			validArguments = true;
 		}
 	}
