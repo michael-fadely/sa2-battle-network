@@ -137,7 +137,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		MessageID newType;
 		packet >> newType;
 
-        // TODO: Re-implement packet loop failsafe using read offset.
+		// TODO: Re-implement packet loop failsafe using read offset.
 		/*
 		if (newType == lastType)
 		{
