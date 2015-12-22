@@ -32,45 +32,30 @@ void MemManage::nop2PSpecials(const bool doNop)
 	}
 }
 
-void MemManage::nopP2Input(const bool doNop)
-{
-	//waitInputInit();
-	if (doNop)
-	{
-		nop::apply(ADDR_P2INOP, 6);
-	}
-	else
-	{
-		//waitFrame(5);
-		nop::restore(ADDR_P2INOP);
-	}
-}
-
 void MemManage::swapSpawn(const bool swapstart)
 {
-	char swap = (swapstart) ? 0x94 : 0x95;
-	WriteMemory(0x43D9B1, &swap, sizeof(char));
+	uint8 swap = (swapstart) ? 0x94 : 0x95;
+	WriteMemory(0x43D9B1, &swap, sizeof(uint8));
 }
 
 void MemManage::swapCharsel(const bool swapcharsel)
 {
-	uint8 E4, E0;
-	E4 = 0xE4;
-	E0 = 0xE0;
+	uint8 E4 = 0xE4;
+	uint8 E0 = 0xE0;
 
 	if (swapcharsel)
 	{
-		WriteMemory(0x66A632, &E4, sizeof(char));
-		WriteMemory(0x66A637, &E0, sizeof(char));
-		WriteMemory(0x66A670, &E0, sizeof(char));
-		WriteMemory(0x66A687, &E4, sizeof(char));
+		WriteMemory(0x66A632, &E4, sizeof(uint8));
+		WriteMemory(0x66A637, &E0, sizeof(uint8));
+		WriteMemory(0x66A670, &E0, sizeof(uint8));
+		WriteMemory(0x66A687, &E4, sizeof(uint8));
 	}
 	else
 	{
-		WriteMemory(0x66A632, &E0, sizeof(char));
-		WriteMemory(0x66A637, &E4, sizeof(char));
-		WriteMemory(0x66A670, &E4, sizeof(char));
-		WriteMemory(0x66A687, &E0, sizeof(char));
+		WriteMemory(0x66A632, &E0, sizeof(uint8));
+		WriteMemory(0x66A637, &E4, sizeof(uint8));
+		WriteMemory(0x66A670, &E4, sizeof(uint8));
+		WriteMemory(0x66A687, &E0, sizeof(uint8));
 	}
 }
 

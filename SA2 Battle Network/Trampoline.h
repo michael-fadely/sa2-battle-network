@@ -17,7 +17,6 @@ private:
 	LPVOID codeData;
 	size_t originalSize;
 	size_t codeSize;
-	bool restoreCode;
 
 public:	
 	/// <summary>

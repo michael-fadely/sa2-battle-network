@@ -100,10 +100,7 @@ void Program::Disconnect()
 
 void Program::ApplySettings(const bool apply)
 {
-	if (apply)
-		PrintDebug("<> Applying code changes...");
-	else
-		PrintDebug("<> Reverting code changes...");
+	PrintDebug(apply ? "<> Applying code changes..." : "<> Reverting code changes...");
 
 	if (clientSettings.noSpecials)
 		MemManage::nop2PSpecials(apply);
