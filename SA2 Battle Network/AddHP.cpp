@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "AddHPTest.h"
+#include "AddHP.h"
 
 #include "Globals.h"
 #include <SA2ModLoader.h>

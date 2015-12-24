@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "AddRingsTest.h"
+#include "AddRings.h"
 
 #include "Globals.h"
 #include <SA2ModLoader.h>

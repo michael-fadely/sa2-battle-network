@@ -94,12 +94,12 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AddHPTest.h" />
+    <ClInclude Include="AddHP.h" />
     <ClInclude Include="AddressList.h" />
-    <ClInclude Include="AddRingsTest.h" />
+    <ClInclude Include="AddRings.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
-    <ClInclude Include="HurtPlayerTest.h" />
+    <ClInclude Include="HurtPlayer.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="Program.h" />
@@ -122,10 +122,10 @@
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AddHPTest.cpp" />
-    <ClCompile Include="AddRingsTest.cpp" />
+    <ClCompile Include="AddHP.cpp" />
+    <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
-    <ClCompile Include="HurtPlayerTest.cpp" />
+    <ClCompile Include="HurtPlayer.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />

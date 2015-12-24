@@ -25,9 +25,9 @@
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 
-#include "AddRingsTest.h"
-#include "AddHPTest.h"
-#include "HurtPlayerTest.h"
+#include "AddRings.h"
+#include "AddHP.h"
+#include "HurtPlayer.h"
 
 // This Class
 #include "PacketBroker.h"

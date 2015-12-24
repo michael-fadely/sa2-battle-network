@@ -38,5 +38,5 @@
 #include "nop.h"
 #include "typedefs.h"
 #include "Trampoline.h"
-#include "AddRingsTest.h"
-#include "HurtPlayerTest.h"
+#include "AddRings.h"
+#include "HurtPlayer.h"

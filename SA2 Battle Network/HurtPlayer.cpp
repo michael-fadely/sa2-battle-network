@@ -2,7 +2,7 @@
 
 #include <SA2ModLoader.h>
 #include "Globals.h"
-#include "HurtPlayerTest.h"
+#include "HurtPlayer.h"
 
 using namespace nethax;
 
