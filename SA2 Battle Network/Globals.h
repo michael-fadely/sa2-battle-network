@@ -9,7 +9,6 @@ namespace nethax
 {
 	namespace Globals
 	{
-		extern HANDLE			ProcessID;
 		extern PacketHandler*	Networking;
 		extern PacketBroker*	Broker;
 		extern ::Program*		Program;
