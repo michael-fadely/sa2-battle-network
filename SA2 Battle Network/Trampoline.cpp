@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <exception>
+#include <ninja.h>		// for typedefs
 #include <ModLoader/MemAccess.h>
 
 /// <summary>
@@ -34,10 +35,10 @@ Trampoline::Trampoline(size_t start, size_t end, DetourFunction func) :
 	memcpy(codeData, target, originalSize);
 
 	// Append jump (terribly)
-	WriteJump((&((uint8*)codeData)[originalSize]), (void*)end);
+	WriteJump((&((Uint8*)codeData)[originalSize]), (void*)end);
 
 	// NOP
-	std::vector<uint8> nop(originalSize, 0x90);
+	std::vector<Uint8> nop(originalSize, 0x90);
 	WriteData(target, nop.data(), nop.size());
 
 	// Jump
