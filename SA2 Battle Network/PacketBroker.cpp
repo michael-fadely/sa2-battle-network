@@ -28,6 +28,7 @@
 #include "AddRings.h"
 #include "AddHP.h"
 #include "HurtPlayer.h"
+#include "Random.h"
 
 // This Class
 #include "PacketBroker.h"
@@ -182,9 +183,11 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			default:
 			{
 				// TODO: Consider removing this and treating the key as just a value instead of a message type.
+				/*
 				auto it = WaitRequests.find(newType);
 				if (it != WaitRequests.end())
 					it->second = true;
+				*/
 
 				if (newType < MessageID::N_END)
 				{
@@ -615,6 +618,16 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 #pragma region System
 
+		case MessageID::S_Rand:
+			PrintDebug("<< Sending rand() result");
+			out << current_rand;
+			break;
+
+		case MessageID::S_Seed:
+			PrintDebug("<< Sending seed: 0x%08X", current_seed);
+			out << current_seed;
+			break;
+
 		case MessageID::S_KeepAlive:
 			sentKeepalive = Millisecs();
 			break;
@@ -707,12 +720,27 @@ bool PacketBroker::ReceiveInput(const nethax::MessageID type, sf::Packet& packet
 }
 bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packet)
 {
-	if (type == MessageID::S_Stage)
+	switch (type)
 	{
-		short level;
-		packet >> level;
-		CurrentLevel = level;
-		return true;
+		default:
+			break;
+
+		case MessageID::S_Stage:
+			short level;
+			packet >> level;
+			CurrentLevel = level;
+			return true;
+
+		case MessageID::S_Seed:
+			packet >> current_seed;
+			PrintDebug(">> Received seed: 0x%08X", current_seed);
+			srand_Original(current_seed);
+			return true;
+
+		case MessageID::S_Rand:
+			PrintDebug(">> Received rand result");
+			packet >> current_rand;
+			return true;
 	}
 
 	if (GameState >= GameState::LoadFinished)

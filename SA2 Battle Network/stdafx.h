@@ -40,3 +40,4 @@
 #include "Trampoline.h"
 #include "AddRings.h"
 #include "HurtPlayer.h"
+#include "Random.h"

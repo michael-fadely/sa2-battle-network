@@ -65,6 +65,7 @@ namespace nethax
 		S_START,			// Marker: Start of system messages
 
 		S_KeepAlive,
+		S_Seed, S_Rand,
 		S_Stage,
 		S_2PReady,
 		S_2PSpecials,

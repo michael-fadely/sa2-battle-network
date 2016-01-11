@@ -111,6 +111,9 @@
     <ClInclude Include="AddRings.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="Random.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -171,6 +174,9 @@
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="HurtPlayer.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Random.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

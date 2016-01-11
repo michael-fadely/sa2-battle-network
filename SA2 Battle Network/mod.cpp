@@ -20,6 +20,7 @@
 
 #include "OnGameState.h"
 #include "OnStageChange.h"
+#include "Random.h"
 
 // Namespaces
 using namespace std;
@@ -111,5 +112,6 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Program = new Program(Settings, isServer, Address);
 	Globals::Broker = new PacketBroker(timeout);
 
+	InitRandom();
 	InitOnGameState();
 }
