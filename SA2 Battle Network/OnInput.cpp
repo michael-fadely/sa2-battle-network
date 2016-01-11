@@ -17,10 +17,10 @@ void InputHandler()
 	using namespace nethax;
 	using namespace Globals;
 
-	if (!isInitialized() || !isConnected())
+	if (!isConnected())
 		return;
 
-	ControllerData* pad = &ControllersRaw[0];
+	ControllerData* pad = ControllerPointers[0];
 	ControllerData* netPad = &Broker->recvInput;
 	ControllerData* lastPad = &Broker->sendInput;
 
@@ -48,7 +48,7 @@ void InputHandler()
 	Broker->Finalize();
 #pragma endregion
 
-	pad = &ControllersRaw[1];
+	pad = ControllerPointers[1];
 
 	pad->LeftStickX = netPad->LeftStickX;
 	pad->LeftStickY = netPad->LeftStickY;
@@ -73,7 +73,10 @@ void InputHandler()
 	pad->RTriggerPressure = (pad->HeldButtons & Buttons_R) ? UCHAR_MAX : 0;
 }
 
-extern "C" void __declspec(dllexport) OnInput()
+extern "C"
 {
-	InputHandler();
+	void __declspec(dllexport) OnInput()
+	{
+		InputHandler();
+	}
 }

@@ -36,7 +36,7 @@ void __cdecl SetCurrentLevel(short stage)
 	using namespace nethax;
 	using namespace Globals;
 
-	if (!isInitialized() || !isConnected())
+	if (!isConnected())
 	{
 		SetCurrentLevel_Original(stage);
 		return;

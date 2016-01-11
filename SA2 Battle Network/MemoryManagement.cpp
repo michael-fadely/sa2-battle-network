@@ -68,13 +68,13 @@ void MemManage::swapInput(const bool doNop)
 	else
 		nop::restore(0x00441BCA);
 
-	ControllerData* p1ptr = ControllerPtr[0];
-	ControllerData* p2ptr = ControllerPtr[1];
+	ControllerData* p1ptr = ControllerPointers[0];
+	ControllerData* p2ptr = ControllerPointers[1];
 
 	PrintDebug("<> %08X %08X", p1ptr, p2ptr);
 
-	ControllerPtr[0] = p2ptr;
-	ControllerPtr[1] = p1ptr;
+	ControllerPointers[0] = p2ptr;
+	ControllerPointers[1] = p1ptr;
 
 	PrintDebug("<> Swap complete.");
 }

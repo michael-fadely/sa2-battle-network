@@ -22,7 +22,7 @@ static void __stdcall OnGameState()
 	// in the original code.
 	dword_174B058 = 0;
 
-	if (!isInitialized() || !isConnected())
+	if (!isConnected())
 		return;
 
 	Broker->SendReady(MessageID::S_GameState);

@@ -3,6 +3,8 @@
 #include <SA2ModLoader.h>
 #include "typedefs.h"
 
+// TODO: Move to mod loader
+
 // Gameplay
 DataPointer(char,	TimeStopMode,			0x0174AFF7);
 DataArray(char,		SpecialActivateTimer,	0x0174AFF3, 2);
@@ -17,7 +19,7 @@ DataPointer(uint,	FrameIncrement,		0x1DEB50C);
 DataPointer(uchar,	TimerFrames,		0x0174AFDD); // ADDR_TIME + 0x02
 
 // Input
-DataArray(ControllerData*, ControllerPtr, 0x01DEFB60, 4);
+DataArray(ControllerData*, ControllerPointers, 0x01DEFB60, 4);
 
 // Menu
 DataArray(char,		CharacterSelected,		0x01D1B8B2, 2);
