@@ -83,7 +83,9 @@ void PacketBroker::Initialize()
 {
 	local		= {};
 	recvInput	= {};
+	recvAnalog	= {};
 	sendInput	= {};
+	sendAnalog	= {};
 
 	firstMenuEntry	= false;
 	wroteP2Start	= false;
@@ -331,7 +333,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
 			RequestPacket(MessageID::S_Time, fast, safe);
 
-		if (local.game.TimeStopMode != TimeStopMode)
+		if (local.game.TimeStopMode != TimeStopped)
 			RequestPacket(MessageID::S_TimeStop, safe, fast);
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
@@ -496,6 +498,11 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			out << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
 			sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
 			sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+			break;
+
+		case MessageID::I_AnalogThing:
+			out << AnalogThings[0];
+			sendAnalog = AnalogThings[0];
 			break;
 
 		case MessageID::I_Buttons:
@@ -672,9 +679,9 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 			// Swap the Time Stop value, as this is connected to player number,
 			// and Player 1 and 2 are relative to the game instance.
-			out << (int8)(TimeStopMode * 5 % 3);
+			out << (int8)(TimeStopped * 5 % 3);
 
-			local.game.TimeStopMode = TimeStopMode;
+			local.game.TimeStopMode = TimeStopped;
 			break;
 
 		case MessageID::S_Stage:
@@ -710,6 +717,10 @@ bool PacketBroker::ReceiveInput(const nethax::MessageID type, sf::Packet& packet
 
 			RECEIVED(MessageID::I_Analog);
 				packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
+				break;
+
+			RECEIVED(MessageID::I_AnalogThing);
+				packet >> recvAnalog;
 				break;
 		}
 
@@ -1009,7 +1020,7 @@ inline void PacketBroker::writeSpecials() const
 }
 inline void PacketBroker::writeTimeStop()
 {
-	TimeStopMode = local.game.TimeStopMode;
+	TimeStopped = local.game.TimeStopMode;
 }
 
 #pragma endregion

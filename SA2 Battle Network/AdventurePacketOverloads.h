@@ -3,6 +3,8 @@
 #include <SA2ModLoader.h>
 
 sf::Packet& operator <<(sf::Packet& packet, const Rotation& data);
-sf::Packet& operator <<(sf::Packet& packet, const NJS_VECTOR& data);
 sf::Packet& operator >>(sf::Packet& packet, Rotation& data);
+sf::Packet& operator <<(sf::Packet& packet, const NJS_VECTOR& data);
 sf::Packet& operator >>(sf::Packet& packet, NJS_VECTOR& data);
+sf::Packet& operator >>(sf::Packet& packet, AnalogThing& data);
+sf::Packet& operator <<(sf::Packet& packet, const AnalogThing& data);

@@ -6,7 +6,7 @@
 // TODO: Move to mod loader
 
 // Gameplay
-DataPointer(char,	TimeStopMode,			0x0174AFF7);
+DataPointer(char,	TimeStopped,			0x0174AFF7);
 DataArray(char,		SpecialActivateTimer,	0x0174AFF3, 2);
 
 // System
@@ -18,8 +18,17 @@ DataPointer(uint,	FrameCountIngame,	(0x0174B038 + 4));
 DataPointer(uint,	FrameIncrement,		0x1DEB50C);
 DataPointer(uchar,	TimerFrames,		0x0174AFDD); // ADDR_TIME + 0x02
 
+#pragma pack(push, 1)
+struct AnalogThing
+{
+	Angle direction;
+	float magnitude;
+};
+#pragma pack(pop)
+
 // Input
 DataArray(ControllerData*, ControllerPointers, 0x01DEFB60, 4);
+DataArray(AnalogThing, AnalogThings, 0x01DEFBA0, 8);
 
 // Menu
 DataArray(char,		CharacterSelected,		0x01D1B8B2, 2);
@@ -36,6 +45,7 @@ DataPointer(uchar,	BattleOptionsSelection,	0x01D1C084);
 DataPointer(char,	BattleOptionsBack,		0x01D1C085);
 DataPointer(char,	BattleOptionsButton,	0x01D1C08C);
 
+// TODO: These might all be off by one except for Sonic's...
 DataPointer(char, AltCharacterSonic,	0x01D1B8C5);
 DataPointer(char, AltCharacterShadow,	0x01D1B8D9);
 DataPointer(char, AltCharacterTails,	0x01D1B8ED);

@@ -29,6 +29,7 @@ namespace nethax
 		I_START,			// Marker: Start of input messages
 
 		I_Analog,
+		I_AnalogThing,
 		I_Buttons,
 
 		I_END,				// Marker: End of input messages
