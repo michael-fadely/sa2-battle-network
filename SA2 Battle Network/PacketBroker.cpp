@@ -66,7 +66,7 @@ static bool RotationThreshold(const Rotation& last, const Rotation& current)
 
 static bool SpeedThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
-	float m = (float)VectorLength(&current);
+	float m = (float)njScalor(&current);
 	return (Duration(speedTimer) >= 10000 || abs(CheckDistance(&last, &current)) >= max((speedThreshold * m), speedThreshold));
 }
 
@@ -796,13 +796,10 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::S_Rings);
 			{
-				short rings;
 				int diff;
 
-				packet >> rings >> diff;
-				PrintDebug(">> RING CHANGE: %d + %d", rings, diff);
-
-				RingCount[1] = rings;
+				packet >> RingCount[1] >> diff;
+				PrintDebug(">> RING CHANGE: %d + %d", RingCount[1], diff);
 				AddRingsOriginal(1, diff);
 
 				break;
@@ -846,20 +843,12 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 				break;
 
 			RECEIVED(MessageID::P_Powerups);
-			{
-				short powerups = 0;
-				packet >> powerups;
-				recvPlayer.Data2.Powerups = (Powerups)powerups;
+				packet >> recvPlayer.Data2.Powerups;
 				break;
-			}
 
 			RECEIVED(MessageID::P_Upgrades);
-			{
-				int upgrades = 0;
-				packet >> upgrades;
-				recvPlayer.Data2.Upgrades = (Upgrades)upgrades;
+				packet >> recvPlayer.Data2.Upgrades;
 				break;
-			}
 
 			RECEIVED(MessageID::P_HP);
 				float hp, diff;
