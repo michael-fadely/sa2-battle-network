@@ -36,9 +36,9 @@ extern "C" __declspec(dllexport) void OnFrame()
 
 	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 	{
-		if ((ControllersRaw[0].HeldButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R) ||
-			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].HeldButtons & Buttons_R) ||
-			(ControllersRaw[0].PressedButtons & Buttons_L && ControllersRaw[0].PressedButtons & Buttons_R))
+		if ((ControllerPointers[0]->HeldButtons & Buttons_L && ControllerPointers[0]->PressedButtons & Buttons_R) ||
+			(ControllerPointers[0]->PressedButtons & Buttons_L && ControllerPointers[0]->HeldButtons & Buttons_R) ||
+			(ControllerPointers[0]->PressedButtons & Buttons_L && ControllerPointers[0]->PressedButtons & Buttons_R))
 		{
 			if (SplitscreenMode == 1)
 				SplitscreenMode = 2;

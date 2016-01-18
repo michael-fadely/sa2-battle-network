@@ -35,12 +35,5 @@ void __stdcall AddHP_cpp(int playerNum, float amount)
 		Globals::Broker->Request(MessageID::P_HP, true);
 	}
 
-	void* target = AddHPHax.Target();
-	__asm
-	{
-		mov eax, [playerNum]
-		push amount
-		call target
-		add esp, 4
-	}
+	AddHPOriginal(playerNum, amount);
 }

@@ -60,6 +60,6 @@ struct MemStruct
 		int8 P1SpecialAttacks[3];
 		int8 P2SpecialAttacks[3];
 
-		int8 TimeStopMode;
+		int8 TimeStopped;
 	} game;
 };

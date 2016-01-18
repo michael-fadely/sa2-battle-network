@@ -333,7 +333,7 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
 			RequestPacket(MessageID::S_Time, fast, safe);
 
-		if (local.game.TimeStopMode != TimeStopped)
+		if (local.game.TimeStopped != TimeStopped)
 			RequestPacket(MessageID::S_TimeStop, safe, fast);
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
@@ -346,7 +346,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 	{
 		if (GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
-			if ((ControllersRaw[0].HeldButtons & Buttons_Y) && (ControllersRaw[0].PressedButtons & Buttons_Up))
+			if ((ControllerPointers[0]->HeldButtons & Buttons_Y) && (ControllerPointers[0]->PressedButtons & Buttons_Up))
 			{
 				// Teleport to recvPlayer
 				PrintDebug("<> Teleporting to other player...");;
@@ -495,9 +495,9 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 #pragma region Input
 
 		case MessageID::I_Analog:
-			out << ControllersRaw[0].LeftStickX << ControllersRaw[0].LeftStickY;
-			sendInput.LeftStickX = ControllersRaw[0].LeftStickX;
-			sendInput.LeftStickY = ControllersRaw[0].LeftStickY;
+			out << ControllerPointers[0]->LeftStickX << ControllerPointers[0]->LeftStickY;
+			sendInput.LeftStickX = ControllerPointers[0]->LeftStickX;
+			sendInput.LeftStickY = ControllerPointers[0]->LeftStickY;
 			break;
 
 		case MessageID::I_AnalogThing:
@@ -506,8 +506,8 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::I_Buttons:
-			out << ControllersRaw[0].HeldButtons;
-			sendInput.HeldButtons = ControllersRaw[0].HeldButtons;
+			out << ControllerPointers[0]->HeldButtons;
+			sendInput.HeldButtons = ControllerPointers[0]->HeldButtons;
 			break;
 
 #pragma endregion
@@ -681,7 +681,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			// and Player 1 and 2 are relative to the game instance.
 			out << (int8)(TimeStopped * 5 % 3);
 
-			local.game.TimeStopMode = TimeStopped;
+			local.game.TimeStopped = TimeStopped;
 			break;
 
 		case MessageID::S_Stage:
@@ -737,9 +737,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 			break;
 
 		case MessageID::S_Stage:
-			short level;
-			packet >> level;
-			CurrentLevel = level;
+			packet >> CurrentLevel;
 			return true;
 
 		case MessageID::S_Seed:
@@ -784,7 +782,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 				break;
 
 			RECEIVED(MessageID::S_TimeStop);
-				packet >> local.game.TimeStopMode;
+				packet >> local.game.TimeStopped;
 				writeTimeStop();
 				break;
 
@@ -1020,7 +1018,7 @@ inline void PacketBroker::writeSpecials() const
 }
 inline void PacketBroker::writeTimeStop()
 {
-	TimeStopped = local.game.TimeStopMode;
+	TimeStopped = local.game.TimeStopped;
 }
 
 #pragma endregion
