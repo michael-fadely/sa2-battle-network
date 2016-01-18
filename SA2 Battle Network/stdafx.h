@@ -16,12 +16,16 @@
 #include <thread>
 #include <vector>
 
+#include "AddRings.h"
 #include "AddressList.h"
 #include "AdventurePacketOverloads.h"
 #include "BAMS.h"
 #include "Common.h"
 #include "CommonEnums.h"
+#include "EmeraldSync.h"
+#include "FrameSync.h"
 #include "Globals.h"
+#include "HurtPlayer.h"
 #include "LazyMemory.h"
 #include "MainThread.h"
 #include "MemoryManagement.h"
@@ -35,9 +39,7 @@
 #include "PacketHandler.h"
 #include "PlayerObject.h"
 #include "Program.h"
+#include "Random.h"
+#include "Trampoline.h"
 #include "nop.h"
 #include "typedefs.h"
-#include "Trampoline.h"
-#include "AddRings.h"
-#include "HurtPlayer.h"
-#include "Random.h"

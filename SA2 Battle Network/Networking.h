@@ -22,7 +22,7 @@ namespace nethax
 		N_Bind,				// UDP bind request/confirm
 		N_Settings,			// Used for synchronizing settings
 		N_Connected,		// Connection setup successful
-		N_Ready,			// Inidicates stage load completion
+		N_Ready,			// Client is ready at current sync block
 		N_Disconnect,		// Request disconnect
 
 		N_END,				// Marker: End of Networking messages
@@ -65,8 +65,9 @@ namespace nethax
 		P_END,				// Marker: End of player messages
 		S_START,			// Marker: Start of system messages
 
+		S_FrameCount,
 		S_KeepAlive,
-		S_Seed, S_Rand,
+		S_Seed,
 		S_Stage,
 		S_2PReady,
 		S_2PSpecials,

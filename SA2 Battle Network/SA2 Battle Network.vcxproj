@@ -99,6 +99,8 @@
     <ClInclude Include="AddRings.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
+    <ClInclude Include="EmeraldSync.h" />
+    <ClInclude Include="FrameSync.h" />
     <ClInclude Include="HurtPlayer.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnStageChange.h" />
@@ -126,6 +128,8 @@
     <ClCompile Include="AddHP.cpp" />
     <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
+    <ClCompile Include="EmeraldSync.cpp" />
+    <ClCompile Include="FrameSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />

@@ -114,6 +114,12 @@
     <ClInclude Include="Random.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="EmeraldSync.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameSync.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -177,6 +183,12 @@
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="Random.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EmeraldSync.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameSync.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

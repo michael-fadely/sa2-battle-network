@@ -81,6 +81,7 @@ bool Program::Connect()
 
 	ApplySettings(true);
 	P2Start = 2;
+	FrameCount = 0;
 
 	return result;
 }

@@ -112,6 +112,5 @@ void MainThread(int argc, wchar_t** argv)
 	Globals::Program = new Program(Settings, isServer, Address);
 	Globals::Broker = new PacketBroker(timeout);
 
-	InitRandom();
 	InitOnGameState();
 }
