@@ -7,12 +7,12 @@ extern float DirtyHPHack;
 
 static inline void AddHPOriginal(int playerNum, float amount)
 {
-	void* AddHPPtr = AddHPHax.Target();
+	void* target = AddHPHax.Target();
 	__asm
 	{
 		mov eax, [playerNum]
 		push amount
-		call AddHPPtr
+		call target
 		add esp, 4
 	}
 }

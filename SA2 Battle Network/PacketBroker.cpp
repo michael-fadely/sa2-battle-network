@@ -855,9 +855,9 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 				packet >> hp >> diff;
 				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
 
-				recvPlayer.Data2.MechHP = hp;
 				Player2->Data2->MechHP = hp;
 				AddHPOriginal(1, diff);
+				recvPlayer.Data2.MechHP = Player2->Data2->MechHP;
 				break;
 
 			RECEIVED(MessageID::P_Speed);
