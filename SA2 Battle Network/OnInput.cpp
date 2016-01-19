@@ -10,6 +10,7 @@
 static const ushort analogThreshold = 16;
 static const ushort analogMax = 220;
 static const uint analogFrames = 8;
+
 static uint analogTimer = 0;
 static bool analogthings = false;
 
@@ -28,8 +29,12 @@ extern "C"
 		ControllerData* lastPad = &Broker->sendInput;
 
 #pragma region Send
+		bool sentButtons = false;
 		if (pad->PressedButtons || pad->ReleasedButtons)
+		{
 			Broker->Request(MessageID::I_Buttons, true);
+			sentButtons = true;
+		}
 
 		// TODO: Make less spammy
 		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
@@ -47,6 +52,7 @@ extern "C"
 			}
 		}
 
+		analogthings = analogthings || sentButtons;
 		Broker->Finalize();
 #pragma endregion
 

@@ -105,9 +105,9 @@ void Program::ApplySettings(const bool apply)
 
 	if (clientSettings.noSpecials)
 		MemManage::nop2PSpecials(apply);
-	if (clientSettings.isLocal)
+	if (clientSettings.local)
 		MemManage::swapInput(apply);
-	if (clientSettings.KeepWindowActive)
+	if (clientSettings.runInBackground)
 		MemManage::keepActive(apply);
 
 	MemManage::swapSpawn(isServer ? !apply : apply);
@@ -186,7 +186,7 @@ bool Program::StartServer()
 	}
 
 	packet.clear();
-	packet << MessageID::N_Settings << clientSettings.noSpecials
+	packet << MessageID::N_Settings << clientSettings.noSpecials << clientSettings.cheats
 		<< MessageID::N_Connected;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
@@ -263,8 +263,10 @@ bool Program::StartClient()
 
 					// This is only used for specials right now.
 				case MessageID::N_Settings:
-					packet >> clientSettings.noSpecials;
+					packet >> clientSettings.noSpecials >> clientSettings.cheats;
 					PrintDebug(">> Specials %s by server.", clientSettings.noSpecials ? "disabled" : "enabled");
+					if (clientSettings.cheats)
+						PrintDebug(">> Cheats have been enabled by the server!");
 					break;
 
 				case MessageID::N_Connected:

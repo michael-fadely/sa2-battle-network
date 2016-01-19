@@ -88,13 +88,18 @@ void MainThread(int argc, wchar_t** argv)
 		}
 		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 		{
-			Settings.isLocal = true;
+			Settings.local = true;
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--keep-active"))
 		{
-			Settings.KeepWindowActive = true;
+			Settings.runInBackground = true;
 			MemManage::keepActive(true);
+			validArguments = true;
+		}
+		else if (!wcscmp(argv[i], L"--cheats"))
+		{
+			Settings.cheats = true;
 			validArguments = true;
 		}
 	}

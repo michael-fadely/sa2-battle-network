@@ -344,7 +344,7 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
 	{
-		if (GameState == GameState::Ingame && TwoPlayerMode > 0)
+		if (Globals::Program->ClientSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
 			if ((ControllerPointers[0]->HeldButtons & Buttons_Y) && (ControllerPointers[0]->PressedButtons & Buttons_Up))
 			{
@@ -743,7 +743,7 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 		case MessageID::S_FrameCount:
 			packet >> FrameCount;
 			PrintDebug(">> RECEIVED FRAME COUNT CHANGE: %u", FrameCount);
-			break;
+			return true;
 
 		case MessageID::S_Seed:
 			packet >> current_seed;

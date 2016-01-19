@@ -11,8 +11,9 @@ public:
 	struct Settings
 	{
 		bool noSpecials;
-		bool isLocal;
-		bool KeepWindowActive;
+		bool cheats;
+		bool runInBackground;
+		bool local;
 	};
 
 	struct Version
@@ -35,6 +36,8 @@ public:
 
 	static const Version versionNum;
 	static const std::string version;
+
+	const Settings& ClientSettings() const { return clientSettings; }
 
 private:
 	Settings clientSettings;
