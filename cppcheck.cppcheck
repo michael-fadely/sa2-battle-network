@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <includedir>
+        <dir name="sa2-mod-loader/SA2ModLoader/include/"/>
+    </includedir>
+    <exclude>
+        <path name="SFML/"/>
+        <path name="sa2-mod-loader/"/>
+        <path name="stuff/"/>
+    </exclude>
+</project>
