@@ -92,7 +92,7 @@ extern "C"
 		bool dir_delta = abs(net.direction - current.direction) > 2048;
 		bool mag_delta = fabs(current.magnitude - net.magnitude) >= 0.0625f;
 
-		if (dir_delta || mag_delta || analogthings && (current.direction != net.direction || fabs(current.magnitude - net.magnitude) < FLT_EPSILON))
+		if (dir_delta || mag_delta || analogthings && (current.direction != net.direction || fabs(current.magnitude - net.magnitude) >= FLT_EPSILON))
 		{
 #ifdef _DEBUG
 			PrintDebug("[%04d]\t\tDIR: %d MAG: %d TIMER: %d", FrameCount, dir_delta, mag_delta, (!dir_delta && !mag_delta));
