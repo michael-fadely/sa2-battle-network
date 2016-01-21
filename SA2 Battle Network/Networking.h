@@ -47,6 +47,7 @@ namespace nethax
 
 		// CharObj1
 		P_Action,
+		P_NextAction,
 		P_Status,
 		P_Rotation,
 		P_Position,

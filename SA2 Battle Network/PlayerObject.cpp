@@ -5,14 +5,14 @@
 
 PlayerObject::PlayerObject(ObjectMaster* player)
 {
-	LastPointer = nullptr;
+	lastObject = nullptr;
 	Initialize();
 	Copy(player);
 }
 
 PlayerObject::PlayerObject()
 {
-	LastPointer = nullptr;
+	lastObject = nullptr;
 	Initialize();
 }
 
@@ -30,10 +30,10 @@ void PlayerObject::Initialize()
 
 void PlayerObject::Copy(ObjectMaster* source)
 {
-	if (source != LastPointer)
+	if (source != lastObject)
 	{
-		PrintDebug("Re-initializing local player object... [%08X != %08X]", LastPointer, source);
-		LastPointer = source;
+		PrintDebug("Re-initializing local player object... [%08X != %08X]", lastObject, source);
+		lastObject = source;
 		Initialize();
 	}
 
@@ -41,6 +41,7 @@ void PlayerObject::Copy(ObjectMaster* source)
 		return;
 
 	Data1.Action				= source->Data1->Action;
+	Data1.NextAction			= source->Data1->NextAction;
 	Data1.Status				= source->Data1->Status;
 	Data1.Rotation				= source->Data1->Rotation;
 	Data1.Position				= source->Data1->Position;
@@ -95,17 +96,17 @@ void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 		return;
 
 	destination->Data1->Status = source->Data1.Status;
-	
-	if (source->Data1.Action == 0)
+
+	// Use DoNextAction for Data1::Action if the DoNextAction status bit isn't present.
+	if (source->Data1.Status & Status_DoNextAction)
 	{
-		destination->Data1->Action = 0;
-	}
-	else if (source->Data1.Action != destination->Data1->Action)
-	{
-		destination->Data1->NextAction = source->Data1.Action;
 		destination->Data1->Status |= Status_DoNextAction;
+		destination->Data1->NextAction = source->Data1.NextAction;
 	}
 
+	if (destination->Data1->Action != source->Data1.Action)
+		destination->Data1->Action = source->Data1.Action;
+	
 	destination->Data1->Rotation			= source->Data1.Rotation;
 	destination->Data1->Position			= source->Data1.Position;
 	destination->Data1->Scale				= source->Data1.Scale;

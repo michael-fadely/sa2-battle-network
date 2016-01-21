@@ -184,13 +184,6 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 			default:
 			{
-				// TODO: Consider removing this and treating the key as just a value instead of a message type.
-				/*
-				auto it = WaitRequests.find(newType);
-				if (it != WaitRequests.end())
-					it->second = true;
-				*/
-
 				if (newType < MessageID::N_END)
 				{
 					packet.clear();
@@ -367,10 +360,11 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
 			RequestPacket(MessageID::P_SpinTimer, safe, fast);
 
+		if (Player1->Data1->Status & Status_DoNextAction && Player1->Data1->NextAction != sendPlayer.Data1.NextAction)
+			RequestPacket(MessageID::P_NextAction, safe, fast);
+
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || (sendPlayer.Data1.Status & status_mask) != (Player1->Data1->Status & status_mask))
 		{
-			// This "pickup crash fix" only fixed it by NEVER SENDING THE ACTION! Good job, me!
-			// sendPlayer.Data1.Action != 0x13 && Player1->Data1->Action == 0x15 || sendPlayer.Data1.Action == 0x20
 			RequestPacket(MessageID::P_Action, safe, fast);
 			RequestPacket(MessageID::P_Status, safe, fast);
 
@@ -565,6 +559,10 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 		case MessageID::P_Action:
 			out << Player1->Data1->Action;
+			break;
+
+		case MessageID::P_NextAction:
+			out << Player1->Data1->NextAction;
 			break;
 
 		case MessageID::P_Status:
@@ -824,6 +822,10 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::P_Action);
 				packet >> recvPlayer.Data1.Action;
+				break;
+
+			RECEIVED(MessageID::P_NextAction);
+				packet >> recvPlayer.Data1.NextAction;
 				break;
 
 			RECEIVED(MessageID::P_Status);

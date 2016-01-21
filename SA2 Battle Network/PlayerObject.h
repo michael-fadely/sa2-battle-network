@@ -23,8 +23,6 @@ public:
 	CharObj1 Data1;
 	CharObj2 Data2;
 
-	ObjectMaster* LastPointer;
-
 	// Sonic's Obj2Base
 	// Shared with: Shadow, Amy, MetalSonic
 	SonicObj2Base Sonic;
@@ -51,4 +49,5 @@ public:
 
 private:
 	void Initialize();
+	ObjectMaster* lastObject;
 };
