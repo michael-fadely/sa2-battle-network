@@ -8,11 +8,11 @@
 #include "AddressList.h"	// for FrameCount, FrameIncrement
 
 static const ushort analogThreshold = 16;
-static const ushort analogMax = 220;
 static const uint analogFrames = 8;
 
 static uint analogTimer = 0;
-static bool analogthings = false;
+static uint angleTimer = 0;
+static bool sendAngle = false;
 
 using namespace nethax;
 using namespace Globals;
@@ -39,20 +39,22 @@ extern "C"
 		// TODO: Make less spammy
 		if (pad->LeftStickX != lastPad->LeftStickX || pad->LeftStickY != lastPad->LeftStickY)
 		{
-			analogthings = ++analogTimer > (analogFrames / FrameIncrement);
+			++analogTimer %= (analogFrames / FrameIncrement);
 			if ((abs(lastPad->LeftStickX - pad->LeftStickX) >= analogThreshold || abs(lastPad->LeftStickY - pad->LeftStickY) >= analogThreshold)
-				|| analogthings)
+				|| !analogTimer)
 			{
 				analogTimer = 0;
 				Broker->Request(MessageID::I_Analog, false);
+				sendAngle = true;
 			}
 			else if (!pad->LeftStickX && !pad->LeftStickY)
 			{
 				Broker->Request(MessageID::I_Analog, true);
+				sendAngle = true;
 			}
 		}
 
-		analogthings = analogthings || sentButtons;
+		sendAngle = sendAngle || sentButtons;
 		Broker->Finalize();
 #pragma endregion
 
@@ -86,20 +88,21 @@ extern "C"
 		if (!isConnected())
 			return;
 
-		const AnalogThing& current = AnalogThings[0];
-		const AnalogThing& net = Broker->sendAnalog;
+		const PolarCoord& current = AnalogThings[0];
+		const PolarCoord& net = Broker->sendAnalog;
 
-		bool dir_delta = abs(net.direction - current.direction) > 2048;
-		bool mag_delta = fabs(current.magnitude - net.magnitude) >= 0.0625f;
+		bool dir_delta = abs(net.angle - current.angle) > 2048;
+		bool mag_delta = fabs(current.distance - net.distance) >= 0.0625f;
+		sendAngle = sendAngle || (++angleTimer %= (analogFrames / FrameIncrement)) == 0;
 
-		if (dir_delta || mag_delta || analogthings && (current.direction != net.direction || fabs(current.magnitude - net.magnitude) >= FLT_EPSILON))
+		if (dir_delta || mag_delta || sendAngle && (current.angle != net.angle || fabs(current.distance - net.distance) >= FLT_EPSILON))
 		{
 #ifdef _DEBUG
 			PrintDebug("[%04d]\t\tDIR: %d MAG: %d TIMER: %d", FrameCount, dir_delta, mag_delta, (!dir_delta && !mag_delta));
 #endif
-
-			Broker->Request(MessageID::I_AnalogThing, false);
-			analogthings = false;
+			// TODO: Should it ever be sent via TCP?
+			Broker->Request(MessageID::I_AnalogAngle, false);
+			sendAngle = false;
 		}
 
 		AnalogThings[1] = Broker->recvAnalog;

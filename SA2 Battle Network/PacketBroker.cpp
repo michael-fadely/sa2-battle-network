@@ -528,7 +528,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			sendInput.LeftStickY = ControllerPointers[0]->LeftStickY;
 			break;
 
-		case MessageID::I_AnalogThing:
+		case MessageID::I_AnalogAngle:
 			out << AnalogThings[0];
 			sendAnalog = AnalogThings[0];
 			break;
@@ -761,7 +761,7 @@ bool PacketBroker::ReceiveInput(const nethax::MessageID type, sf::Packet& packet
 				packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
 				break;
 
-			RECEIVED(MessageID::I_AnalogThing);
+			RECEIVED(MessageID::I_AnalogAngle);
 				packet >> recvAnalog;
 				break;
 		}

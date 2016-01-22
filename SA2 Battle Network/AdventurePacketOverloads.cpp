@@ -20,11 +20,11 @@ sf::Packet& operator >>(sf::Packet& packet, NJS_VECTOR& data)
 	return packet >> data.x >> data.y >> data.z;
 }
 
-sf::Packet& operator <<(sf::Packet& packet, const AnalogThing& data)
+sf::Packet& operator <<(sf::Packet& packet, const PolarCoord& data)
 {
-	return packet << (int)data.direction << data.magnitude;
+	return packet << (int)data.angle << data.distance;
 }
-sf::Packet& operator >>(sf::Packet& packet, AnalogThing& data)
+sf::Packet& operator >>(sf::Packet& packet, PolarCoord& data)
 {
-	return packet >> *(int*)&data.direction >> data.magnitude;
+	return packet >> *(int*)&data.angle >> data.distance;
 }

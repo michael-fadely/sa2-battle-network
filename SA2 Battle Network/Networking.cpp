@@ -49,7 +49,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::I_START, "I_START" },
 
 	{ MessageID::I_Analog, "I_Analog" },
-	{ MessageID::I_AnalogThing, "I_AnalogThing" },
+	{ MessageID::I_AnalogAngle, "I_AnalogAngle" },
 	{ MessageID::I_Buttons, "I_Buttons" },
 
 	{ MessageID::I_END, "I_END" },

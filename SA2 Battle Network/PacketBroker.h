@@ -47,7 +47,7 @@ public:
 
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
-	AnalogThing recvAnalog, sendAnalog;
+	PolarCoord recvAnalog, sendAnalog;
 
 private:
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.

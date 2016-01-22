@@ -19,16 +19,16 @@ DataPointer(uint,	FrameIncrement,		0x1DEB50C);
 DataPointer(uchar,	TimerFrames,		0x0174AFDD); // ADDR_TIME + 0x02
 
 #pragma pack(push, 1)
-struct AnalogThing
+struct PolarCoord
 {
-	Angle direction;
-	float magnitude;
+	Angle angle;
+	float distance;
 };
 #pragma pack(pop)
 
 // Input
 DataArray(ControllerData*, ControllerPointers, 0x01DEFB60, 4);
-DataArray(AnalogThing, AnalogThings, 0x01DEFBA0, 8);
+DataArray(PolarCoord, AnalogThings, 0x01DEFBA0, 8);
 
 // Menu
 DataArray(char,		CharacterSelected,		0x01D1B8B2, 2);
