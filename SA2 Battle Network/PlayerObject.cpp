@@ -92,7 +92,7 @@ void PlayerObject::Copy(ObjectMaster* source)
 
 void PlayerObject::WritePlayer(ObjectMaster* destination, PlayerObject* source)
 {
-	if (source == nullptr)
+	if (source == nullptr || destination == nullptr)
 		return;
 
 	destination->Data1->Status = source->Data1.Status;
