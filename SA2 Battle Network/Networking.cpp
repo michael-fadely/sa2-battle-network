@@ -7,7 +7,7 @@ using namespace nethax;
 
 void nethax::WriteNetStatCSV(std::ofstream& file, std::map<MessageID, MessageStat> map)
 {
-	file << "Message ID,TCP count,UDP count,Total count,Size (bytes),TCP bytes, UDP bytes,Total bytes" << std::endl;
+	file << "Message ID,TCP count,UDP count,Total count,Size (bytes),TCP bytes,UDP bytes,Total bytes" << std::endl;
 	for (auto& i : map)
 	{
 		uint total = i.second.tcpCount + i.second.udpCount;
