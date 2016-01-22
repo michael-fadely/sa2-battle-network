@@ -77,6 +77,7 @@ bool Program::Connect()
 	PlayMusic(musicDefault);
 	PlayJingle(musicConnected);
 
+	Globals::Broker->ToggleNetStat(clientSettings.netStat);
 	Globals::Broker->SetConnectTime();
 
 	ApplySettings(true);
@@ -95,6 +96,7 @@ void Program::Disconnect()
 
 	ApplySettings(false);
 
+	Globals::Broker->SaveNetStat();
 	Globals::Broker->Initialize();
 	PlayJingle(musicDisconnected);
 }

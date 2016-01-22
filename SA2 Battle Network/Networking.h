@@ -1,5 +1,9 @@
 #pragma once
 
+#include "typedefs.h"
+#include <map>
+#include <fstream>
+
 /*
 	Message types with the naming convention <group>_<START/END> are never sent;
 	they're used to verify that a received message is within that group's range.
@@ -10,7 +14,7 @@
 
 namespace nethax
 {
-	enum class MessageID : unsigned char
+	enum class MessageID : uint8
 	{
 		None,
 
@@ -82,4 +86,14 @@ namespace nethax
 		S_END,				// Marker: End of system messages
 		Count
 	};
+
+	struct MessageStat
+	{
+		uint tcpCount, udpCount;
+		ushort size;
+	};
+
+	const extern std::map<MessageID, const char*> MessageID_string;
+
+	void WriteNetStatCSV(std::ofstream& file, std::map<MessageID, MessageStat> map);
 }

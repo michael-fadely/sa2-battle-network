@@ -42,6 +42,8 @@ public:
 	bool WaitForPlayers(nethax::MessageID id);
 	void SendReady(const nethax::MessageID id) const;
 	void SetConnectTime();
+	void ToggleNetStat(bool toggle);
+	void SaveNetStat();
 
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
@@ -50,6 +52,10 @@ public:
 private:
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.
 	std::unordered_map<nethax::MessageID, bool> WaitRequests;
+
+	bool netStat;
+	std::map<nethax::MessageID, nethax::MessageStat> sendStats;
+	std::map<nethax::MessageID, nethax::MessageStat> recvStats;
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
 	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates = false);

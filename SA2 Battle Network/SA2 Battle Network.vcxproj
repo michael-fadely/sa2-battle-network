@@ -131,6 +131,7 @@
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="FrameSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
+    <ClCompile Include="Networking.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />

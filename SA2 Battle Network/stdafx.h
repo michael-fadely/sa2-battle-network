@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <fstream>
 
 #include "AddRings.h"
 #include "AddressList.h"

@@ -102,6 +102,10 @@ void MainThread(int argc, wchar_t** argv)
 			Settings.cheats = true;
 			validArguments = true;
 		}
+		else if (!wcscmp(argv[i], L"--netstat"))
+		{
+			Settings.netStat = true;
+		}
 	}
 
 	if (!validArguments)

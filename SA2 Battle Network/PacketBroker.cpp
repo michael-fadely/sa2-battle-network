@@ -10,6 +10,7 @@
 
 // Standard Includes
 #include <cmath>						// for abs
+#include <fstream>
 
 // Local Includes
 #include "Globals.h"					// for Globals :specialed:
@@ -75,7 +76,7 @@ static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status
 
 #pragma endregion
 
-PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), safe(true), fast(false)
+PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), safe(true), fast(false), netStat(false)
 {
 	Initialize();
 }
@@ -96,6 +97,12 @@ void PacketBroker::Initialize()
 	receivedKeepalive = sentKeepalive = 0;
 	lastSequence = 0;
 	WaitRequests.clear();
+
+	if (netStat)
+	{
+		sendStats.clear();
+		recvStats.clear();
+	}
 }
 
 void PacketBroker::ReceiveLoop()
@@ -193,6 +200,16 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				ushort length;
 				packet >> length;
 
+				if (netStat)
+				{
+					MessageStat& stat = recvStats[newType];
+					if (safe)
+						++stat.tcpCount;
+					else
+						++stat.udpCount;
+					stat.size = length;
+				}
+
 				if (ReceiveInput(newType, packet) || ReceiveSystem(newType, packet))
 					break;
 
@@ -272,6 +289,23 @@ void PacketBroker::SendReady(const nethax::MessageID id) const
 void PacketBroker::SetConnectTime()
 {
 	receivedKeepalive = sentKeepalive = Millisecs();
+}
+
+void PacketBroker::ToggleNetStat(bool toggle)
+{
+	netStat = toggle;
+}
+
+void PacketBroker::SaveNetStat()
+{
+	if (!netStat)
+		return;
+
+	ofstream netstat_sent("netstat.sent.csv");
+	WriteNetStatCSV(netstat_sent, sendStats);
+
+	ofstream netstat_recv("netstat.recv.csv");
+	WriteNetStatCSV(netstat_recv, recvStats);
 }
 
 bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates)
@@ -693,6 +727,16 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 	packet << static_cast<ushort>(out.getDataSize());
 	packet.append(out.getData(), out.getDataSize());
+
+	if (netStat)
+	{
+		MessageStat& stat = sendStats[packetType];
+		if (packet.isSafe)
+			++stat.tcpCount;
+		else
+			++stat.udpCount;
+		stat.size = (ushort)out.getDataSize();
+	}
 
 	return true;
 }

@@ -10,9 +10,13 @@ public:
 #pragma region Embedded Types
 	struct Settings
 	{
+		// Synchronized settings
 		bool noSpecials;
 		bool cheats;
+
+		// Local settings
 		bool runInBackground;
+		bool netStat;
 		bool local;
 	};
 
