@@ -91,7 +91,7 @@ extern "C"
 		const PolarCoord& current = AnalogThings[0];
 		const PolarCoord& net = Broker->sendAnalog;
 
-		bool dir_delta = abs(net.angle - current.angle) > 2048;
+		bool dir_delta = abs(net.angle - current.angle) >= 2048;
 		bool mag_delta = fabs(current.distance - net.distance) >= 0.0625f;
 		sendAngle = sendAngle || (++angleTimer %= (analogFrames / FrameIncrement)) == 0;
 
