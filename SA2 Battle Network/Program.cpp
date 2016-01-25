@@ -38,7 +38,7 @@ const char* musicConnected		= "chao_k_net_fine.adx";
 const char* musicDisconnected	= "chao_k_net_fault.adx";
 const char* musicDefault		= "btl_sel.adx";
 
-const Program::Version	Program::versionNum	= { 3, 1 };
+const Program::Version	Program::versionNum	= { 3, 2 };
 const std::string		Program::version	= "SA2:BN Version: " + Program::versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
@@ -109,8 +109,6 @@ void Program::ApplySettings(const bool apply)
 		MemManage::nop2PSpecials(apply);
 	if (clientSettings.local)
 		MemManage::swapInput(apply);
-	if (clientSettings.runInBackground)
-		MemManage::keepActive(apply);
 
 	MemManage::swapSpawn(isServer ? !apply : apply);
 	MemManage::swapCharsel(isServer ? !apply : apply);

@@ -15,7 +15,6 @@ public:
 		bool cheats;
 
 		// Local settings
-		bool runInBackground;
 		bool netStat;
 		bool local;
 	};

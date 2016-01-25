@@ -6,14 +6,6 @@
 #include "nop.h"
 #include "MemoryManagement.h"
 
-void MemManage::keepActive(const bool doNop)
-{
-	if (doNop)
-		nop::apply(ADDR_WINDOWACTIVE, 15);
-	else
-		nop::restore(ADDR_WINDOWACTIVE);
-}
-
 void MemManage::nop2PSpecials(const bool doNop)
 {
 	if (doNop)

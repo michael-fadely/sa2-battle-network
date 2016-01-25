@@ -91,12 +91,6 @@ void MainThread(int argc, wchar_t** argv)
 			Settings.local = true;
 			validArguments = true;
 		}
-		else if (!wcscmp(argv[i], L"--keep-active"))
-		{
-			Settings.runInBackground = true;
-			MemManage::keepActive(true);
-			validArguments = true;
-		}
 		else if (!wcscmp(argv[i], L"--cheats"))
 		{
 			Settings.cheats = true;
