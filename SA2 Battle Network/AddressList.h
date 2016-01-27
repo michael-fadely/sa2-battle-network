@@ -53,5 +53,4 @@ DataPointer(char, Costume_Eggman,	0x01D1B901);
 DataPointer(char, Costume_Knuckles,	0x01D1B915);
 DataPointer(char, Costume_Rouge,	0x01D1B929);
 
-#define ADDR_WINDOWACTIVE	0x00401899
 #define ADDR_P2INOP			0x0077E88C
