@@ -39,7 +39,7 @@ namespace nethax
 		I_END,				// Marker: End of input messages
 		M_START,			// Marker: Start of menu messages
 
-		M_AltCharacter,
+		M_CostumeSelection,
 		M_BattleSelection,
 		M_BattleConfigSelection,
 		M_CharacterChosen,

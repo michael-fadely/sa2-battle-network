@@ -55,7 +55,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::I_END, "I_END" },
 	{ MessageID::M_START, "M_START" },
 
-	{ MessageID::M_AltCharacter, "M_AltCharacter" },
+	{ MessageID::M_CostumeSelection, "M_AltCharacter" },
 	{ MessageID::M_BattleSelection, "M_BattleSelection" },
 	{ MessageID::M_BattleConfigSelection, "M_BattleConfigSelection" },
 	{ MessageID::M_CharacterChosen, "M_CharacterChosen" },

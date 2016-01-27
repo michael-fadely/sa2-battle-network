@@ -34,9 +34,9 @@ struct MemStruct
 
 		int8	CharacterSelected[2];
 
-		int8	AltCharacterSonic,		AltCharacterShadow;
-		int8	AltCharacterTails,		AltCharacterEggman;
-		int8	AltCharacterKnuckles,	AltCharacterRouge;
+		int8	Costume_Sonic,		Costume_Shadow;
+		int8	Costume_Tails,		Costume_Eggman;
+		int8	Costume_Knuckles,	Costume_Rouge;
 
 		// Battle Options button selected on stage select
 		int8 BattleOptionsButton;

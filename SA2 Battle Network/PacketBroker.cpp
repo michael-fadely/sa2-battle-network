@@ -481,14 +481,14 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 					RequestPacket(MessageID::M_CharacterChosen, safe);
 
 				// I hate this so much
-				if (firstMenuEntry || (local.menu.AltCharacterSonic != AltCharacterSonic)
-					|| (local.menu.AltCharacterShadow != AltCharacterShadow)
-					|| (local.menu.AltCharacterTails != AltCharacterTails)
-					|| (local.menu.AltCharacterEggman != AltCharacterEggman)
-					|| (local.menu.AltCharacterKnuckles != AltCharacterKnuckles)
-					|| (local.menu.AltCharacterRouge != AltCharacterRouge))
+				if (firstMenuEntry || (local.menu.Costume_Sonic != Costume_Sonic)
+					|| (local.menu.Costume_Shadow != Costume_Shadow)
+					|| (local.menu.Costume_Tails != Costume_Tails)
+					|| (local.menu.Costume_Eggman != Costume_Eggman)
+					|| (local.menu.Costume_Knuckles != Costume_Knuckles)
+					|| (local.menu.Costume_Rouge != Costume_Rouge))
 				{
-					RequestPacket(MessageID::M_AltCharacter, safe);
+					RequestPacket(MessageID::M_CostumeSelection, safe);
 				}
 
 				break;
@@ -542,17 +542,17 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 
 #pragma region Menu
 
-		case MessageID::M_AltCharacter:
-			out << AltCharacterSonic << AltCharacterShadow
-				<< AltCharacterTails << AltCharacterEggman
-				<< AltCharacterKnuckles << AltCharacterRouge;
+		case MessageID::M_CostumeSelection:
+			out << Costume_Sonic << Costume_Shadow
+				<< Costume_Tails << Costume_Eggman
+				<< Costume_Knuckles << Costume_Rouge;
 
-			local.menu.AltCharacterSonic = AltCharacterSonic;
-			local.menu.AltCharacterShadow = AltCharacterShadow;
-			local.menu.AltCharacterTails = AltCharacterTails;
-			local.menu.AltCharacterEggman = AltCharacterEggman;
-			local.menu.AltCharacterKnuckles = AltCharacterKnuckles;
-			local.menu.AltCharacterRouge = AltCharacterRouge;
+			local.menu.Costume_Sonic = Costume_Sonic;
+			local.menu.Costume_Shadow = Costume_Shadow;
+			local.menu.Costume_Tails = Costume_Tails;
+			local.menu.Costume_Eggman = Costume_Eggman;
+			local.menu.Costume_Knuckles = Costume_Knuckles;
+			local.menu.Costume_Rouge = Costume_Rouge;
 			break;
 
 		case MessageID::M_BattleSelection:
@@ -964,20 +964,20 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 				CharacterSelected[1] = local.menu.CharacterSelected[1];
 				break;
 
-			RECEIVED(MessageID::M_AltCharacter);
-				packet >> local.menu.AltCharacterSonic
-					>> local.menu.AltCharacterShadow
-					>> local.menu.AltCharacterTails
-					>> local.menu.AltCharacterEggman
-					>> local.menu.AltCharacterKnuckles
-					>> local.menu.AltCharacterRouge;
+			RECEIVED(MessageID::M_CostumeSelection);
+				packet >> local.menu.Costume_Sonic
+					>> local.menu.Costume_Shadow
+					>> local.menu.Costume_Tails
+					>> local.menu.Costume_Eggman
+					>> local.menu.Costume_Knuckles
+					>> local.menu.Costume_Rouge;
 
-				AltCharacterSonic = local.menu.AltCharacterSonic;
-				AltCharacterShadow = local.menu.AltCharacterShadow;
-				AltCharacterTails = local.menu.AltCharacterTails;
-				AltCharacterEggman = local.menu.AltCharacterEggman;
-				AltCharacterKnuckles = local.menu.AltCharacterKnuckles;
-				AltCharacterRouge = local.menu.AltCharacterRouge;
+				Costume_Sonic = local.menu.Costume_Sonic;
+				Costume_Shadow = local.menu.Costume_Shadow;
+				Costume_Tails = local.menu.Costume_Tails;
+				Costume_Eggman = local.menu.Costume_Eggman;
+				Costume_Knuckles = local.menu.Costume_Knuckles;
+				Costume_Rouge = local.menu.Costume_Rouge;
 
 				break;
 

@@ -45,13 +45,13 @@ DataPointer(uchar,	BattleOptionsSelection,	0x01D1C084);
 DataPointer(char,	BattleOptionsBack,		0x01D1C085);
 DataPointer(char,	BattleOptionsButton,	0x01D1C08C);
 
-// TODO: These might all be off by one except for Sonic's...
-DataPointer(char, AltCharacterSonic,	0x01D1B8C5);
-DataPointer(char, AltCharacterShadow,	0x01D1B8D9);
-DataPointer(char, AltCharacterTails,	0x01D1B8ED);
-DataPointer(char, AltCharacterEggman,	0x01D1B901);
-DataPointer(char, AltCharacterKnuckles,	0x01D1B915);
-DataPointer(char, AltCharacterRouge,	0x01D1B929);
+// TODO: Set up structure
+DataPointer(char, Costume_Sonic,	0x01D1B8C5);
+DataPointer(char, Costume_Shadow,	0x01D1B8D9);
+DataPointer(char, Costume_Tails,	0x01D1B8ED);
+DataPointer(char, Costume_Eggman,	0x01D1B901);
+DataPointer(char, Costume_Knuckles,	0x01D1B915);
+DataPointer(char, Costume_Rouge,	0x01D1B929);
 
 #define ADDR_WINDOWACTIVE	0x00401899
 #define ADDR_P2INOP			0x0077E88C
