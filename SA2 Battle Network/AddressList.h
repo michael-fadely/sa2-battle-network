@@ -52,5 +52,3 @@ DataPointer(char, Costume_Tails,	0x01D1B8ED);
 DataPointer(char, Costume_Eggman,	0x01D1B901);
 DataPointer(char, Costume_Knuckles,	0x01D1B915);
 DataPointer(char, Costume_Rouge,	0x01D1B929);
-
-#define ADDR_P2INOP			0x0077E88C
