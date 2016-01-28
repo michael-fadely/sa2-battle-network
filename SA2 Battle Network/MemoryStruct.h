@@ -35,7 +35,7 @@ struct MemStruct
 
 		int8	CharacterSelected[2];
 
-		CharSelectThing CharacterSelections[CharacterSelections_Length];
+		CharSelectThing CharSelectThings[CharSelectThings_Length];
 
 		// Battle Options button selected on stage select
 		int8 BattleOptionsButton;

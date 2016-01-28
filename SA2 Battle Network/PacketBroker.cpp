@@ -481,12 +481,12 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 					RequestPacket(MessageID::M_CharacterChosen, safe);
 
 				// I hate this so much
-				if (firstMenuEntry || (local.menu.CharacterSelections[0].Costume != CharSelectThings[0].Costume)
-					|| (local.menu.CharacterSelections[1].Costume != CharSelectThings[1].Costume)
-					|| (local.menu.CharacterSelections[2].Costume != CharSelectThings[2].Costume)
-					|| (local.menu.CharacterSelections[3].Costume != CharSelectThings[3].Costume)
-					|| (local.menu.CharacterSelections[4].Costume != CharSelectThings[4].Costume)
-					|| (local.menu.CharacterSelections[5].Costume != CharSelectThings[5].Costume))
+				if (firstMenuEntry || (local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume)
+					|| (local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume)
+					|| (local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume)
+					|| (local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume)
+					|| (local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume)
+					|| (local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume))
 				{
 					RequestPacket(MessageID::M_CostumeSelection, safe);
 				}
@@ -547,12 +547,12 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 				<< CharSelectThings[2].Costume << CharSelectThings[3].Costume
 				<< CharSelectThings[4].Costume << CharSelectThings[5].Costume;
 
-			local.menu.CharacterSelections[0].Costume = CharSelectThings[0].Costume;
-			local.menu.CharacterSelections[1].Costume = CharSelectThings[1].Costume;
-			local.menu.CharacterSelections[2].Costume = CharSelectThings[2].Costume;
-			local.menu.CharacterSelections[3].Costume = CharSelectThings[3].Costume;
-			local.menu.CharacterSelections[4].Costume = CharSelectThings[4].Costume;
-			local.menu.CharacterSelections[5].Costume = CharSelectThings[5].Costume;
+			local.menu.CharSelectThings[0].Costume = CharSelectThings[0].Costume;
+			local.menu.CharSelectThings[1].Costume = CharSelectThings[1].Costume;
+			local.menu.CharSelectThings[2].Costume = CharSelectThings[2].Costume;
+			local.menu.CharSelectThings[3].Costume = CharSelectThings[3].Costume;
+			local.menu.CharSelectThings[4].Costume = CharSelectThings[4].Costume;
+			local.menu.CharSelectThings[5].Costume = CharSelectThings[5].Costume;
 			break;
 
 		case MessageID::M_BattleSelection:
@@ -965,19 +965,19 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 				break;
 
 			RECEIVED(MessageID::M_CostumeSelection);
-				packet >> local.menu.CharacterSelections[0].Costume
-					>> local.menu.CharacterSelections[1].Costume
-					>> local.menu.CharacterSelections[2].Costume
-					>> local.menu.CharacterSelections[3].Costume
-					>> local.menu.CharacterSelections[4].Costume
-					>> local.menu.CharacterSelections[5].Costume;
+				packet >> local.menu.CharSelectThings[0].Costume
+					>> local.menu.CharSelectThings[1].Costume
+					>> local.menu.CharSelectThings[2].Costume
+					>> local.menu.CharSelectThings[3].Costume
+					>> local.menu.CharSelectThings[4].Costume
+					>> local.menu.CharSelectThings[5].Costume;
 
-				CharSelectThings[0].Costume = local.menu.CharacterSelections[0].Costume;
-				CharSelectThings[1].Costume = local.menu.CharacterSelections[1].Costume;
-				CharSelectThings[2].Costume = local.menu.CharacterSelections[2].Costume;
-				CharSelectThings[3].Costume = local.menu.CharacterSelections[3].Costume;
-				CharSelectThings[4].Costume = local.menu.CharacterSelections[4].Costume;
-				CharSelectThings[5].Costume = local.menu.CharacterSelections[5].Costume;
+				CharSelectThings[0].Costume = local.menu.CharSelectThings[0].Costume;
+				CharSelectThings[1].Costume = local.menu.CharSelectThings[1].Costume;
+				CharSelectThings[2].Costume = local.menu.CharSelectThings[2].Costume;
+				CharSelectThings[3].Costume = local.menu.CharSelectThings[3].Costume;
+				CharSelectThings[4].Costume = local.menu.CharSelectThings[4].Costume;
+				CharSelectThings[5].Costume = local.menu.CharSelectThings[5].Costume;
 
 				break;
 
