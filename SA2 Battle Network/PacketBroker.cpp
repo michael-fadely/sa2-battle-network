@@ -481,12 +481,12 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 					RequestPacket(MessageID::M_CharacterChosen, safe);
 
 				// I hate this so much
-				if (firstMenuEntry || (local.menu.Costume_Sonic != Costume_Sonic)
-					|| (local.menu.Costume_Shadow != Costume_Shadow)
-					|| (local.menu.Costume_Tails != Costume_Tails)
-					|| (local.menu.Costume_Eggman != Costume_Eggman)
-					|| (local.menu.Costume_Knuckles != Costume_Knuckles)
-					|| (local.menu.Costume_Rouge != Costume_Rouge))
+				if (firstMenuEntry || (local.menu.CharacterSelections[0].Costume != CharSelectThings[0].Costume)
+					|| (local.menu.CharacterSelections[1].Costume != CharSelectThings[1].Costume)
+					|| (local.menu.CharacterSelections[2].Costume != CharSelectThings[2].Costume)
+					|| (local.menu.CharacterSelections[3].Costume != CharSelectThings[3].Costume)
+					|| (local.menu.CharacterSelections[4].Costume != CharSelectThings[4].Costume)
+					|| (local.menu.CharacterSelections[5].Costume != CharSelectThings[5].Costume))
 				{
 					RequestPacket(MessageID::M_CostumeSelection, safe);
 				}
@@ -543,16 +543,16 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 #pragma region Menu
 
 		case MessageID::M_CostumeSelection:
-			out << Costume_Sonic << Costume_Shadow
-				<< Costume_Tails << Costume_Eggman
-				<< Costume_Knuckles << Costume_Rouge;
+			out << CharSelectThings[0].Costume << CharSelectThings[1].Costume
+				<< CharSelectThings[2].Costume << CharSelectThings[3].Costume
+				<< CharSelectThings[4].Costume << CharSelectThings[5].Costume;
 
-			local.menu.Costume_Sonic = Costume_Sonic;
-			local.menu.Costume_Shadow = Costume_Shadow;
-			local.menu.Costume_Tails = Costume_Tails;
-			local.menu.Costume_Eggman = Costume_Eggman;
-			local.menu.Costume_Knuckles = Costume_Knuckles;
-			local.menu.Costume_Rouge = Costume_Rouge;
+			local.menu.CharacterSelections[0].Costume = CharSelectThings[0].Costume;
+			local.menu.CharacterSelections[1].Costume = CharSelectThings[1].Costume;
+			local.menu.CharacterSelections[2].Costume = CharSelectThings[2].Costume;
+			local.menu.CharacterSelections[3].Costume = CharSelectThings[3].Costume;
+			local.menu.CharacterSelections[4].Costume = CharSelectThings[4].Costume;
+			local.menu.CharacterSelections[5].Costume = CharSelectThings[5].Costume;
 			break;
 
 		case MessageID::M_BattleSelection:
@@ -965,19 +965,19 @@ bool PacketBroker::ReceiveMenu(const nethax::MessageID type, sf::Packet& packet)
 				break;
 
 			RECEIVED(MessageID::M_CostumeSelection);
-				packet >> local.menu.Costume_Sonic
-					>> local.menu.Costume_Shadow
-					>> local.menu.Costume_Tails
-					>> local.menu.Costume_Eggman
-					>> local.menu.Costume_Knuckles
-					>> local.menu.Costume_Rouge;
+				packet >> local.menu.CharacterSelections[0].Costume
+					>> local.menu.CharacterSelections[1].Costume
+					>> local.menu.CharacterSelections[2].Costume
+					>> local.menu.CharacterSelections[3].Costume
+					>> local.menu.CharacterSelections[4].Costume
+					>> local.menu.CharacterSelections[5].Costume;
 
-				Costume_Sonic = local.menu.Costume_Sonic;
-				Costume_Shadow = local.menu.Costume_Shadow;
-				Costume_Tails = local.menu.Costume_Tails;
-				Costume_Eggman = local.menu.Costume_Eggman;
-				Costume_Knuckles = local.menu.Costume_Knuckles;
-				Costume_Rouge = local.menu.Costume_Rouge;
+				CharSelectThings[0].Costume = local.menu.CharacterSelections[0].Costume;
+				CharSelectThings[1].Costume = local.menu.CharacterSelections[1].Costume;
+				CharSelectThings[2].Costume = local.menu.CharacterSelections[2].Costume;
+				CharSelectThings[3].Costume = local.menu.CharacterSelections[3].Costume;
+				CharSelectThings[4].Costume = local.menu.CharacterSelections[4].Costume;
+				CharSelectThings[5].Costume = local.menu.CharacterSelections[5].Costume;
 
 				break;
 

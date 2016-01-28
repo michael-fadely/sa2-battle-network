@@ -30,6 +30,17 @@ struct PolarCoord
 DataArray(ControllerData*, ControllerPointers, 0x01DEFB60, 4);
 DataArray(PolarCoord, AnalogThings, 0x01DEFBA0, 8);
 
+#pragma pack(push, 1)
+struct CharSelectThing
+{
+	char Costume;
+	char CostumeUnlocked;
+	char gap_2;
+	char Visible;
+	char gap_4[16];
+};
+#pragma pack(pop)
+
 // Menu
 DataArray(char,		CharacterSelected,		0x01D1B8B2, 2);
 DataArray(int,		PlayerReady,			0x01AEE598, 2);
@@ -45,10 +56,5 @@ DataPointer(uchar,	BattleOptionsSelection,	0x01D1C084);
 DataPointer(char,	BattleOptionsBack,		0x01D1C085);
 DataPointer(char,	BattleOptionsButton,	0x01D1C08C);
 
-// TODO: Set up structure
-DataPointer(char, Costume_Sonic,	0x01D1B8C5);
-DataPointer(char, Costume_Shadow,	0x01D1B8D9);
-DataPointer(char, Costume_Tails,	0x01D1B8ED);
-DataPointer(char, Costume_Eggman,	0x01D1B901);
-DataPointer(char, Costume_Knuckles,	0x01D1B915);
-DataPointer(char, Costume_Rouge,	0x01D1B929);
+// This accounts for the playable characters (standard + extra, 12) plus the 3 Chao.
+DataArray(CharSelectThing, CharSelectThings, 0x01D1B8C5, 15);

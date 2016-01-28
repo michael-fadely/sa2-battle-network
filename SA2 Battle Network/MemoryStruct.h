@@ -1,5 +1,6 @@
 #pragma once
 #include "typedefs.h"
+#include "AddressList.h"
 
 struct MemStruct
 {
@@ -34,9 +35,7 @@ struct MemStruct
 
 		int8	CharacterSelected[2];
 
-		int8	Costume_Sonic,		Costume_Shadow;
-		int8	Costume_Tails,		Costume_Eggman;
-		int8	Costume_Knuckles,	Costume_Rouge;
+		CharSelectThing CharacterSelections[CharacterSelections_Length];
 
 		// Battle Options button selected on stage select
 		int8 BattleOptionsButton;
