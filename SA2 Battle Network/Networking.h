@@ -3,6 +3,7 @@
 #include "typedefs.h"
 #include <map>
 #include <fstream>
+#include <SFML/Network/Packet.hpp>
 
 /*
 	Message types with the naming convention <group>_<START/END> are never sent;
@@ -99,3 +100,6 @@ namespace nethax
 
 	void WriteNetStatCSV(std::ofstream& file, std::map<MessageID, MessageStat> map);
 }
+
+sf::Packet& operator <<(sf::Packet& packet, const nethax::MessageID& data);
+sf::Packet& operator >>(sf::Packet& packet, nethax::MessageID& data);

@@ -1,4 +1,8 @@
 #include "stdafx.h"
+
+#include <SFML/Network/Packet.hpp>
+#include <vector>
+
 #include "PacketOverloads.h"
 
 sf::Packet& operator <<(sf::Packet& packet, const char& data)
@@ -27,17 +31,5 @@ sf::Packet& operator>>(sf::Packet& packet, std::vector<char>& data)
 	for (sf::Uint32 i = 0; i < length; i++)
 		packet >> data[i];
 
-	return packet;
-}
-
-sf::Packet& operator<<(sf::Packet& packet, const nethax::MessageID& data)
-{
-	return packet << (sf::Uint8)data;
-}
-
-sf::Packet& operator>>(sf::Packet& packet, nethax::MessageID& data)
-{
-	sf::Uint8 d;
-	packet >> d; data = (nethax::MessageID)d;
 	return packet;
 }
