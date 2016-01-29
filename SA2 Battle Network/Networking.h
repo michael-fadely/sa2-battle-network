@@ -24,6 +24,8 @@ namespace nethax
 		N_VersionMismatch,	// Client version mismatch
 		N_VersionOK,		// Client version match
 		N_Bind,				// UDP bind request/confirm
+		N_Password,			// Server password
+		N_PasswordMismatch,	// Incorrect server password
 		N_Settings,			// Used for synchronizing settings
 		N_Connected,		// Connection setup successful
 		N_Ready,			// Client is ready at current sync block

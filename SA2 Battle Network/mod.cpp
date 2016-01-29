@@ -86,14 +86,19 @@ void MainThread(int argc, wchar_t** argv)
 			MemManage::nop2PSpecials(true);
 			validArguments = true;
 		}
-		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
-		{
-			Settings.local = true;
-			validArguments = true;
-		}
 		else if (!wcscmp(argv[i], L"--cheats"))
 		{
 			Settings.cheats = true;
+			validArguments = true;
+		}
+		else if (!wcscmp(argv[i], L"--password") && ++i < argc)
+		{
+			wstring password(argv[i]);
+			Settings.password = string(password.begin(), password.end());
+		}
+		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
+		{
+			Settings.local = true;
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--netstat"))

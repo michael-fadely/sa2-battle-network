@@ -40,6 +40,9 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::N_VersionMismatch, "N_VersionMismatch" },
 	{ MessageID::N_VersionOK, "N_VersionOK" },
 	{ MessageID::N_Bind, "N_Bind" },
+	{ MessageID::N_Password, "N_Password" },
+	{ MessageID::N_PasswordMismatch, "N_PasswordMismatch" },
+
 	{ MessageID::N_Settings, "N_Settings" },
 	{ MessageID::N_Connected, "N_Connected" },
 	{ MessageID::N_Ready, "N_Ready" },

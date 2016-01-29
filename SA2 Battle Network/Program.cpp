@@ -151,15 +151,60 @@ bool Program::StartServer()
 
 	if (versionNum != remoteVersion)
 	{
-		Globals::Networking->Disconnect();
 		PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
 		PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
 		packet << MessageID::N_VersionMismatch << versionNum;
 		Globals::Networking->sendSafe(packet);
-		packet.clear();
+		Globals::Networking->Disconnect();
 
 		return false;
+	}
+
+
+	if (clientSettings.password.length())
+	{
+		packet >> id;
+
+		bool passMatch = false;
+
+		if (id == MessageID::N_Password)
+		{
+			uint size;
+			packet >> size;
+
+			if (size > 512)
+			{
+				PrintDebug(">> Client sent REALLY LONG PASSWORD!");
+			}
+			else
+			{
+				char* password = new char[size + 1];
+				
+				packet.seekRead(packet.posRead() - sizeof(uint), SEEK_SET);
+				packet >> password;
+
+				passMatch = !strcmp(clientSettings.password.c_str(), password);
+
+				if (!passMatch)
+					PrintDebug(">> Client sent invalid password.");
+
+				delete[] password;
+			}
+		}
+		else
+		{
+			PrintDebug(">> Client didn't send a password.");
+		}
+
+		if (!passMatch)
+		{
+			packet.clear();
+			packet << MessageID::N_PasswordMismatch;
+			Globals::Networking->sendSafe(packet);
+			Globals::Networking->Disconnect();
+			return false;
+		}
 	}
 
 	packet >> id;
@@ -218,8 +263,14 @@ bool Program::StartClient()
 	if (!CheckConnectOK())
 		return false;
 
-	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor
-		<< MessageID::N_Bind << Globals::Networking->getLocalPort();
+	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor;
+
+	if (clientSettings.password.length())
+	{
+		packet << MessageID::N_Password << clientSettings.password.c_str();
+	}
+
+	packet << MessageID::N_Bind << Globals::Networking->getLocalPort();
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 	{
@@ -268,6 +319,11 @@ bool Program::StartClient()
 					if (clientSettings.cheats)
 						PrintDebug(">> Cheats have been enabled by the server!");
 					break;
+
+				case MessageID::N_PasswordMismatch:
+					PrintDebug(clientSettings.password.length() > 0 ? ">> Invalid password." : ">> This server is password protected.");
+					rejected = true;
+					return false;
 
 				case MessageID::N_Connected:
 					PrintDebug("<< Connected!");
