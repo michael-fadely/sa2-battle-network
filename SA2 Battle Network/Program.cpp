@@ -26,6 +26,15 @@ sf::Packet& operator >>(sf::Packet& packet, Program::Version& data)
 	return packet >> data.major >> data.minor;
 }
 
+sf::Packet& operator<<(sf::Packet& packet, const Program::Settings& data)
+{
+	return packet << data.noSpecials << data.cheats;
+}
+sf::Packet& operator >>(sf::Packet& packet, Program::Settings& data)
+{
+	return packet >> data.noSpecials >> data.cheats;
+}
+
 std::string Program::Version::str() const
 {
 	return to_string(major) + "." + to_string(minor);
@@ -231,8 +240,7 @@ bool Program::StartServer()
 	}
 
 	packet.clear();
-	packet << MessageID::N_Settings << clientSettings.noSpecials << clientSettings.cheats
-		<< MessageID::N_Connected;
+	packet << MessageID::N_Settings << clientSettings << MessageID::N_Connected;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
@@ -314,7 +322,7 @@ bool Program::StartClient()
 
 					// This is only used for specials right now.
 				case MessageID::N_Settings:
-					packet >> clientSettings.noSpecials >> clientSettings.cheats;
+					packet >> clientSettings;
 					PrintDebug(">> Specials %s by server.", clientSettings.noSpecials ? "disabled" : "enabled");
 					if (clientSettings.cheats)
 						PrintDebug(">> Cheats have been enabled by the server!");
