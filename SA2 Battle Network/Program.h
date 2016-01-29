@@ -13,7 +13,7 @@ public:
 		// Synchronized settings
 		bool noSpecials;
 		bool cheats;
-		char* password;
+		std::vector<char> password;
 
 		// Local settings
 		bool netStat;

@@ -120,6 +120,12 @@
     <ClInclude Include="FrameSync.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="PacketOverloads.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="Hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -193,6 +199,12 @@
     </ClCompile>
     <ClCompile Include="Networking.cpp">
       <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketOverloads.cpp">
+      <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="Hash.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

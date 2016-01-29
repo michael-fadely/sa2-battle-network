@@ -3,6 +3,7 @@
 #include <SFML/Network.hpp>
 #include "Networking.h"
 #include "typedefs.h"
+#include "PacketOverloads.h"
 
 #include "PacketExtensions.h"
 
@@ -48,25 +49,4 @@ bool PacketEx::addType(const nethax::MessageID type, bool allowDuplicates)
 	*this << type;
 	messageCount++;
 	return MessageTypes[(int)type] = true;
-}
-
-sf::Packet& operator <<(sf::Packet& packet, const char& data)
-{
-	return packet << (signed char)data;
-}
-sf::Packet& operator >>(sf::Packet& packet, char& data)
-{
-	return packet >> (signed char&)data;
-}
-
-sf::Packet& operator<<(sf::Packet& packet, const nethax::MessageID& data)
-{
-	return packet << (uint8)data;
-}
-
-sf::Packet& operator>>(sf::Packet& packet, nethax::MessageID& data)
-{
-	uint8 d;
-	packet >> d; data = (nethax::MessageID)d;
-	return packet;
 }

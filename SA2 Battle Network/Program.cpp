@@ -8,6 +8,7 @@
 #include "MemoryManagement.h"	// for MemManage
 #include "CommonEnums.h"		// for Menu, SubMenu2P
 #include "AddressList.h"		// for CurrentMenu
+#include "PacketOverloads.h"
 
 #include "Program.h"
 
@@ -161,7 +162,7 @@ bool Program::StartServer()
 		return false;
 	}
 
-	if (clientSettings.password)
+	if (!clientSettings.password.empty())
 	{
 		packet >> id;
 
@@ -169,17 +170,20 @@ bool Program::StartServer()
 
 		if (id == MessageID::N_Password)
 		{
-			char* password = new char[16];
-				
-			for (uint i = 0; i < 16; i++)
-				packet >> password[i];
+			std::vector<char> password;
+			packet >> password;
 
-			passMatch = !memcmp(clientSettings.password, password, 16);
+			if (password.size() == clientSettings.password.size())
+			{
+				passMatch = !memcmp(clientSettings.password.data(), password.data(), password.size());
 
-			if (!passMatch)
-				PrintDebug(">> Client sent invalid password.");
-
-			delete[] password;
+				if (!passMatch)
+					PrintDebug(">> Client sent invalid password.");
+			}
+			else
+			{
+				PrintDebug(">> Hash length discrepency.");
+			}
 		}
 		else
 		{
@@ -254,10 +258,9 @@ bool Program::StartClient()
 
 	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor;
 
-	if (clientSettings.password)
+	if (!clientSettings.password.empty())
 	{
-		packet << MessageID::N_Password;
-		packet.append(clientSettings.password, 16);
+		packet << MessageID::N_Password << clientSettings.password;
 	}
 
 	packet << MessageID::N_Bind << Globals::Networking->getLocalPort();
@@ -311,7 +314,7 @@ bool Program::StartClient()
 					break;
 
 				case MessageID::N_PasswordMismatch:
-					PrintDebug(clientSettings.password != nullptr ? ">> Invalid password." : ">> This server is password protected.");
+					PrintDebug(!clientSettings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
 					rejected = true;
 					return false;
 

@@ -19,6 +19,7 @@
 
 #include "Networking.h"
 #include "PacketExtensions.h"			// for PacketEx
+#include "PacketOverloads.h"
 #include "AdventurePacketOverloads.h"
 
 #include <SA2ModLoader.h>

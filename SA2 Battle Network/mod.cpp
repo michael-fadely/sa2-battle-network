@@ -1,16 +1,9 @@
 #include "stdafx.h"
 
-// Fixes PROCESS_ALL_ACCESS for Windows XP
-#ifdef _WIN32_WINNT
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x501
-#endif
-
 #include <string>
 
 #include <Windows.h>		// for GetCommandLIneW(), GetCurrentProcess()
 #include <ShellAPI.h>		// for CommandLinetoArgvW
-#include <WinCrypt.h>
 #include <SA2ModLoader.h>
 
 #include "typedefs.h"
@@ -21,7 +14,7 @@
 
 #include "OnGameState.h"
 #include "OnStageChange.h"
-#include "Random.h"
+#include "Hash.h"
 
 // Namespaces
 using namespace std;
@@ -96,32 +89,9 @@ void MainThread(int argc, wchar_t** argv)
 		{
 			wstring password_w(argv[i]);
 			string password_a(password_w.begin(), password_w.end());
-			size_t len = password_a.length();
-			
 
-			HCRYPTPROV csp;
-
-			if (CryptAcquireContext(&csp, nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != TRUE)
-			{
-				PrintDebug("CryptAcquireContext failed!");
-				continue;
-			}
-
-
-			// TODO: Error checking
-			// TODO: Get rid of the preprocessor definintion at the top of the file and use CALG_SHA_256
-			HCRYPTHASH hHash;
-			CryptCreateHash(csp, CALG_MD5, 0, 0, &hHash);
-			CryptHashData(hHash, (const BYTE*)password_a.c_str(), len, 0);
-
-			char* buffer = new char[16];
-			DWORD wtf = 16;
-			CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)buffer, &wtf, 0);
-
-			CryptDestroyHash(hHash);
-			CryptReleaseContext(csp, 0);
-
-			settings.password = buffer;
+			Hash hash;
+			settings.password = hash.ComputeHash(password_a.c_str(), password_a.length(), CALG_SHA_256);
 		}
 		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 		{

@@ -47,8 +47,3 @@ private:
 	// UDP packet sequence number
 	static ushort sequence;
 };
-
-sf::Packet& operator <<(sf::Packet& packet, const char& data);
-sf::Packet& operator >>(sf::Packet& packet, char& data);
-sf::Packet& operator <<(sf::Packet& packet, const nethax::MessageID& data);
-sf::Packet& operator >>(sf::Packet& packet, nethax::MessageID& data);

@@ -100,11 +100,13 @@
     <ClInclude Include="AddRings.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="BAMS.h" />
+    <ClInclude Include="Hash.h" />
     <ClInclude Include="EmeraldSync.h" />
     <ClInclude Include="FrameSync.h" />
     <ClInclude Include="HurtPlayer.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnStageChange.h" />
+    <ClInclude Include="PacketOverloads.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CommonEnums.h" />
@@ -129,6 +131,7 @@
     <ClCompile Include="AddHP.cpp" />
     <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
+    <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="FrameSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
@@ -137,6 +140,7 @@
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />
     <ClCompile Include="OnStageChange.cpp" />
+    <ClCompile Include="PacketOverloads.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Globals.cpp" />
