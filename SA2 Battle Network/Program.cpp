@@ -161,7 +161,6 @@ bool Program::StartServer()
 		return false;
 	}
 
-
 	if (clientSettings.password.length())
 	{
 		packet >> id;
