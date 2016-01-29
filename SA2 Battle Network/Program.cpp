@@ -33,7 +33,6 @@ std::string Program::Version::str() const
 
 #pragma endregion
 
-
 const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
 const char* musicConnected		= "chao_k_net_fine.adx";
 const char* musicDisconnected	= "chao_k_net_fault.adx";
@@ -73,7 +72,10 @@ bool Program::Connect()
 	bool result = (isServer) ? StartServer() : StartClient();
 
 	if (!result)
+	{
+		Globals::Networking->Disconnect();
 		return result;
+	}
 
 	PlayMusic(musicDefault);
 	PlayJingle(musicConnected);
@@ -140,79 +142,84 @@ bool Program::StartServer()
 		return false;
 	}
 
-	MessageID id;
-	packet >> id;
-	if (id != MessageID::N_VersionCheck)
-	{
-		PrintDebug(">> Received malformed packet from client!");
-		return false;
-	}
+	bool passwordProtected = !clientSettings.password.empty();
+	bool passwordMatch = false;
+	ushort remotePort = 0;
 
-	packet >> remoteVersion;
-
-	if (versionNum != remoteVersion)
-	{
-		PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
-		PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
-
-		packet << MessageID::N_VersionMismatch << versionNum;
-		Globals::Networking->sendSafe(packet);
-		Globals::Networking->Disconnect();
-
-		return false;
-	}
-
-	if (!clientSettings.password.empty())
+	MessageID id = MessageID::None;
+	while (!packet.endOfPacket())
 	{
 		packet >> id;
 
-		bool passMatch = false;
-
-		if (id == MessageID::N_Password)
+		switch (id)
 		{
-			std::vector<char> password;
-			packet >> password;
+			default:
+				PrintDebug(">> Received malformed packet from client!");
+				return false;
 
-			if (password.size() == clientSettings.password.size())
+			case MessageID::N_VersionCheck:
 			{
-				passMatch = !memcmp(clientSettings.password.data(), password.data(), password.size());
+				packet >> remoteVersion;
 
-				if (!passMatch)
-					PrintDebug(">> Client sent invalid password.");
+				if (versionNum != remoteVersion)
+				{
+					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
+					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
+
+					packet << MessageID::N_VersionMismatch << versionNum;
+					Globals::Networking->sendSafe(packet);
+
+					return false;
+				}
+
+				break;
 			}
-			else
+
+			case MessageID::N_Password:
 			{
-				PrintDebug(">> Hash length discrepency.");
-			}
-		}
-		else
-		{
-			PrintDebug(">> Client didn't send a password.");
-		}
+				std::vector<char> password;
+				packet >> password;
 
-		if (!passMatch)
-		{
-			packet.clear();
-			packet << MessageID::N_PasswordMismatch;
-			Globals::Networking->sendSafe(packet);
-			Globals::Networking->Disconnect();
-			return false;
+				if (!passwordProtected)
+					break;
+
+				if (password.size() != clientSettings.password.size())
+				{
+					PrintDebug(">> Hash length discrepency.");
+				}
+				else
+				{
+					passwordMatch = !memcmp(clientSettings.password.data(), password.data(), password.size());
+
+					if (!passwordMatch)
+						PrintDebug(">> Client sent invalid password.");
+				}
+
+				break;
+			}
+
+			case MessageID::N_Bind:
+			{
+				packet >> remotePort;
+				Globals::Networking->setRemotePort(remotePort);
+				break;
+			}
 		}
 	}
 
-	packet >> id;
-
-	if (id != MessageID::N_Bind)
+	if (passwordProtected && !passwordMatch)
 	{
-		PrintDebug(">> Error receiving local port from client (ID mismatch).");
-		Globals::Networking->Disconnect();
-
+		packet.clear();
+		packet << MessageID::N_PasswordMismatch;
+		Globals::Networking->sendSafe(packet);
 		return false;
 	}
 
-	ushort remoteport;
-	packet >> remoteport;
-	Globals::Networking->setRemotePort(remoteport);
+	if (!remotePort)
+	{
+		PrintDebug(">> Error: Client didn't send their port!");
+		return false;
+	}
 
 	packet.clear();
 	packet << MessageID::N_VersionOK;
