@@ -63,6 +63,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Ws2_32.lib;sfml-network-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\SFML\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
     <PreBuildEvent>
       <Command>xcopy /Y /D "$(ProjectDir)mod.ini" "$(OutDir)"</Command>

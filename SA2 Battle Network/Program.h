@@ -13,7 +13,7 @@ public:
 		// Synchronized settings
 		bool noSpecials;
 		bool cheats;
-		std::string password; // TODO: no strings, hash only.
+		char* password;
 
 		// Local settings
 		bool netStat;

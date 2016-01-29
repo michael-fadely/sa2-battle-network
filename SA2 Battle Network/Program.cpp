@@ -161,7 +161,7 @@ bool Program::StartServer()
 		return false;
 	}
 
-	if (clientSettings.password.length())
+	if (clientSettings.password)
 	{
 		packet >> id;
 
@@ -169,27 +169,17 @@ bool Program::StartServer()
 
 		if (id == MessageID::N_Password)
 		{
-			uint size;
-			packet >> size;
-
-			if (size > 512)
-			{
-				PrintDebug(">> Client sent REALLY LONG PASSWORD!");
-			}
-			else
-			{
-				char* password = new char[size + 1];
+			char* password = new char[16];
 				
-				packet.seekRead(packet.posRead() - sizeof(uint), SEEK_SET);
-				packet >> password;
+			for (uint i = 0; i < 16; i++)
+				packet >> password[i];
 
-				passMatch = !strcmp(clientSettings.password.c_str(), password);
+			passMatch = !memcmp(clientSettings.password, password, 16);
 
-				if (!passMatch)
-					PrintDebug(">> Client sent invalid password.");
+			if (!passMatch)
+				PrintDebug(">> Client sent invalid password.");
 
-				delete[] password;
-			}
+			delete[] password;
 		}
 		else
 		{
@@ -264,9 +254,10 @@ bool Program::StartClient()
 
 	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor;
 
-	if (clientSettings.password.length())
+	if (clientSettings.password)
 	{
-		packet << MessageID::N_Password << clientSettings.password.c_str();
+		packet << MessageID::N_Password;
+		packet.append(clientSettings.password, 16);
 	}
 
 	packet << MessageID::N_Bind << Globals::Networking->getLocalPort();
@@ -320,7 +311,7 @@ bool Program::StartClient()
 					break;
 
 				case MessageID::N_PasswordMismatch:
-					PrintDebug(clientSettings.password.length() > 0 ? ">> Invalid password." : ">> This server is password protected.");
+					PrintDebug(clientSettings.password != nullptr ? ">> Invalid password." : ">> This server is password protected.");
 					rejected = true;
 					return false;
 

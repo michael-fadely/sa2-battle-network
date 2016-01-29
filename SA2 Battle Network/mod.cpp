@@ -10,6 +10,7 @@
 
 #include <Windows.h>		// for GetCommandLIneW(), GetCurrentProcess()
 #include <ShellAPI.h>		// for CommandLinetoArgvW
+#include <WinCrypt.h>
 #include <SA2ModLoader.h>
 
 #include "typedefs.h"
@@ -51,7 +52,7 @@ void MainThread(int argc, wchar_t** argv)
 	uint timeout = 15000;
 
 	PacketHandler::RemoteAddress Address;
-	Program::Settings Settings = {};
+	Program::Settings settings = {};
 
 #pragma region Command line arguments
 	for (int i = 1; i < argc; i++)
@@ -82,28 +83,54 @@ void MainThread(int argc, wchar_t** argv)
 		// Configuration
 		else if (!wcscmp(argv[i], L"--no-specials"))
 		{
-			Settings.noSpecials = true;
+			settings.noSpecials = true;
 			MemManage::nop2PSpecials(true);
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--cheats"))
 		{
-			Settings.cheats = true;
+			settings.cheats = true;
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--password") && ++i < argc)
 		{
-			wstring password(argv[i]);
-			Settings.password = string(password.begin(), password.end());
+			wstring password_w(argv[i]);
+			string password_a(password_w.begin(), password_w.end());
+			size_t len = password_a.length();
+			
+
+			HCRYPTPROV csp;
+
+			if (CryptAcquireContext(&csp, nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != TRUE)
+			{
+				PrintDebug("CryptAcquireContext failed!");
+				continue;
+			}
+
+
+			// TODO: Error checking
+			// TODO: Get rid of the preprocessor definintion at the top of the file and use CALG_SHA_256
+			HCRYPTHASH hHash;
+			CryptCreateHash(csp, CALG_MD5, 0, 0, &hHash);
+			CryptHashData(hHash, (const BYTE*)password_a.c_str(), len, 0);
+
+			char* buffer = new char[16];
+			DWORD wtf = 16;
+			CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)buffer, &wtf, 0);
+
+			CryptDestroyHash(hHash);
+			CryptReleaseContext(csp, 0);
+
+			settings.password = buffer;
 		}
 		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 		{
-			Settings.local = true;
+			settings.local = true;
 			validArguments = true;
 		}
 		else if (!wcscmp(argv[i], L"--netstat"))
 		{
-			Settings.netStat = true;
+			settings.netStat = true;
 		}
 	}
 
@@ -117,7 +144,7 @@ void MainThread(int argc, wchar_t** argv)
 	using namespace nethax;
 
 	Globals::Networking = new PacketHandler();
-	Globals::Program = new Program(Settings, isServer, Address);
+	Globals::Program = new Program(settings, isServer, Address);
 	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
