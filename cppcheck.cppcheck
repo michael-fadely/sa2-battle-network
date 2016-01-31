@@ -8,4 +8,7 @@
         <path name="sa2-mod-loader/"/>
         <path name="stuff/"/>
     </exclude>
+    <suppressions>
+        <suppression>cstyleCast</suppression>
+    </suppressions>
 </project>
