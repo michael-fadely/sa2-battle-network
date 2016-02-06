@@ -78,25 +78,27 @@ bool Program::Connect()
 		setMusic = true;
 	}
 
-	bool result = (isServer) ? StartServer() : StartClient();
+	ConnectStatus result = (isServer) ? StartServer() : StartClient();
 
-	if (!result)
+	if (result != ConnectStatus::Success)
 	{
-		Globals::Networking->Disconnect();
-		return result;
+		if (result == ConnectStatus::Error)
+			Globals::Networking->Disconnect();
+	}
+	else
+	{
+		PlayMusic(musicDefault);
+		PlayJingle(musicConnected);
+
+		Globals::Broker->ToggleNetStat(clientSettings.netStat);
+		Globals::Broker->SetConnectTime();
+
+		ApplySettings(true);
+		P2Start = 2;
+		FrameCount = 0;
 	}
 
-	PlayMusic(musicDefault);
-	PlayJingle(musicConnected);
-
-	Globals::Broker->ToggleNetStat(clientSettings.netStat);
-	Globals::Broker->SetConnectTime();
-
-	ApplySettings(true);
-	P2Start = 2;
-	FrameCount = 0;
-
-	return result;
+	return result == ConnectStatus::Success;
 }
 
 void Program::Disconnect()
@@ -126,7 +128,7 @@ void Program::ApplySettings(const bool apply)
 	MemManage::swapCharsel(isServer ? !apply : apply);
 }
 
-bool Program::StartServer()
+Program::ConnectStatus Program::StartServer()
 {
 	sf::Packet packet;
 	sf::Socket::Status status = sf::Socket::Status::Error;
@@ -139,16 +141,13 @@ bool Program::StartServer()
 		if (status == sf::Socket::Error)
 			PrintDebug("<> An error occurred while trying to listen for connections on port %d", Address.port);
 
-		return false;
+		return ConnectStatus::Listening;
 	}
-
-	if (!CheckConnectOK())
-		return false;
 
 	if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 	{
 		PrintDebug(">> An error occurred while waiting for version number.");
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	bool passwordProtected = !clientSettings.password.empty();
@@ -164,7 +163,7 @@ bool Program::StartServer()
 		{
 			default:
 				PrintDebug(">> Received malformed packet from client!");
-				return false;
+				return ConnectStatus::Error;
 
 			case MessageID::N_VersionCheck:
 			{
@@ -178,7 +177,7 @@ bool Program::StartServer()
 					packet << MessageID::N_VersionMismatch << versionNum;
 					Globals::Networking->sendSafe(packet);
 
-					return false;
+					return ConnectStatus::Error;
 				}
 
 				break;
@@ -186,7 +185,7 @@ bool Program::StartServer()
 
 			case MessageID::N_Password:
 			{
-				std::vector<char> password;
+				std::vector<uchar> password;
 				packet >> password;
 
 				if (!passwordProtected)
@@ -221,13 +220,13 @@ bool Program::StartServer()
 		packet.clear();
 		packet << MessageID::N_PasswordMismatch;
 		Globals::Networking->sendSafe(packet);
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	if (!remotePort)
 	{
 		PrintDebug(">> Error: Client didn't send their port!");
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	packet.clear();
@@ -236,7 +235,7 @@ bool Program::StartServer()
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	packet.clear();
@@ -245,14 +244,14 @@ bool Program::StartServer()
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	PrintDebug(">> Connected!");
-	return true;
+	return ConnectStatus::Success;
 }
 
-bool Program::StartClient()
+Program::ConnectStatus Program::StartClient()
 {
 	sf::Packet packet;
 	sf::Socket::Status status = sf::Socket::Status::Error;
@@ -265,11 +264,8 @@ bool Program::StartClient()
 		if (status == sf::Socket::Error)
 			PrintDebug("<< A connection error has occurred.");
 
-		return false;
+		return ConnectStatus::Listening;
 	}
-
-	if (!CheckConnectOK())
-		return false;
 
 	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor;
 
@@ -283,7 +279,7 @@ bool Program::StartClient()
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
 	{
 		PrintDebug("<< An error occurred while sending the version number!");
-		return false;
+		return ConnectStatus::Error;
 	}
 
 	packet.clear();
@@ -295,7 +291,7 @@ bool Program::StartClient()
 		if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
-			return false;
+			return ConnectStatus::Error;
 		}
 
 		while (!packet.endOfPacket())
@@ -307,14 +303,14 @@ bool Program::StartClient()
 				default:
 					PrintDebug(">> Received malformed packet from server; aborting!");
 					rejected = true;
-					return false;
+					return ConnectStatus::Error;
 
 				case MessageID::N_VersionMismatch:
 					packet >> remoteVersion;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 					rejected = true;
-					return false;
+					return ConnectStatus::Error;
 
 				case MessageID::N_VersionOK:
 					PrintDebug(">> Version match!");
@@ -331,7 +327,7 @@ bool Program::StartClient()
 				case MessageID::N_PasswordMismatch:
 					PrintDebug(!clientSettings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
 					rejected = true;
-					return false;
+					return ConnectStatus::Error;
 
 				case MessageID::N_Connected:
 					PrintDebug("<< Connected!");
@@ -340,5 +336,5 @@ bool Program::StartClient()
 		}
 	} while (id != MessageID::N_Connected);
 
-	return true;
+	return ConnectStatus::Success;
 }

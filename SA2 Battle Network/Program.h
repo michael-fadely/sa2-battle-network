@@ -28,6 +28,13 @@ public:
 		bool operator==(const Version& value) const { return major == value.major && minor == value.minor; }
 		bool operator!=(const Version& value) const { return !(*this == value); }
 	};
+
+	enum class ConnectStatus
+	{
+		Listening,
+		Success,
+		Error
+	};
 #pragma endregion
 
 	Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
@@ -54,6 +61,6 @@ private:
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
 	void ApplySettings(const bool apply);
-	bool StartServer();
-	bool StartClient();
+	ConnectStatus StartServer();
+	ConnectStatus StartClient();
 };
