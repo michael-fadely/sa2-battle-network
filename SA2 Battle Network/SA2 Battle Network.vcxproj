@@ -54,7 +54,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\sa2-mod-loader\libmodutils;..\SFML\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RECEIVED=RECV_VERBOSE;SFML_STATIC;WIN32_LEAN_AND_MEAN;WIN32;NDEBUG;_WINDOWS;_USRDLL;SONICADVENTURE2MOD_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sa2-mod-loader\SA2ModLoader\include;..\sa2-mod-loader\libmodutils;..\SFML\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
@@ -95,6 +95,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\sa2-mod-loader\libmodutils\Trampoline.h" />
     <ClInclude Include="AddHP.h" />
     <ClInclude Include="AddressList.h" />
     <ClInclude Include="AddRings.h" />
@@ -124,10 +125,10 @@
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Trampoline.h" />
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\sa2-mod-loader\libmodutils\Trampoline.cpp" />
     <ClCompile Include="AddHP.cpp" />
     <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
@@ -156,7 +157,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Trampoline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mod.ini" />

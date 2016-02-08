@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Trampoline.h"
+#include <Trampoline.h>
 
 extern Trampoline AddHPHax;
 extern float DirtyHPHack;

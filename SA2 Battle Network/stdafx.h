@@ -2,6 +2,8 @@
 
 #include <SA2ModLoader.h>
 #include <SFML/Network.hpp>
+#include <Trampoline.h>
+
 #include <ShellAPI.h>
 #include <WTypes.h>
 #include <WinSock2.h>
@@ -44,6 +46,5 @@
 #include "PlayerObject.h"
 #include "Program.h"
 #include "Random.h"
-#include "Trampoline.h"
 #include "nop.h"
 #include "typedefs.h"

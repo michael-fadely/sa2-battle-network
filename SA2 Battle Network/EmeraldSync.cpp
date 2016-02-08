@@ -2,7 +2,7 @@
 
 #include <SA2ModLoader.h>
 #include "Globals.h"
-#include "Trampoline.h"
+#include <Trampoline.h>
 #include "FrameSync.h"
 
 #include "EmeraldSync.h"

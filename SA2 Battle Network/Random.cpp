@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Trampoline.h"
+#include <Trampoline.h>
 #include "Globals.h"
 
 #include "Random.h"

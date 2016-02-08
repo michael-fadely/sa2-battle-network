@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Trampoline.h"
+#include <Trampoline.h>
 
 void __stdcall sub_739340_hook_c(void* a1);
 void __stdcall sub_7387D0_hook_c(void* a1);

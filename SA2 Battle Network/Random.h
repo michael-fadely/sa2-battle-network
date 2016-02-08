@@ -1,5 +1,5 @@
 #pragma once
-#include "Trampoline.h"
+#include <Trampoline.h>
 
 extern Trampoline srand_t;
 extern unsigned int current_seed;

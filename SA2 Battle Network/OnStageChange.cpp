@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include <SA2ModLoader.h>
-#include "Trampoline.h"
+#include <Trampoline.h>
 #include "Networking.h"
 #include "Globals.h"
 #include "OnStageChange.h"

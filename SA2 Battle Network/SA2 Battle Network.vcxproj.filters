@@ -31,6 +31,12 @@
     <Filter Include="Header Files\Memory">
       <UniqueIdentifier>{68264a71-e6c1-4c43-abf1-55daa6b33913}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\libmodutils">
+      <UniqueIdentifier>{d3a4ddb1-6ea9-4468-b6ef-a8e12f26ea86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\libmodutils">
+      <UniqueIdentifier>{df3174d1-dd50-441e-aff0-f7f123005804}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PacketHandler.h">
@@ -99,9 +105,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Trampoline.h">
-      <Filter>Header Files\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="HurtPlayer.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="Hash.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sa2-mod-loader\libmodutils\Trampoline.h">
+      <Filter>Header Files\libmodutils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -176,9 +182,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Trampoline.cpp">
-      <Filter>Source Files\Memory</Filter>
-    </ClCompile>
     <ClCompile Include="AddHP.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
@@ -205,6 +208,9 @@
     </ClCompile>
     <ClCompile Include="Hash.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sa2-mod-loader\libmodutils\Trampoline.cpp">
+      <Filter>Source Files\libmodutils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
