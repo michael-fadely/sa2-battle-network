@@ -28,10 +28,6 @@ public:
 		ushort port;
 	};
 
-	// Socket lock.
-	// Used to enable use of mod loader hooks without
-	// worrying about threads.
-	std::mutex lockSafe, lockFast;
 	// TCP socket.
 	// Used to initiate connections and send order/context-sensitive data.
 	sf::TcpSocket socketSafe;
@@ -85,18 +81,19 @@ public:
 	sf::Socket::Status Send(PacketEx& packet);
 	// Automatically pull information from PacketEx (isSafe)
 	// and use the appropriate receive function (safe/fast).
-	sf::Socket::Status Receive(PacketEx& packet, const bool block = false);
+	sf::Socket::Status Receive(PacketEx& packet, RemoteAddress& remoteAddress, const bool block = false);
 
 	// Send packet via TCP (safe)
 	sf::Socket::Status sendSafe(sf::Packet& packet);
 	// Receive packet via TCP (safe)
 	// Blocks thread if parameter block is true
-	sf::Socket::Status recvSafe(sf::Packet& packet, const bool block = false);
+	sf::Socket::Status receiveSafe(sf::Packet& packet, const bool block = false);
 	// Send packet via UDP (fast)
 	sf::Socket::Status sendFast(sf::Packet& packet);
 	// Receive packet via UDP (fast)
 	// Blocks thread if parameter block is true
-	sf::Socket::Status recvFast(sf::Packet& packet, const bool block = false);
+	sf::Socket::Status receiveFast(sf::Packet& packet, RemoteAddress& remoteAddress, const bool block = false);
+	bool isConnectedAddress(RemoteAddress& remoteAddress);
 
 protected:
 	//

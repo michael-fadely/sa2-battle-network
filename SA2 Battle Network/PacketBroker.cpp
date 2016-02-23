@@ -121,15 +121,22 @@ void PacketBroker::ReceiveLoop()
 
 void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 {
-	sf::Socket::Status status = safe ? Globals::Networking->recvSafe(packet) : Globals::Networking->recvFast(packet);
+	using namespace sf;
 
-	if (status != sf::Socket::Status::Done)
-		return;
-
-	MessageID lastType = MessageID::None;
-
-	if (!safe)
+	if (safe)
 	{
+		if (Globals::Networking->receiveSafe(packet) != Socket::Status::Done)
+			return;
+	}
+	else
+	{
+		PacketHandler::RemoteAddress remoteAddress;
+		if (Globals::Networking->receiveFast(packet, remoteAddress) != Socket::Status::Done)
+			return;
+
+		if (!Globals::Networking->isConnectedAddress(remoteAddress))
+			return;
+
 		ushort sequence = 0;
 		packet >> sequence;
 
@@ -142,6 +149,8 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 
 		lastSequence = sequence % USHRT_MAX;
 	}
+
+	MessageID lastType = MessageID::None;
 
 	while (!packet.endOfPacket())
 	{

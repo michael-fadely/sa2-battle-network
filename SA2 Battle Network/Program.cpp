@@ -144,7 +144,7 @@ Program::ConnectStatus Program::StartServer()
 		return ConnectStatus::Listening;
 	}
 
-	if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+	if ((status = Globals::Networking->receiveSafe(packet, true)) != sf::Socket::Done)
 	{
 		PrintDebug(">> An error occurred while waiting for version number.");
 		return ConnectStatus::Error;
@@ -288,7 +288,7 @@ Program::ConnectStatus Program::StartClient()
 	MessageID id = MessageID::None;
 	do
 	{
-		if ((status = Globals::Networking->recvSafe(packet, true)) != sf::Socket::Done)
+		if ((status = Globals::Networking->receiveSafe(packet, true)) != sf::Socket::Done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
 			return ConnectStatus::Error;

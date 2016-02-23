@@ -149,9 +149,9 @@ sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 
 	return sf::Socket::Status::NotReady;
 }
-sf::Socket::Status PacketHandler::Receive(PacketEx& packet, const bool block)
+sf::Socket::Status PacketHandler::Receive(PacketEx& packet, RemoteAddress& remoteAddress, const bool block)
 {
-	return packet.isSafe ? recvSafe(packet, block) : recvFast(packet, block);
+	return packet.isSafe ? receiveSafe(packet, block) : receiveFast(packet, remoteAddress, block);
 }
 
 sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
@@ -161,7 +161,6 @@ sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
 	if (connected)
 	{
 		int error = 0;
-		lockSafe.lock();
 
 		do
 		{
@@ -170,20 +169,17 @@ sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
 
 		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-
-		lockSafe.unlock();
 	}
 
 	return result;
 }
-sf::Socket::Status PacketHandler::recvSafe(sf::Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::receiveSafe(sf::Packet& packet, const bool block)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
 	if (connected)
 	{
 		int error = 0;
-		lockSafe.lock();
 
 		do
 		{
@@ -192,8 +188,6 @@ sf::Socket::Status PacketHandler::recvSafe(sf::Packet& packet, const bool block)
 
 		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-
-		lockSafe.unlock();
 	}
 
 	return result;
@@ -205,7 +199,6 @@ sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
 	if (connected)
 	{
 		int error = 0;
-		lockFast.lock();
 
 		do
 		{
@@ -214,35 +207,31 @@ sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
 
 		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-
-		lockFast.unlock();
 	}
 
 	return result;
 }
-sf::Socket::Status PacketHandler::recvFast(sf::Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::receiveFast(sf::Packet& packet, RemoteAddress& remoteAddress, const bool block)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
 	if (connected)
 	{
-		RemoteAddress recvaddr = {};
 		int error = 0;
-
-		lockFast.lock();
 
 		do
 		{
-			result = socketFast.receive(packet, recvaddr.ip, recvaddr.port);
+			result = socketFast.receive(packet, remoteAddress.ip, remoteAddress.port);
 		} while (block && result == sf::Socket::Status::NotReady);
 
 		if (result == sf::Socket::Status::Error)
 			throw error = WSAGetLastError();
-		if (recvaddr.ip != Address.ip)
-			result = sf::Socket::Status::NotReady;
-
-		lockFast.unlock();
 	}
 
 	return result;
+}
+
+bool PacketHandler::isConnectedAddress(RemoteAddress& remoteAddress)
+{
+	return remoteAddress.ip == Address.ip && remoteAddress.port == Address.port;
 }
