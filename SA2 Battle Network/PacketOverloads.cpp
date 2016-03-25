@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include <SFML/Network/Packet.hpp>
-#include <vector>
 
 #include "PacketOverloads.h"
 

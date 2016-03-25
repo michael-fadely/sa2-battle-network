@@ -39,7 +39,7 @@ public:
 
 	Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address);
 
-	bool CheckConnectOK() const;
+	static bool CheckConnectOK();
 	bool Connect();
 	void Disconnect();
 
@@ -60,7 +60,7 @@ private:
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
-	void ApplySettings(const bool apply);
+	void ApplySettings(const bool apply) const;
 	ConnectStatus StartServer();
 	ConnectStatus StartClient();
 };

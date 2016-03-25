@@ -150,7 +150,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		lastSequence = sequence % USHRT_MAX;
 	}
 
-	MessageID lastType = MessageID::None;
+	//MessageID lastType = MessageID::None;
 
 	while (!packet.endOfPacket())
 	{
@@ -251,7 +251,7 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			}
 		}
 
-		lastType = newType;
+		//lastType = newType;
 	}
 }
 
@@ -289,7 +289,7 @@ bool PacketBroker::WaitForPlayers(nethax::MessageID id)
 	return true;
 }
 
-void PacketBroker::SendReady(const nethax::MessageID id) const
+void PacketBroker::SendReady(const nethax::MessageID id)
 {
 	sf::Packet packet;
 	packet << MessageID::N_Ready << id;
@@ -306,7 +306,7 @@ void PacketBroker::ToggleNetStat(bool toggle)
 	netStat = toggle;
 }
 
-void PacketBroker::SaveNetStat()
+void PacketBroker::SaveNetStat() const
 {
 	if (!netStat)
 		return;
@@ -1052,7 +1052,7 @@ void PacketBroker::PreReceive()
 		}
 	}
 }
-void PacketBroker::PostReceive()
+void PacketBroker::PostReceive() const
 {
 	writeSpecials();
 }
@@ -1061,7 +1061,7 @@ inline void PacketBroker::writeSpecials() const
 {
 	memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
 }
-inline void PacketBroker::writeTimeStop()
+inline void PacketBroker::writeTimeStop() const
 {
 	TimeStopped = local.game.TimeStopped;
 }

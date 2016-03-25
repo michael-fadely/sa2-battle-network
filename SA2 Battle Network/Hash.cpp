@@ -16,7 +16,7 @@ Hash::~Hash()
 	CryptReleaseContext(csp, 0);
 }
 
-std::vector<char> Hash::ComputeHash(const char* data, size_t size, ALG_ID kind)
+std::vector<char> Hash::ComputeHash(const char* data, size_t size, ALG_ID kind) const
 {
 	// TODO: Error checking
 	HCRYPTHASH hHash = 0;

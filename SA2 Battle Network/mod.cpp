@@ -13,7 +13,6 @@
 #include "MainThread.h"
 
 #include "OnGameState.h"
-#include "OnStageChange.h"
 #include "Hash.h"
 
 // Namespaces

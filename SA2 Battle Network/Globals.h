@@ -3,7 +3,6 @@
 #include "PacketHandler.h"
 #include "PacketBroker.h"
 #include "Program.h"
-#include <WTypes.h>
 
 namespace nethax
 {

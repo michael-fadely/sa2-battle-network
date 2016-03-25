@@ -15,7 +15,7 @@ public:
 	Hash(DWORD dwProvType = PROV_RSA_AES, DWORD dwFlags = CRYPT_VERIFYCONTEXT);
 	~Hash();
 
-	std::vector<char> ComputeHash(const char* data, size_t size, ALG_ID kind);
+	std::vector<char> ComputeHash(const char* data, size_t size, ALG_ID kind) const;
 
 private:
 	HCRYPTPROV csp;

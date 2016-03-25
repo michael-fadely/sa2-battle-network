@@ -55,7 +55,7 @@ Program::Program(const Settings& settings, const bool host, PacketHandler::Remot
 {
 }
 
-bool Program::CheckConnectOK() const
+bool Program::CheckConnectOK()
 {
 	return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
 }
@@ -115,7 +115,7 @@ void Program::Disconnect()
 	PlayJingle(musicDisconnected);
 }
 
-void Program::ApplySettings(const bool apply)
+void Program::ApplySettings(const bool apply) const
 {
 	PrintDebug(apply ? "<> Applying code changes..." : "<> Reverting code changes...");
 

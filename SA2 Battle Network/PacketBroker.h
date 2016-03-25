@@ -40,10 +40,10 @@ public:
 
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(nethax::MessageID id);
-	void SendReady(const nethax::MessageID id) const;
+	static void SendReady(const nethax::MessageID id);
 	void SetConnectTime();
 	void ToggleNetStat(bool toggle);
-	void SaveNetStat();
+	void SaveNetStat() const;
 
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
@@ -81,9 +81,9 @@ private:
 	bool ReceiveMenu(const nethax::MessageID type, sf::Packet& packet);
 	
 	void PreReceive();
-	void PostReceive();
+	void PostReceive() const;
 	void writeSpecials() const;
-	void writeTimeStop();
+	void writeTimeStop() const;
 
 	PacketEx safe, fast;
 	PlayerObject recvPlayer, sendPlayer;

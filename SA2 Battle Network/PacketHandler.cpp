@@ -231,7 +231,7 @@ sf::Socket::Status PacketHandler::receiveFast(sf::Packet& packet, RemoteAddress&
 	return result;
 }
 
-bool PacketHandler::isConnectedAddress(RemoteAddress& remoteAddress)
+bool PacketHandler::isConnectedAddress(RemoteAddress& remoteAddress) const
 {
 	return remoteAddress.ip == Address.ip && remoteAddress.port == Address.port;
 }

@@ -8,7 +8,6 @@
 */
 
 #include <SFML/Network.hpp>
-#include <mutex>
 #include "typedefs.h"
 #include "PacketExtensions.h"
 
@@ -93,7 +92,7 @@ public:
 	// Receive packet via UDP (fast)
 	// Blocks thread if parameter block is true
 	sf::Socket::Status receiveFast(sf::Packet& packet, RemoteAddress& remoteAddress, const bool block = false);
-	bool isConnectedAddress(RemoteAddress& remoteAddress);
+	bool isConnectedAddress(RemoteAddress& remoteAddress) const;
 
 protected:
 	//

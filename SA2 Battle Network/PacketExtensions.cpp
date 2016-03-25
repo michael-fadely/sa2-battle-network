@@ -3,7 +3,6 @@
 #include <SFML/Network.hpp>
 #include "Networking.h"
 #include "typedefs.h"
-#include "PacketOverloads.h"
 
 #include "PacketExtensions.h"
 
