@@ -5,7 +5,6 @@
 #include <Trampoline.h>
 
 #include <ShellAPI.h>
-#include <WTypes.h>
 #include <WinSock2.h>
 #include <Windows.h>
 #include <WinCrypt.h>

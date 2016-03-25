@@ -1,8 +1,7 @@
 #pragma once
+
 #include <WinCrypt.h>
 #include <vector>
-
-// TODO: vectors
 
 class Hash
 {

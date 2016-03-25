@@ -2,6 +2,7 @@
 
 #include <SA2ModLoader.h>
 #include "Globals.h"			// for Globals :specialed:
+#include "CommonEnums.h"
 
 using namespace nethax;
 

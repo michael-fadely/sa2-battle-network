@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <WTypes.h>
 #include <WinCrypt.h>
 #include <vector>
 
