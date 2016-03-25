@@ -9,15 +9,13 @@
 #include "typedefs.h"
 #include "Globals.h"		// PacketHandler, Program, PacketBroker
 #include "PacketHandler.h"	// for RemoteAddress
-
-#include "MainThread.h"
-
 #include "OnGameState.h"
 #include "Hash.h"
 #include "MemoryManagement.h"
 
-// Namespaces
 using namespace std;
+
+void MainThread(int argc, wchar_t** argv);
 
 extern "C"
 {

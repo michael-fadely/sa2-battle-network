@@ -36,7 +36,6 @@ void __cdecl hook_srand(unsigned int seed)
 		if (Broker->WaitForPlayers(MessageID::S_Seed))
 		{
 			Broker->SendReady(MessageID::S_Seed);
-			return;
 		}
 		else
 		{

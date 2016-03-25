@@ -30,7 +30,6 @@
 #include "Globals.h"
 #include "HurtPlayer.h"
 #include "LazyMemory.h"
-#include "MainThread.h"
 #include "MemoryManagement.h"
 #include "MemoryStruct.h"
 #include "ModLoaderExtensions.h"

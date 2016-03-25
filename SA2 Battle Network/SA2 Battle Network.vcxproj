@@ -113,7 +113,6 @@
     <ClInclude Include="CommonEnums.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="LazyMemory.h" />
-    <ClInclude Include="MainThread.h" />
     <ClInclude Include="PacketBroker.h" />
     <ClInclude Include="MemoryManagement.h" />
     <ClInclude Include="MemoryStruct.h" />
