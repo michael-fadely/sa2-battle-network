@@ -67,6 +67,7 @@ namespace nethax
 		P_Animation,
 		// Sonic
 		P_SpinTimer,
+		P_Damage,
 		P_Hurt,
 		P_Kill,
 

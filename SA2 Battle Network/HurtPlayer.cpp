@@ -6,12 +6,47 @@
 
 using namespace nethax;
 
+DataPointer(void*, HurtPlayerFunc, 0x01A5A28C);
+
+Sint32 __cdecl DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2);
 void __cdecl HurtPlayer_cpp(int playerNum);
 void __stdcall KillPlayer_cpp(int playerNum);
 void KillPlayer_asm();
 
+bool do_damage = false;
+Trampoline DamagePlayerHax(0x00473800, 0x0047380A, (DetourFunction)DamagePlayer_cpp);
 Trampoline HurtPlayerHax((size_t)HurtPlayer, 0x006C1AF6, (DetourFunction)HurtPlayer_cpp);
 Trampoline KillPlayerHax((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
+
+Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
+{
+	FunctionPointer(Sint32, original, (CharObj1*, CharObj2Base*), DamagePlayerHax.Target());
+
+	if (!Globals::isConnected())
+		return original(data1, data2);
+
+	Sint32 result = 0;
+	if (data2->PlayerNum != 0)
+	{
+		if (do_damage)
+		{
+			void* last = HurtPlayerFunc;
+			HurtPlayerFunc = HurtPlayerHax.Target();
+
+			data1->Status |= Status_Hurt;
+			result = original(data1, data2);
+
+			HurtPlayerFunc = last;
+			do_damage = false;
+		}
+	}
+	else if ((result = original(data1, data2)) != 0)
+	{
+		Globals::Broker->Request(MessageID::P_Damage, true);
+	}
+
+	return result;
+}
 
 void __cdecl HurtPlayer_cpp(int playerNum)
 {
@@ -23,7 +58,7 @@ void __cdecl HurtPlayer_cpp(int playerNum)
 		Globals::Broker->Request(MessageID::P_Hurt, true, true);
 	}
 
-	FunctionPointer(void, target, (int playerNum), HurtPlayerHax.Target());
+	FunctionPointer(void, target, (int), HurtPlayerHax.Target());
 	target(playerNum);
 }
 

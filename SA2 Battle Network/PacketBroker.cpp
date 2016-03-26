@@ -658,6 +658,9 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 			break;
 
+		case MessageID::P_Damage:
+			break;
+
 		case MessageID::P_Hurt:
 			break;
 
@@ -929,6 +932,12 @@ bool PacketBroker::ReceivePlayer(const nethax::MessageID type, sf::Packet& packe
 			RECEIVED(MessageID::P_SpinTimer);
 				packet >> recvPlayer.Sonic.SpindashTimer;
 				break;
+
+			RECEIVED(MessageID::P_Damage);
+			{
+				do_damage = true;
+				break;
+			}
 
 			RECEIVED(MessageID::P_Hurt);
 			{
