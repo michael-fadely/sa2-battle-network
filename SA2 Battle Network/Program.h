@@ -62,7 +62,7 @@ private:
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
-	void ApplySettings(const bool apply) const;
+	void ApplySettings(bool apply) const;
 	ConnectStatus StartServer();
 	ConnectStatus StartClient();
 };

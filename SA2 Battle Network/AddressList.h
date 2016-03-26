@@ -58,3 +58,10 @@ DataPointer(char,	BattleOptionsButton,	0x01D1C08C);
 
 // This accounts for the playable characters (standard + extra, 12) plus the 3 Chao.
 DataArray(CharSelectThing, CharSelectThings, 0x01D1B8C5, 15);
+
+// Cheats
+DataPointer(Bool,	CheatsEnabled,			0x01A55770);
+DataPointer(Bool,	Cheats_GiveMaxRings,	0x01A55774);
+DataPointer(Bool,	Cheats_GiveAllUpgrades,	0x01A55778);
+DataPointer(Bool,	Cheats_GiveMaxLives,	0x01A5577C);
+DataPointer(Bool,	Cheats_ExitStage,		0x01A558A4);

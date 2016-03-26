@@ -122,16 +122,26 @@ void Program::ApplySettings(const Settings& settings)
 {
 	MemManage::nop2PSpecials(settings.noSpecials);
 	MemManage::swapInput(settings.local);
+	CheatsEnabled = (Bool)settings.cheats;
+	if (!CheatsEnabled)
+	{
+		Cheats_GiveMaxRings		= 0;
+		Cheats_GiveAllUpgrades	= 0;
+		Cheats_GiveMaxLives		= 0;
+		Cheats_ExitStage		= 0;
+	}
 }
 
-void Program::ApplySettings(const bool apply) const
+void Program::ApplySettings(bool apply) const
 {
 	if (!isServer)
 		ApplySettings(remoteSettings);
+			
+	if (isServer)
+		apply = !apply;
 
-	bool server = isServer ? !apply : apply;
-	MemManage::swapSpawn(server);
-	MemManage::swapCharsel(server);
+	MemManage::swapSpawn(apply);
+	MemManage::swapCharsel(apply);
 }
 
 Program::ConnectStatus Program::StartServer()
