@@ -11,9 +11,11 @@ public:
 	struct Settings
 	{
 		// Synchronized settings
+		std::string nickname;
+		std::string serverName;
 		bool noSpecials;
 		bool cheats;
-		std::vector<char> password;
+		std::vector<uchar> password;
 
 		// Local settings
 		bool netStat;

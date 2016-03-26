@@ -9,11 +9,13 @@
 #include <Windows.h>
 #include <WinCrypt.h>
 #include <Winsock2.h>
+#include <direct.h>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <map>
 #include <string>
+#include <sstream>
 #include <thread>
 #include <vector>
 #include <fstream>

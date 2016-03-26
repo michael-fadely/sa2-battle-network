@@ -3,6 +3,8 @@
 #include <WTypes.h>
 #include <WinCrypt.h>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "Hash.h"
 
@@ -17,7 +19,7 @@ Hash::~Hash()
 	CryptReleaseContext(csp, 0);
 }
 
-std::vector<char> Hash::ComputeHash(const char* data, size_t size, ALG_ID kind) const
+std::vector<uchar> Hash::ComputeHash(void* data, size_t size, ALG_ID kind) const
 {
 	// TODO: Error checking
 	HCRYPTHASH hHash = 0;
@@ -32,11 +34,37 @@ std::vector<char> Hash::ComputeHash(const char* data, size_t size, ALG_ID kind) 
 	DWORD hashSize;
 	DWORD bufferSize = sizeof(size_t);
 	CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE*)&hashSize, &bufferSize, 0);
-	std::vector<char> result(hashSize);
+	std::vector<uchar> result(hashSize);
 
 	bufferSize = result.size();
 	CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)result.data(), &bufferSize, 0);
 	CryptDestroyHash(hHash);
+
+	return result;
+}
+
+std::string Hash::toString(std::vector<uchar>& hash)
+{
+	std::stringstream result;
+	for (auto& i : hash)
+		result << std::hex << std::setw(2) << std::setfill('0') << (int)i;
+	return result.str();
+}
+
+std::vector<uchar> Hash::fromString(const std::string& str)
+{
+	if ((str.length() % 2) != 0)
+		throw;
+
+	std::vector<uchar> result;
+
+	for (size_t i = 0; i < str.length(); i += 2)
+	{
+		std::istringstream stream(str.substr(i, 2));
+		int temp;
+		stream >> std::hex >> temp;
+		result.push_back(temp);
+	}
 
 	return result;
 }
