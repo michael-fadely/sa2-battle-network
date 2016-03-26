@@ -44,16 +44,16 @@ public:
 	static bool CheckConnectOK();
 	bool Connect();
 	void Disconnect();
-
+	static void ApplySettings(const Settings& settings);
 	Version remoteVersion;
 
 	static const Version versionNum;
 	static const std::string version;
 
-	const Settings& ClientSettings() const { return clientSettings; }
+	const Settings& InstanceSettings() const { return isServer ? localSettings : remoteSettings; }
 
 private:
-	Settings clientSettings;
+	Settings localSettings, remoteSettings;
 	PacketHandler::RemoteAddress Address;
 
 	bool isServer;

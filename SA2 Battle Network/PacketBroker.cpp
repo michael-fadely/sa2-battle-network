@@ -382,9 +382,9 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 {
 	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
 	{
-		if (Globals::Program->ClientSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
+		if (Globals::Program->InstanceSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
-			if ((ControllerPointers[0]->HeldButtons & Buttons_Y) && (ControllerPointers[0]->PressedButtons & Buttons_Up))
+			if (ControllerPointers[0]->HeldButtons & Buttons_Y && ControllerPointers[0]->PressedButtons & Buttons_Up)
 			{
 				// Teleport to recvPlayer
 				PrintDebug("<> Teleporting to other player...");;

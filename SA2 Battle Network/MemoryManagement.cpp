@@ -6,22 +6,28 @@
 #include "nop.h"
 #include "MemoryManagement.h"
 
-void MemManage::nop2PSpecials(const bool doNop)
+static bool specials = false;
+void MemManage::nop2PSpecials(const bool apply)
 {
-	if (doNop)
+	if (specials == apply)
+		return;
+
+	if (apply)
 	{
-		PrintDebug("<> Disabling specials...");
+		PrintDebug("[SA2:BN] Disabling specials...");
 		nop::apply(0x00724257, 2);
 		nop::apply(0x00736207, 2);
 		nop::apply(0x00749917, 2);
 	}
 	else
 	{
-		PrintDebug("<> Enabling specials...");
+		PrintDebug("[SA2:BN] Enabling specials...");
 		nop::restore(0x00724257);
 		nop::restore(0x00736207);
 		nop::restore(0x00749917);
 	}
+
+	specials = apply;
 }
 
 void MemManage::swapSpawn(const bool swapstart)
@@ -51,11 +57,15 @@ void MemManage::swapCharsel(const bool swapcharsel)
 	}
 }
 
-void MemManage::swapInput(const bool doNop)
+static bool input = false;
+void MemManage::swapInput(const bool apply)
 {
-	PrintDebug("<> Swapping input devices...");
+	if (input == apply)
+		return;
 
-	if (doNop)
+	PrintDebug("[SA2:BN] Swapping input devices...");
+
+	if (apply)
 		nop::apply(0x00441BCA, 7);
 	else
 		nop::restore(0x00441BCA);
@@ -68,5 +78,5 @@ void MemManage::swapInput(const bool doNop)
 	ControllerPointers[0] = p2ptr;
 	ControllerPointers[1] = p1ptr;
 
-	PrintDebug("<> Swap complete.");
+	input = apply;
 }

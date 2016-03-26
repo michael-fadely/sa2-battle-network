@@ -11,7 +11,6 @@
 #include "PacketHandler.h"	// for RemoteAddress
 #include "OnGameState.h"
 #include "Hash.h"
-#include "MemoryManagement.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
 
@@ -75,12 +74,6 @@ void ParseConfig(const std::string& path, Program::Settings& settings, PacketHan
 
 void MainThread(const char* path, int argc, wchar_t** argv)
 {
-	if (argc < 2)
-	{
-		PrintDebug("[SA2:BN] Insufficient parameters.");
-		return;
-	}
-
 	bool valid_args = false;
 	bool is_server = false;
 	uint timeout = 15000;
@@ -128,7 +121,6 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 		else if (!wcscmp(argv[i], L"--no-specials"))
 		{
 			settings.noSpecials = true;
-			MemManage::nop2PSpecials(true);
 			valid_args = true;
 		}
 		else if (!wcscmp(argv[i], L"--cheats"))
@@ -155,9 +147,15 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 		}
 	}
 
+	Program::ApplySettings(settings);
+
 	if (!valid_args)
 	{
-		PrintDebug("[SA2:BN] Invalid parameters.");
+		if (argc < 2)
+			PrintDebug("[SA2:BN] Insufficient parameters.");
+		else
+			PrintDebug("[SA2:BN] Invalid parameters.");
+
 		return;
 	}
 

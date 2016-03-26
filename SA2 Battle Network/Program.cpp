@@ -51,7 +51,7 @@ const Program::Version	Program::versionNum	= { 3, 2 };
 const std::string		Program::version	= "SA2:BN Version: " + Program::versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-	remoteVersion(Program::versionNum), clientSettings(settings), Address(address), isServer(host), setMusic(false), rejected(false)
+	remoteVersion(Program::versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false)
 {
 }
 
@@ -90,7 +90,7 @@ bool Program::Connect()
 		PlayMusic(musicDefault);
 		PlayJingle(musicConnected);
 
-		Globals::Broker->ToggleNetStat(clientSettings.netStat);
+		Globals::Broker->ToggleNetStat(localSettings.netStat);
 		Globals::Broker->SetConnectTime();
 
 		ApplySettings(true);
@@ -110,22 +110,28 @@ void Program::Disconnect()
 
 	ApplySettings(false);
 
+	if (!isServer)
+		ApplySettings(localSettings);
+
 	Globals::Broker->SaveNetStat();
 	Globals::Broker->Initialize();
 	PlayJingle(musicDisconnected);
 }
 
+void Program::ApplySettings(const Settings& settings)
+{
+	MemManage::nop2PSpecials(settings.noSpecials);
+	MemManage::swapInput(settings.local);
+}
+
 void Program::ApplySettings(const bool apply) const
 {
-	PrintDebug(apply ? "<> Applying code changes..." : "<> Reverting code changes...");
+	if (!isServer)
+		ApplySettings(remoteSettings);
 
-	if (clientSettings.noSpecials)
-		MemManage::nop2PSpecials(apply);
-	if (clientSettings.local)
-		MemManage::swapInput(apply);
-
-	MemManage::swapSpawn(isServer ? !apply : apply);
-	MemManage::swapCharsel(isServer ? !apply : apply);
+	bool server = isServer ? !apply : apply;
+	MemManage::swapSpawn(server);
+	MemManage::swapCharsel(server);
 }
 
 Program::ConnectStatus Program::StartServer()
@@ -150,7 +156,7 @@ Program::ConnectStatus Program::StartServer()
 		return ConnectStatus::Error;
 	}
 
-	bool passwordProtected = !clientSettings.password.empty();
+	bool passwordProtected = !localSettings.password.empty();
 	bool passwordMatch = false;
 	ushort remotePort = 0;
 
@@ -191,13 +197,13 @@ Program::ConnectStatus Program::StartServer()
 				if (!passwordProtected)
 					break;
 
-				if (password.size() != clientSettings.password.size())
+				if (password.size() != localSettings.password.size())
 				{
 					PrintDebug(">> Hash length discrepency.");
 				}
 				else
 				{
-					passwordMatch = !memcmp(clientSettings.password.data(), password.data(), password.size());
+					passwordMatch = !memcmp(localSettings.password.data(), password.data(), password.size());
 
 					if (!passwordMatch)
 						PrintDebug(">> Client sent invalid password.");
@@ -239,7 +245,7 @@ Program::ConnectStatus Program::StartServer()
 	}
 
 	packet.clear();
-	packet << MessageID::N_Settings << clientSettings << MessageID::N_Connected;
+	packet << MessageID::N_Settings << localSettings << MessageID::N_Connected;
 
 	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
 	{
@@ -269,9 +275,9 @@ Program::ConnectStatus Program::StartClient()
 
 	packet << MessageID::N_VersionCheck << versionNum.major << versionNum.minor;
 
-	if (!clientSettings.password.empty())
+	if (!localSettings.password.empty())
 	{
-		packet << MessageID::N_Password << clientSettings.password;
+		packet << MessageID::N_Password << localSettings.password;
 	}
 
 	packet << MessageID::N_Bind << Globals::Networking->getLocalPort();
@@ -318,14 +324,14 @@ Program::ConnectStatus Program::StartClient()
 
 					// This is only used for specials right now.
 				case MessageID::N_Settings:
-					packet >> clientSettings;
-					PrintDebug(">> Specials %s by server.", clientSettings.noSpecials ? "disabled" : "enabled");
-					if (clientSettings.cheats)
+					packet >> remoteSettings;
+					PrintDebug(">> Specials %s by server.", remoteSettings.noSpecials ? "disabled" : "enabled");
+					if (remoteSettings.cheats)
 						PrintDebug(">> Cheats have been enabled by the server!");
 					break;
 
 				case MessageID::N_PasswordMismatch:
-					PrintDebug(!clientSettings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
+					PrintDebug(!localSettings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
 					rejected = true;
 					return ConnectStatus::Error;
 
