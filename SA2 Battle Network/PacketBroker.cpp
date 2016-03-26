@@ -78,7 +78,7 @@ static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status
 
 #pragma endregion
 
-PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), safe(true), fast(false), netStat(false)
+PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(false), safe(true), fast(false)
 {
 	Initialize();
 }

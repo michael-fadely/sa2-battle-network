@@ -23,11 +23,11 @@ void __declspec(naked) SetCurrentLevel_asm()
 
 inline void SetCurrentLevel_Original(short stage)
 {
-	void* original = SetCurrentLevelHax.Target();
+	void* target = SetCurrentLevelHax.Target();
 	__asm
 	{
 		mov ax, stage
-		call original
+		call target
 	}
 }
 
