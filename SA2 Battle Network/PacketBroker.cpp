@@ -132,10 +132,11 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 		ushort sequence = 0;
 		packet >> sequence;
 
-		// TODO: Threshold
+		// TODO: Rejection threshold
 		if (sequence == 0 || sequence <= lastSequence)
 		{
 			PrintDebug(">> Received out of order packet. Rejecting.");
+			lastSequence = sequence % USHRT_MAX;
 			return;
 		}
 
