@@ -6,9 +6,9 @@
 
 #include "PacketExtensions.h"
 
-ushort PacketEx::sequence = 0;
+ushort PacketEx::sequence = 1;
 
-PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), MessageTypes(nullptr)
+PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), empty(true), MessageTypes(nullptr)
 {
 	Initialize();
 }
@@ -21,8 +21,13 @@ void PacketEx::Initialize()
 {
 	if (!isSafe)
 	{
+		if (!empty)
+		{
 		sequence %= USHRT_MAX;
-		*this << ++sequence;
+			++sequence;
+		}
+
+		*this << sequence;
 	}
 
 	empty = true;
