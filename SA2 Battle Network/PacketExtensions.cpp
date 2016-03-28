@@ -23,7 +23,7 @@ void PacketEx::Initialize()
 	{
 		if (!empty)
 		{
-		sequence %= USHRT_MAX;
+			sequence %= USHRT_MAX;
 			++sequence;
 		}
 
