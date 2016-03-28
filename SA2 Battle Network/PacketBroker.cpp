@@ -736,6 +736,11 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 			out << CurrentLevel;
 			break;
 
+		case MessageID::S_NextStage:
+			PrintDebug("<< Sending next stage: %d", NextLevel);
+			out << NextLevel;
+			break;
+
 #pragma endregion
 
 	}
@@ -795,6 +800,10 @@ bool PacketBroker::ReceiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 		case MessageID::S_Stage:
 			packet >> CurrentLevel;
+			return true;
+
+		case MessageID::S_NextStage:
+			packet >> NextLevel;
 			return true;
 
 		case MessageID::S_FrameCount:

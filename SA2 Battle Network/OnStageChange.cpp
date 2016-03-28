@@ -6,9 +6,15 @@
 #include "Globals.h"
 #include "OnStageChange.h"
 
+using namespace nethax;
+using namespace Globals;
+
 //DataPointer(short, isFirstStageLoad, 0x01748B94);
 
+void __cdecl SetNextLevel_Hook();
+
 Trampoline SetCurrentLevelHax(0x0043D8A0, 0x0043D8A7, SetCurrentLevel_asm);
+Trampoline SetNextLevelHax(0x0043C4D0, 0x0043C4D5, (DetourFunction)SetNextLevel_Hook);
 
 void __declspec(naked) SetCurrentLevel_asm()
 {
@@ -32,9 +38,6 @@ inline void SetCurrentLevel_Original(short stage)
 
 void __stdcall SetCurrentLevel(short stage)
 {
-	using namespace nethax;
-	using namespace Globals;
-
 	if (!isConnected())
 	{
 		SetCurrentLevel_Original(stage);
@@ -68,4 +71,31 @@ void __stdcall SetCurrentLevel(short stage)
 	}
 
 	PrintDebug(">> Stage received. Resuming game.");
+}
+
+void __cdecl SetNextLevel_Hook()
+{
+	// Immediately calling in case it does any other magic I'm not aware of.
+	VoidFunc(original, SetNextLevelHax.Target());
+	original();
+
+	if (!isConnected())
+		return;
+
+	if (Networking->isServer())
+	{
+		Broker->Request(MessageID::S_NextStage, true);
+		Broker->Finalize();
+		Broker->SendReady(MessageID::S_NextStage);
+		Broker->WaitForPlayers(MessageID::S_NextStage);
+	}
+	else
+	{
+		PrintDebug("<> Waiting for next stage number...");
+		if (Broker->WaitForPlayers(MessageID::S_NextStage))
+		{
+			Broker->SendReady(MessageID::S_NextStage);
+			PrintDebug(">> Received next stage: %d", NextLevel);
+		}
+	}
 }
