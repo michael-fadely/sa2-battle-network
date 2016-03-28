@@ -16,7 +16,6 @@ void __declspec(naked) SetCurrentLevel_asm()
 	{
 		push eax
 		call SetCurrentLevel
-		pop eax
 		ret
 	}
 }
@@ -26,12 +25,12 @@ inline void SetCurrentLevel_Original(short stage)
 	void* target = SetCurrentLevelHax.Target();
 	__asm
 	{
-		mov ax, stage
+		movzx eax, stage
 		call target
 	}
 }
 
-void __cdecl SetCurrentLevel(short stage)
+void __stdcall SetCurrentLevel(short stage)
 {
 	using namespace nethax;
 	using namespace Globals;
