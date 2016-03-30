@@ -8,31 +8,36 @@
 
 using namespace nethax;
 
+static const uint type_overhead = sizeof(MessageID) + sizeof(ushort);
+
 void nethax::WriteNetStatCSV(std::ofstream& file, std::map<MessageID, MessageStat> map)
 {
-	file << "Message ID,TCP count,UDP count,Total count,Size (bytes),TCP bytes,UDP bytes,Total bytes" << std::endl;
+	file << "Message ID,TCP count,UDP count,Total count,Size,TCP size,UDP size,Overhead size,Total size" << std::endl;
 	for (auto& i : map)
 	{
-		uint total = i.second.tcpCount + i.second.udpCount;
-		uint bytes = i.second.size * total;
-		uint tcp_bytes = i.second.size * i.second.tcpCount;
-		uint udp_bytes = i.second.size * i.second.udpCount;
+		MessageStat& stat = i.second;
 
-		file << (ushort)i.first << " - " << MessageID_string.at(i.first) << ','
-			<< i.second.tcpCount << ','
-			<< i.second.udpCount << ','
-			<< total << ','
-			<< i.second.size << ','
-			<< tcp_bytes << ','
-			<< udp_bytes << ','
-			<< bytes
+		uint total_count = stat.tcpCount + stat.udpCount;
+		uint tcp_bytes = stat.size * stat.tcpCount;
+		uint udp_bytes = stat.size * stat.udpCount;
+		uint bytes = (type_overhead + stat.size) * total_count;
+
+		file << (ushort)i.first << " - " << MessageID_string.at(i.first) << ',' // Message ID
+			<< stat.tcpCount << ','	// TCP count
+			<< stat.udpCount << ','	// UDP count
+			<< total_count << ','	// Total count
+			<< stat.size << ','		// Size
+			<< tcp_bytes << ','		// TCP size
+			<< udp_bytes << ','		// UDP size
+			<< type_overhead << ','	// Overhead size
+			<< bytes				// Total size
 			<< std::endl;
 	}
 }
 
 
-// Regex magic: ^(.+),(?:(\s*//.+)?)$
-// to: { MessageID::$1, "$1" },
+// Regex magic:	^(.+),(?:(\s*//.+)?)$
+// to:			{ MessageID::$1, "$1" },
 
 const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::None, "None" },

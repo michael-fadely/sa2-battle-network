@@ -26,7 +26,7 @@ public:
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
 	bool Request(const nethax::MessageID type, bool isSafe, bool allowDuplicates = false)
 	{
-		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast, allowDuplicates);
+		return RequestPacket(type, (isSafe) ? tcpPacket : udpPacket, (!isSafe) ? tcpPacket : udpPacket, allowDuplicates);
 	}
 
 	/// <summary>
@@ -34,9 +34,9 @@ public:
 	/// </summary>
 	void Finalize();
 
-	void SendSystem()	{ SendSystem(safe, fast); }
-	void SendPlayer()	{ SendPlayer(safe, fast); }
-	void SendMenu()		{ SendMenu(safe, fast); }
+	void SendSystem()	{ SendSystem(tcpPacket, udpPacket); }
+	void SendPlayer()	{ SendPlayer(tcpPacket, udpPacket); }
+	void SendMenu()		{ SendMenu(tcpPacket, udpPacket); }
 
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(nethax::MessageID id);
@@ -56,6 +56,14 @@ private:
 	bool netStat;
 	std::map<nethax::MessageID, nethax::MessageStat> sendStats;
 	std::map<nethax::MessageID, nethax::MessageStat> recvStats;
+	size_t received_packets, received_bytes;
+	size_t sent_packets, sent_bytes;
+
+	static void addType(nethax::MessageStat& stat, nethax::MessageID id, ushort size, bool isSafe);
+	void addTypeReceived(nethax::MessageID id, ushort length, bool isSafe);
+	void addTypeSent(nethax::MessageID id, ushort length, bool isSafe);
+	void addBytesReceived(size_t size);
+	void addBytesSent(size_t size);
 
 	// Requests that the packet type packetType is added to packetAddTo if it is not present in packetIsIn
 	bool RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates = false);
@@ -66,14 +74,14 @@ private:
 	// Adds the packet template for packetType to packet
 	bool AddPacket(const nethax::MessageID packetType, PacketEx& packet);
 
-	void Receive(sf::Packet& packet, const bool safe);
+	void Receive(sf::Packet& packet, const bool isSafe);
 
 	// Read and send System variables
-	void SendSystem(PacketEx& safe, PacketEx& fast);
+	void SendSystem(PacketEx& tcp, PacketEx& udp);
 	// Read and send Player varaibles
-	void SendPlayer(PacketEx& safe, PacketEx& fast);
+	void SendPlayer(PacketEx& tcp, PacketEx& udp);
 	// Read and send Menu variables
-	void SendMenu(PacketEx& safe, PacketEx& fast);
+	void SendMenu(PacketEx& tcp, PacketEx& udp);
 
 	bool ReceiveInput(const nethax::MessageID type, sf::Packet& packet);
 	bool ReceiveSystem(const nethax::MessageID type, sf::Packet& packet);
@@ -85,7 +93,7 @@ private:
 	void writeSpecials() const;
 	void writeTimeStop() const;
 
-	PacketEx safe, fast;
+	PacketEx tcpPacket, udpPacket;
 	PlayerObject recvPlayer, sendPlayer;
 
 	// Used for comparison to determine what to send.

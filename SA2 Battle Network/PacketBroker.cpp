@@ -78,7 +78,7 @@ static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status
 
 #pragma endregion
 
-PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(false), safe(true), fast(false)
+PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(false), tcpPacket(true), udpPacket(false)
 {
 	Initialize();
 }
@@ -104,6 +104,11 @@ void PacketBroker::Initialize()
 	{
 		sendStats.clear();
 		recvStats.clear();
+
+		received_packets = 0;
+		received_bytes = 0;
+		sent_packets = 0;
+		sent_bytes = 0;
 	}
 }
 
@@ -120,11 +125,11 @@ void PacketBroker::ReceiveLoop()
 	PostReceive();
 }
 
-void PacketBroker::Receive(sf::Packet& packet, const bool safe)
+void PacketBroker::Receive(sf::Packet& packet, const bool isSafe)
 {
 	using namespace sf;
 
-	if (safe)
+	if (isSafe)
 	{
 		if (Globals::Networking->receiveSafe(packet) != Socket::Status::Done)
 			return;
@@ -153,6 +158,9 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 	}
 
 	//MessageID lastType = MessageID::None;
+
+	if (netStat)
+		addBytesReceived(packet.getDataSize());
 
 	while (!packet.endOfPacket())
 	{
@@ -186,12 +194,16 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 			case MessageID::N_Ready:
 			{
 				MessageID waitID; packet >> waitID;
-
 				auto it = WaitRequests.find(waitID);
+
 				if (it != WaitRequests.end())
+				{
 					it->second = true;
+				}
 				else
+				{
 					WaitRequests[waitID] = true;
+				}
 
 				break;
 			}
@@ -212,15 +224,8 @@ void PacketBroker::Receive(sf::Packet& packet, const bool safe)
 				ushort length;
 				packet >> length;
 
-				if (netStat)
-				{
-					MessageStat& stat = recvStats[newType];
-					if (safe)
-						++stat.tcpCount;
-					else
-						++stat.udpCount;
-					stat.size = length;
-				}
+
+				addTypeReceived(newType, length, isSafe);
 
 				if (ReceiveInput(newType, packet) || ReceiveSystem(newType, packet))
 					break;
@@ -315,9 +320,55 @@ void PacketBroker::SaveNetStat() const
 
 	ofstream netstat_sent("netstat.sent.csv");
 	WriteNetStatCSV(netstat_sent, sendStats);
+	netstat_sent << "Total packets/bytes (including overhead): " << sent_packets << '/' << sent_bytes + 4 * sent_packets << endl;
 
 	ofstream netstat_recv("netstat.recv.csv");
 	WriteNetStatCSV(netstat_recv, recvStats);
+	netstat_recv << "Total packets/bytes (including overhead): " << received_packets << '/' << received_bytes + 4 * received_packets << endl;
+}
+
+inline void PacketBroker::addType(nethax::MessageStat& stat, nethax::MessageID id, ushort size, bool isSafe)
+{
+	if (isSafe)
+	{
+		++stat.tcpCount;
+	}
+	else
+	{
+		++stat.udpCount;
+	}
+
+	stat.size = size;
+}
+
+void PacketBroker::addTypeReceived(nethax::MessageID id, ushort size, bool isSafe)
+{
+	if (netStat)
+		addType(recvStats[id], id, size, isSafe);
+}
+
+void PacketBroker::addTypeSent(nethax::MessageID id, ushort size, bool isSafe)
+{
+	if (netStat)
+		addType(sendStats[id], id, size, isSafe);
+}
+
+void PacketBroker::addBytesReceived(size_t size)
+{
+	if (size)
+	{
+		++received_packets;
+		received_bytes += size;
+	}
+}
+
+void PacketBroker::addBytesSent(size_t size)
+{
+	if (size)
+	{
+		++sent_packets;
+		sent_bytes += size;
+	}
 }
 
 bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates)
@@ -337,18 +388,24 @@ bool PacketBroker::RequestPacket(const nethax::MessageID packetType, PacketEx& p
 
 void PacketBroker::Finalize()
 {
-	Globals::Networking->Send(safe);
-	Globals::Networking->Send(fast);
-	safe.Clear();
-	fast.Clear();
+	if (netStat)
+	{
+		addBytesSent(tcpPacket.getDataSize());
+		addBytesSent(udpPacket.getDataSize());
+	}
+
+	Globals::Networking->Send(tcpPacket);
+	Globals::Networking->Send(udpPacket);
+	tcpPacket.Clear();
+	udpPacket.Clear();
 }
 
 #pragma region Send
 
-void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
+void PacketBroker::SendSystem(PacketEx& tcp, PacketEx& udp)
 {
 	if (Duration(sentKeepalive) >= 1000)
-		RequestPacket(MessageID::S_KeepAlive, fast);
+		RequestPacket(MessageID::S_KeepAlive, udp);
 
 	if (GameState > GameState::LoadFinished && TwoPlayerMode > 0)
 	{
@@ -364,22 +421,22 @@ void PacketBroker::SendSystem(PacketEx& safe, PacketEx& fast)
 		}
 
 		if (local.system.GameState != GameState)
-			RequestPacket(MessageID::S_GameState, safe, fast);
+			RequestPacket(MessageID::S_GameState, tcp, udp);
 
 		if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
-			RequestPacket(MessageID::S_PauseSelection, safe, fast);
+			RequestPacket(MessageID::S_PauseSelection, tcp, udp);
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
-			RequestPacket(MessageID::S_Time, fast, safe);
+			RequestPacket(MessageID::S_Time, udp, tcp);
 
 		if (local.game.TimeStopped != TimeStopped)
-			RequestPacket(MessageID::S_TimeStop, safe, fast);
+			RequestPacket(MessageID::S_TimeStop, tcp, udp);
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
-			RequestPacket(MessageID::S_2PSpecials, safe, fast);
+			RequestPacket(MessageID::S_2PSpecials, tcp, udp);
 	}
 }
-void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
+void PacketBroker::SendPlayer(PacketEx& tcp, PacketEx& udp)
 {
 	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
 	{
@@ -394,31 +451,31 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 				Player1->Data1->Rotation = recvPlayer.Data1.Rotation;
 				Player1->Data2->Speed = {};
 
-				RequestPacket(MessageID::P_Position, safe, fast);
-				RequestPacket(MessageID::P_Speed, safe, fast);
+				RequestPacket(MessageID::P_Position, tcp, udp);
+				RequestPacket(MessageID::P_Speed, tcp, udp);
 			}
 		}
 
 		if (PositionThreshold(sendPlayer.Data1.Position, Player1->Data1->Position))
-			RequestPacket(MessageID::P_Position, fast, safe);
+			RequestPacket(MessageID::P_Position, udp, tcp);
 
 		// TODO: Make less spammy
 		if (sendSpinTimer && sendPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
-			RequestPacket(MessageID::P_SpinTimer, safe, fast);
+			RequestPacket(MessageID::P_SpinTimer, tcp, udp);
 
 		if (Player1->Data1->Status & Status_DoNextAction && Player1->Data1->NextAction != sendPlayer.Data1.NextAction)
-			RequestPacket(MessageID::P_NextAction, safe, fast);
+			RequestPacket(MessageID::P_NextAction, tcp, udp);
 
 		if (sendPlayer.Data1.Action != Player1->Data1->Action || (sendPlayer.Data1.Status & status_mask) != (Player1->Data1->Status & status_mask))
 		{
-			RequestPacket(MessageID::P_Action, safe, fast);
-			RequestPacket(MessageID::P_Status, safe, fast);
+			RequestPacket(MessageID::P_Action, tcp, udp);
+			RequestPacket(MessageID::P_Status, tcp, udp);
 
-			RequestPacket(MessageID::P_Animation, safe, fast);
-			RequestPacket(MessageID::P_Position, safe, fast);
+			RequestPacket(MessageID::P_Animation, tcp, udp);
+			RequestPacket(MessageID::P_Position, tcp, udp);
 
 			if (sendSpinTimer)
-				RequestPacket(MessageID::P_SpinTimer, safe, fast);
+				RequestPacket(MessageID::P_SpinTimer, tcp, udp);
 		}
 
 		if (Player1->Data1->Action != 18)
@@ -427,31 +484,31 @@ void PacketBroker::SendPlayer(PacketEx& safe, PacketEx& fast)
 				|| (SpeedThreshold(sendPlayer.Data2.Speed, Player1->Data2->Speed))
 				|| sendPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 			{
-				RequestPacket(MessageID::P_Rotation, fast, safe);
-				RequestPacket(MessageID::P_Position, fast, safe);
-				RequestPacket(MessageID::P_Speed, fast, safe);
+				RequestPacket(MessageID::P_Rotation, udp, tcp);
+				RequestPacket(MessageID::P_Position, udp, tcp);
+				RequestPacket(MessageID::P_Speed, udp, tcp);
 			}
 		}
 
 		if (memcmp(&sendPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
-			RequestPacket(MessageID::P_Scale, safe, fast);
+			RequestPacket(MessageID::P_Scale, tcp, udp);
 
 		if (sendPlayer.Data2.Powerups != Player1->Data2->Powerups)
-			RequestPacket(MessageID::P_Powerups, safe, fast);
+			RequestPacket(MessageID::P_Powerups, tcp, udp);
 
 		if (sendPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
-			RequestPacket(MessageID::P_Upgrades, safe, fast);
+			RequestPacket(MessageID::P_Upgrades, tcp, udp);
 
 		sendPlayer.Copy(Player1);
 	}
 }
-void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
+void PacketBroker::SendMenu(PacketEx& tcp, PacketEx& udp)
 {
 	if (GameState == GameState::Inactive && CurrentMenu[0] == Menu::BATTLE)
 	{
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
-			RequestPacket(MessageID::S_BattleOptions, safe);
+			RequestPacket(MessageID::S_BattleOptions, tcp);
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
@@ -466,12 +523,12 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 			case SubMenu2P::S_READY:
 			case SubMenu2P::O_READY:
 				if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
-					RequestPacket(MessageID::S_2PReady, safe);
+					RequestPacket(MessageID::S_2PReady, tcp);
 				break;
 
 			case SubMenu2P::S_BATTLEMODE:
 				if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
-					RequestPacket(MessageID::M_BattleSelection, safe);
+					RequestPacket(MessageID::M_BattleSelection, tcp);
 
 				break;
 
@@ -488,9 +545,9 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 				}
 
 				if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
-					RequestPacket(MessageID::M_CharacterSelection, safe);
+					RequestPacket(MessageID::M_CharacterSelection, tcp);
 				if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
-					RequestPacket(MessageID::M_CharacterChosen, safe);
+					RequestPacket(MessageID::M_CharacterChosen, tcp);
 
 				// I hate this so much
 				if (firstMenuEntry || (local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume)
@@ -500,7 +557,7 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 					|| (local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume)
 					|| (local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume))
 				{
-					RequestPacket(MessageID::M_CostumeSelection, safe);
+					RequestPacket(MessageID::M_CostumeSelection, tcp);
 				}
 
 				break;
@@ -510,13 +567,13 @@ void PacketBroker::SendMenu(PacketEx& safe, PacketEx& fast)
 					|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
 					|| local.menu.BattleOptionsButton != BattleOptionsButton)
 				{
-					RequestPacket(MessageID::M_StageSelection, safe);
+					RequestPacket(MessageID::M_StageSelection, tcp);
 				}
 				break;
 
 			case SubMenu2P::S_BATTLEOPT:
 				if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
-					RequestPacket(MessageID::M_BattleConfigSelection, safe);
+					RequestPacket(MessageID::M_BattleConfigSelection, tcp);
 
 				break;
 		}
@@ -748,15 +805,7 @@ bool PacketBroker::AddPacket(const nethax::MessageID packetType, PacketEx& packe
 	packet << static_cast<ushort>(out.getDataSize());
 	packet.append(out.getData(), out.getDataSize());
 
-	if (netStat)
-	{
-		MessageStat& stat = sendStats[packetType];
-		if (packet.isSafe)
-			++stat.tcpCount;
-		else
-			++stat.udpCount;
-		stat.size = (ushort)out.getDataSize();
-	}
+	addTypeSent(packetType, (ushort)out.getDataSize(), packet.isSafe);
 
 	return true;
 }
