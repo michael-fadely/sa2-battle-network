@@ -31,7 +31,7 @@ void nethax::WriteNetStatCSV(std::ofstream& file, std::map<MessageID, MessageSta
 }
 
 
-// Regex magic: ^(.+),*$
+// Regex magic: ^(.+),(?:(\s*//.+)?)$
 // to: { MessageID::$1, "$1" },
 
 const std::map<MessageID, const char*> nethax::MessageID_string = {
@@ -45,7 +45,6 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::N_Bind, "N_Bind" },
 	{ MessageID::N_Password, "N_Password" },
 	{ MessageID::N_PasswordMismatch, "N_PasswordMismatch" },
-
 	{ MessageID::N_Settings, "N_Settings" },
 	{ MessageID::N_Connected, "N_Connected" },
 	{ MessageID::N_Ready, "N_Ready" },
@@ -61,7 +60,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::I_END, "I_END" },
 	{ MessageID::M_START, "M_START" },
 
-	{ MessageID::M_CostumeSelection, "M_AltCharacter" },
+	{ MessageID::M_CostumeSelection, "M_CostumeSelection" },
 	{ MessageID::M_BattleSelection, "M_BattleSelection" },
 	{ MessageID::M_BattleConfigSelection, "M_BattleConfigSelection" },
 	{ MessageID::M_CharacterChosen, "M_CharacterChosen" },
@@ -71,21 +70,19 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::M_END, "M_END" },
 	{ MessageID::P_START, "P_START" },
 
-
 	{ MessageID::P_Action, "P_Action" },
 	{ MessageID::P_NextAction, "P_NextAction" },
 	{ MessageID::P_Status, "P_Status" },
 	{ MessageID::P_Rotation, "P_Rotation" },
 	{ MessageID::P_Position, "P_Position" },
 	{ MessageID::P_Scale, "P_Scale" },
-
 	{ MessageID::P_Powerups, "P_Powerups" },
 	{ MessageID::P_Upgrades, "P_Upgrades" },
 	{ MessageID::P_HP, "P_HP" },
 	{ MessageID::P_Speed, "P_Speed" },
 	{ MessageID::P_Animation, "P_Animation" },
-
 	{ MessageID::P_SpinTimer, "P_SpinTimer" },
+	{ MessageID::P_Damage, "P_Damage" },
 	{ MessageID::P_Hurt, "P_Hurt" },
 	{ MessageID::P_Kill, "P_Kill" },
 
@@ -96,6 +93,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::S_KeepAlive, "S_KeepAlive" },
 	{ MessageID::S_Seed, "S_Seed" },
 	{ MessageID::S_Stage, "S_Stage" },
+	{ MessageID::S_NextStage, "S_NextStage" },
 	{ MessageID::S_2PReady, "S_2PReady" },
 	{ MessageID::S_2PSpecials, "S_2PSpecials" },
 	{ MessageID::S_BattleOptions, "S_BattleOptions" },
