@@ -26,7 +26,7 @@ public:
 	/// <returns>true if added to the outbound packets, false on failure (e.g already in outbound packets).</returns>
 	bool Request(const nethax::MessageID type, bool isSafe, bool allowDuplicates = false)
 	{
-		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast);
+		return RequestPacket(type, (isSafe) ? safe : fast, (!isSafe) ? safe : fast, allowDuplicates);
 	}
 
 	/// <summary>
