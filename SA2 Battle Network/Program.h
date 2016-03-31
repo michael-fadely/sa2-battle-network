@@ -3,7 +3,6 @@
 #include <string>
 #include "PacketHandler.h"
 
-// TODO: Reconsider the necessity for this class.
 class Program
 {
 public:
@@ -62,7 +61,7 @@ private:
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
-	void ApplySettings(bool apply) const;
-	ConnectStatus StartServer();
-	ConnectStatus StartClient();
+	void applySettings(bool apply) const;
+	ConnectStatus startServer();
+	ConnectStatus startClient();
 };

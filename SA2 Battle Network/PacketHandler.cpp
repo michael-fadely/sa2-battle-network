@@ -24,7 +24,7 @@ sf::Socket::Status PacketHandler::Listen(const ushort port, const bool block)
 	if (!bound)
 	{
 		// First and foremost, we should bind the UDP socket.
-		Bind(port, true);
+		bindPort(port, true);
 
 		// If blocking is enabled, listen until a connection is established.
 		do
@@ -75,7 +75,7 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, const ushort port, c
 		// We're going to need its local port to send to the server.
 		if (!bound)
 		{
-			Bind(port, false);
+			bindPort(port, false);
 			bound = true;
 		}
 
@@ -114,7 +114,7 @@ void PacketHandler::Disconnect()
 	bound = false;
 	connected = false;
 }
-sf::Socket::Status PacketHandler::Bind(const ushort port, const bool isServer)
+sf::Socket::Status PacketHandler::bindPort(const ushort port, const bool isServer)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -128,16 +128,16 @@ sf::Socket::Status PacketHandler::Bind(const ushort port, const bool isServer)
 	return result;
 }
 
-sf::Socket::Status PacketHandler::Connect(RemoteAddress address, const bool block)
+sf::Socket::Status PacketHandler::Connect(RemoteAddress remoteAddress, const bool block)
 {
-	return Connect(address.ip, address.port, block);
+	return Connect(remoteAddress.ip, remoteAddress.port, block);
 }
 
 /// <summary>
 /// Sets the remote port for the UDP socket.
 /// </summary>
 /// <param name="port">The port.</param>
-void PacketHandler::setRemotePort(ushort port)
+void PacketHandler::SetRemotePort(ushort port)
 {
 	Address.port = port;
 }
@@ -145,16 +145,16 @@ void PacketHandler::setRemotePort(ushort port)
 sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
 	if (!packet.isEmpty())
-		return packet.isSafe ? sendSafe(packet) : sendFast(packet);
+		return packet.isSafe ? SendSafe(packet) : SendFast(packet);
 
 	return sf::Socket::Status::NotReady;
 }
 sf::Socket::Status PacketHandler::Receive(PacketEx& packet, RemoteAddress& remoteAddress, const bool block)
 {
-	return packet.isSafe ? receiveSafe(packet, block) : receiveFast(packet, remoteAddress, block);
+	return packet.isSafe ? ReceiveSafe(packet, block) : ReceiveFast(packet, remoteAddress, block);
 }
 
-sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
+sf::Socket::Status PacketHandler::SendSafe(sf::Packet& packet)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -173,7 +173,7 @@ sf::Socket::Status PacketHandler::sendSafe(sf::Packet& packet)
 
 	return result;
 }
-sf::Socket::Status PacketHandler::receiveSafe(sf::Packet& packet, const bool block)
+sf::Socket::Status PacketHandler::ReceiveSafe(sf::Packet& packet, const bool block)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -192,7 +192,7 @@ sf::Socket::Status PacketHandler::receiveSafe(sf::Packet& packet, const bool blo
 
 	return result;
 }
-sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
+sf::Socket::Status PacketHandler::SendFast(sf::Packet& packet)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -211,7 +211,7 @@ sf::Socket::Status PacketHandler::sendFast(sf::Packet& packet)
 
 	return result;
 }
-sf::Socket::Status PacketHandler::receiveFast(sf::Packet& packet, RemoteAddress& remoteAddress, const bool block)
+sf::Socket::Status PacketHandler::ReceiveFast(sf::Packet& packet, RemoteAddress& remoteAddress, const bool block)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 

@@ -8,16 +8,16 @@
 
 ushort PacketEx::sequence = 1;
 
-PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), empty(true), MessageTypes(nullptr)
+PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), empty(true), messageTypes(nullptr)
 {
-	Initialize();
+	initialize();
 }
 PacketEx::~PacketEx()
 {
-	delete[] MessageTypes;
+	delete[] messageTypes;
 }
 
-void PacketEx::Initialize()
+void PacketEx::initialize()
 {
 	if (!isSafe)
 	{
@@ -33,18 +33,18 @@ void PacketEx::Initialize()
 	empty = true;
 	messageCount = 0;
 
-	if (MessageTypes != nullptr)
-		delete[] MessageTypes;
+	if (messageTypes != nullptr)
+		delete[] messageTypes;
 
-	MessageTypes = new bool[(int)nethax::MessageID::Count]();
+	messageTypes = new bool[(int)nethax::MessageID::Count]();
 }
 
 bool PacketEx::isInPacket(const nethax::MessageID type) const
 {
-	return MessageTypes[(int)type];
+	return messageTypes[(int)type];
 }
 
-bool PacketEx::addType(const nethax::MessageID type, bool allowDuplicates)
+bool PacketEx::AddType(const nethax::MessageID type, bool allowDuplicates)
 {
 	if (!allowDuplicates && isInPacket(type))
 		return false;
@@ -52,5 +52,5 @@ bool PacketEx::addType(const nethax::MessageID type, bool allowDuplicates)
 	empty = false;
 	*this << type;
 	messageCount++;
-	return MessageTypes[(int)type] = true;
+	return messageTypes[(int)type] = true;
 }

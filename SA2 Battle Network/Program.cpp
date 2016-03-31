@@ -78,7 +78,7 @@ bool Program::Connect()
 		setMusic = true;
 	}
 
-	ConnectStatus result = (isServer) ? StartServer() : StartClient();
+	ConnectStatus result = (isServer) ? startServer() : startClient();
 
 	if (result != ConnectStatus::Success)
 	{
@@ -93,7 +93,7 @@ bool Program::Connect()
 		Globals::Broker->ToggleNetStat(localSettings.netStat);
 		Globals::Broker->SetConnectTime();
 
-		ApplySettings(true);
+		applySettings(true);
 		P2Start = 2;
 		FrameCount = 0;
 	}
@@ -108,7 +108,7 @@ void Program::Disconnect()
 	PrintDebug("<> Disconnecting...");
 	Globals::Networking->Disconnect();
 
-	ApplySettings(false);
+	applySettings(false);
 
 	if (!isServer)
 		ApplySettings(localSettings);
@@ -132,7 +132,7 @@ void Program::ApplySettings(const Settings& settings)
 	}
 }
 
-void Program::ApplySettings(bool apply) const
+void Program::applySettings(bool apply) const
 {
 	if (!isServer)
 		ApplySettings(remoteSettings);
@@ -144,7 +144,7 @@ void Program::ApplySettings(bool apply) const
 	MemManage::swapCharsel(apply);
 }
 
-Program::ConnectStatus Program::StartServer()
+Program::ConnectStatus Program::startServer()
 {
 	sf::Packet packet;
 	sf::Socket::Status status = sf::Socket::Status::Error;
@@ -160,7 +160,7 @@ Program::ConnectStatus Program::StartServer()
 		return ConnectStatus::Listening;
 	}
 
-	if ((status = Globals::Networking->receiveSafe(packet, true)) != sf::Socket::Done)
+	if ((status = Globals::Networking->ReceiveSafe(packet, true)) != sf::Socket::Done)
 	{
 		PrintDebug(">> An error occurred while waiting for version number.");
 		return ConnectStatus::Error;
@@ -191,7 +191,7 @@ Program::ConnectStatus Program::StartServer()
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
 					packet << MessageID::N_VersionMismatch << versionNum;
-					Globals::Networking->sendSafe(packet);
+					Globals::Networking->SendSafe(packet);
 
 					return ConnectStatus::Error;
 				}
@@ -235,7 +235,7 @@ Program::ConnectStatus Program::StartServer()
 	{
 		packet.clear();
 		packet << MessageID::N_PasswordMismatch;
-		Globals::Networking->sendSafe(packet);
+		Globals::Networking->SendSafe(packet);
 		return ConnectStatus::Error;
 	}
 
@@ -248,7 +248,7 @@ Program::ConnectStatus Program::StartServer()
 	packet.clear();
 	packet << MessageID::N_VersionOK;
 
-	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
+	if ((status = Globals::Networking->SendSafe(packet)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
 		return ConnectStatus::Error;
@@ -257,7 +257,7 @@ Program::ConnectStatus Program::StartServer()
 	packet.clear();
 	packet << MessageID::N_Settings << localSettings << MessageID::N_Connected;
 
-	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Status::Done)
+	if ((status = Globals::Networking->SendSafe(packet)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
 		return ConnectStatus::Error;
@@ -267,7 +267,7 @@ Program::ConnectStatus Program::StartServer()
 	return ConnectStatus::Success;
 }
 
-Program::ConnectStatus Program::StartClient()
+Program::ConnectStatus Program::startClient()
 {
 	sf::Packet packet;
 	sf::Socket::Status status = sf::Socket::Status::Error;
@@ -290,9 +290,9 @@ Program::ConnectStatus Program::StartClient()
 		packet << MessageID::N_Password << localSettings.password;
 	}
 
-	packet << MessageID::N_Bind << Globals::Networking->getLocalPort();
+	packet << MessageID::N_Bind << Globals::Networking->GetLocalPort();
 
-	if ((status = Globals::Networking->sendSafe(packet)) != sf::Socket::Done)
+	if ((status = Globals::Networking->SendSafe(packet)) != sf::Socket::Done)
 	{
 		PrintDebug("<< An error occurred while sending the version number!");
 		return ConnectStatus::Error;
@@ -304,7 +304,7 @@ Program::ConnectStatus Program::StartClient()
 	MessageID id = MessageID::None;
 	do
 	{
-		if ((status = Globals::Networking->receiveSafe(packet, true)) != sf::Socket::Done)
+		if ((status = Globals::Networking->ReceiveSafe(packet, true)) != sf::Socket::Done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
 			return ConnectStatus::Error;

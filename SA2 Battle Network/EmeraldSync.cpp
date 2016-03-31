@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-#include <SA2ModLoader.h>
-#include "Globals.h"
 #include <Trampoline.h>
 #include "FrameSync.h"
 
