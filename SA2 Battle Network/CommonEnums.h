@@ -2,7 +2,7 @@
 
 struct GameState
 {
-	enum GameStates : unsigned char
+	enum GameStates : short
 	{
 		Inactive,
 		Loading,
