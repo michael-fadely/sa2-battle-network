@@ -53,8 +53,6 @@ struct MemStruct
 		// Ingame time.
 		// First index is minutes, followed by seconds and centiseconds.
 		int8 TimerMinutes, TimerSeconds, TimerFrames;
-		// Current stage.
-		int16 CurrentLevel;
 
 		int8 P1SpecialAttacks[3];
 		int8 P2SpecialAttacks[3];

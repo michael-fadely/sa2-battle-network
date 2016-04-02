@@ -106,10 +106,6 @@ private:
 	// Set in ReceivePlayer to true upon receival of a valid player message.
 	bool writePlayer;
 
-	// Set in SendSystem on level change to true if playing a relevant character.
-	// (Sonic, Shadow, Amy, Metalsonic)
-	bool sendSpinTimer;
-
 	bool timedOut;
 	uint sentKeepalive, receivedKeepalive;
 	ushort lastSequence;

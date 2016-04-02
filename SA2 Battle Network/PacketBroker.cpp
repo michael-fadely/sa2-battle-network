@@ -93,7 +93,6 @@ void PacketBroker::Initialize()
 	firstMenuEntry	= false;
 	wroteP2Start	= false;
 	writePlayer		= false;
-	sendSpinTimer	= false;
 	timedOut		= false;
 
 	receivedKeepalive = sentKeepalive = 0;
@@ -409,17 +408,6 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 
 	if (GameState > GameState::LoadFinished && TwoPlayerMode > 0)
 	{
-		// TODO: Remove local CurrentLevel
-		if (local.game.CurrentLevel != CurrentLevel)
-		{
-			sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
-				|| Player1->Data2->CharID2 == Characters_Shadow
-				|| Player1->Data2->CharID2 == Characters_Amy
-				|| Player1->Data2->CharID2 == Characters_MetalSonic);
-
-			local.game.CurrentLevel = CurrentLevel;
-		}
-
 		if (local.system.GameState != GameState)
 			requestPacket(MessageID::S_GameState, tcp, udp);
 
@@ -455,6 +443,11 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 				requestPacket(MessageID::P_Speed, tcp, udp);
 			}
 		}
+
+		bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
+			|| Player1->Data2->CharID2 == Characters_Shadow
+			|| Player1->Data2->CharID2 == Characters_Amy
+			|| Player1->Data2->CharID2 == Characters_MetalSonic);
 
 		if (PositionThreshold(outPlayer.Data1.Position, Player1->Data1->Position))
 			requestPacket(MessageID::P_Position, udp, tcp);
