@@ -33,7 +33,7 @@ public:
 	// Listens for incoming connections and accepts them.
 	// This should be used by the server, not the client.
 	// Blocks the calling thread if the parameter block is true.
-	sf::Socket::Status Listen(const ushort port = 27015, const bool block = true);
+	sf::Socket::Status Listen(const ushort port, const bool block = true);
 	// Connects to the address and port in address.
 	// This should be used by the client, not the server.
 	// Blocks the calling thread if the parameter block is true.
