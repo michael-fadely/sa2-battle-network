@@ -225,7 +225,7 @@ Program::ConnectStatus Program::startServer()
 			case MessageID::N_Bind:
 			{
 				packet >> remotePort;
-				Globals::Networking->setRemotePort(remotePort);
+				Globals::Networking->SetRemotePort(remotePort);
 				break;
 			}
 		}
