@@ -406,7 +406,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 	if (Duration(sentKeepalive) >= 1000)
 		requestPacket(MessageID::S_KeepAlive, udp);
 
-	if (GameState > GameState::LoadFinished && TwoPlayerMode > 0)
+	if (GameState > GameState::LoadFinished && !Pose2PStart_Player && TwoPlayerMode > 0)
 	{
 		if (local.system.GameState != GameState)
 			requestPacket(MessageID::S_GameState, tcp, udp);
@@ -426,7 +426,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 }
 void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 {
-	if (GameState >= GameState::LoadFinished && CurrentMenu[0] >= Menu::BATTLE)
+	if (GameState > GameState::LoadFinished && !Pose2PStart_Player && CurrentMenu[0] >= Menu::BATTLE)
 	{
 		if (Globals::Program->InstanceSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
@@ -860,7 +860,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 			return true;
 	}
 
-	if (GameState >= GameState::LoadFinished)
+	if (GameState > GameState::LoadFinished && !Pose2PStart_Player)
 	{
 		switch (type)
 		{
@@ -921,7 +921,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 }
 bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packet)
 {
-	if (GameState >= GameState::LoadFinished)
+	if (GameState > GameState::LoadFinished && !Pose2PStart_Player)
 	{
 		writePlayer = (type > MessageID::P_START && type < MessageID::P_END);
 

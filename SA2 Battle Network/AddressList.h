@@ -8,6 +8,7 @@
 // Gameplay
 DataPointer(char,	TimeStopped,			0x0174AFF7);
 DataArray(char,		SpecialActivateTimer,	0x0174AFF3, 2);
+DataPointer(char,	Pose2PStart_Player,		0x0174B009);
 
 // System
 DataPointer(uchar,	PlayerPaused,		0x0174AFD7);
