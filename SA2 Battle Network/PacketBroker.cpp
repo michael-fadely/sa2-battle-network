@@ -74,8 +74,7 @@ static bool SpeedThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 
 static bool roundStarted()
 {
-	return GameState > GameState::LoadFinished && TwoPlayerMode
-		&& !Pose2PStart_PlayerNum && Pose2PStart_Frames < 0 && !Pose2PStart_Frames_SkyRailMetalHarbor;
+	return GameState > GameState::LoadFinished && TwoPlayerMode && !Pose2PStart_PlayerNum;
 }
 
 // TODO: Exclude potentially problematic status bits (i.e DoNextAction, OnPath)

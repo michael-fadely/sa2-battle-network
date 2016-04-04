@@ -10,6 +10,7 @@ DataPointer(char, TimeStopped, 0x0174AFF7);
 DataArray(char, SpecialActivateTimer, 0x0174AFF3, 2);
 DataPointer(char, Pose2PStart_PlayerNum, 0x0174B009);
 DataPointer(int, Pose2PStart_Frames_SkyRailMetalHarbor, 0x01DE95C0);
+DataPointer(char, Pose2PStart_PlayerNum_dupe, 0x01DE95C4);
 DataPointer(int, Pose2PStart_Frames, 0x01DE95C8);
 
 // System
