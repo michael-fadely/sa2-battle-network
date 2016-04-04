@@ -69,9 +69,6 @@
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="BAMS.h">
-      <Filter>Header Files\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>

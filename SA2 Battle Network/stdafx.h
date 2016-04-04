@@ -23,7 +23,6 @@
 #include "AddRings.h"
 #include "AddressList.h"
 #include "AdventurePacketOverloads.h"
-#include "BAMS.h"
 #include "Common.h"
 #include "CommonEnums.h"
 #include "Hash.h"

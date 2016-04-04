@@ -24,7 +24,6 @@
 #include "AdventurePacketOverloads.h"
 
 #include <SA2ModLoader.h>
-#include "BAMS.h"
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 
@@ -46,7 +45,7 @@ using namespace nethax;
 // TODO: Consider using the same timer for all three.
 
 static const float	positionThreshold	= 16.0f;
-static const int	rotateThreshold		= toBAMS(11.25);
+static const int	rotateThreshold		= NJM_DEG_ANG(11.25);
 static const float	speedThreshold		= 0.1f;
 
 static uint positionTimer = 0;
