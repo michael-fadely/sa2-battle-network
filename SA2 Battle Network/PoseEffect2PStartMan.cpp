@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <SA2ModLoader.h>
 #include "Globals.h"
 
 void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
