@@ -31,6 +31,7 @@
 #include "AddHP.h"
 #include "HurtPlayer.h"
 #include "Random.h"
+#include "ItemBoxItems.h"
 
 // This Class
 #include "PacketBroker.h"
@@ -795,6 +796,18 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 			out << NextLevel;
 			break;
 
+		case MessageID::S_NBarrier:
+			break;
+
+		case MessageID::S_TBarrier:
+			break;
+
+		case MessageID::S_Speedup:
+			break;
+
+		case MessageID::S_Invincibility:
+			break;
+
 #pragma endregion
 
 	}
@@ -916,6 +929,22 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 				break;
 			}
+
+			case MessageID::S_NBarrier:
+				NBarrier_original.Code(nullptr, 1);
+				break;
+
+			case MessageID::S_TBarrier:
+				TBarrier_original.Code(nullptr, 1);
+				break;
+
+			case MessageID::S_Speedup:
+				Speedup_original.Code(nullptr, 1);
+				break;
+
+			case MessageID::S_Invincibility:
+				Invincibility_original.Code(nullptr, 1);
+				break;
 		}
 
 		return true;

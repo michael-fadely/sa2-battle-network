@@ -88,6 +88,10 @@ namespace nethax
 		S_Rings,
 		S_Time,
 		S_TimeStop,
+		S_NBarrier,
+		S_TBarrier,
+		S_Speedup,
+		S_Invincibility,
 
 		S_END,				// Marker: End of system messages
 		Count

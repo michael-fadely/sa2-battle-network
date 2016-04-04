@@ -129,6 +129,9 @@
     <ClInclude Include="PoseEffect2PStartMan.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="ItemBoxItems.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -210,6 +213,9 @@
       <Filter>Source Files\libmodutils</Filter>
     </ClCompile>
     <ClCompile Include="PoseEffect2PStartMan.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemBoxItems.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

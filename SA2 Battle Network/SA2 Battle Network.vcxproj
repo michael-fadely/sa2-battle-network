@@ -104,6 +104,7 @@
     <ClInclude Include="EmeraldSync.h" />
     <ClInclude Include="FrameSync.h" />
     <ClInclude Include="HurtPlayer.h" />
+    <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="PacketOverloads.h" />
@@ -135,6 +136,7 @@
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="FrameSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
+    <ClCompile Include="ItemBoxItems.cpp" />
     <ClCompile Include="Networking.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
