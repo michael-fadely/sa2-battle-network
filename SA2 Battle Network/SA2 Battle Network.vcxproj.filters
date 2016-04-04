@@ -129,6 +129,9 @@
     <ClInclude Include="..\sa2-mod-loader\libmodutils\Trampoline.h">
       <Filter>Header Files\libmodutils</Filter>
     </ClInclude>
+    <ClInclude Include="PoseEffect2PStartMan.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -208,6 +211,9 @@
     </ClCompile>
     <ClCompile Include="..\sa2-mod-loader\libmodutils\Trampoline.cpp">
       <Filter>Source Files\libmodutils</Filter>
+    </ClCompile>
+    <ClCompile Include="PoseEffect2PStartMan.cpp">
+      <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

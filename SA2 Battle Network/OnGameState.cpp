@@ -11,6 +11,7 @@ void* escape_addr = (void*)0x0043AAEE;
 
 // Note that the name is misleading. This only happens when the gamestate changes to Ingame.
 // TODO: Real OnGameState
+// TODO: Consider removing since PoseEffect2PStartMan is now synchronized
 static void __stdcall OnGameState()
 {
 	using namespace nethax;

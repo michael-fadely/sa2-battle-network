@@ -79,6 +79,7 @@ namespace nethax
 		S_Seed,
 		S_Stage,
 		S_NextStage,
+		S_RoundStart,
 		S_2PReady,
 		S_2PSpecials,
 		S_BattleOptions,

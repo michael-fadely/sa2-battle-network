@@ -73,6 +73,12 @@ static bool SpeedThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 	return (Duration(speedTimer) >= 10000 || abs(CheckDistance(&last, &current)) >= max((speedThreshold * m), speedThreshold));
 }
 
+static bool roundStarted()
+{
+	return GameState > GameState::LoadFinished && TwoPlayerMode
+		&& !Pose2PStart_PlayerNum && Pose2PStart_Frames < 0 && !Pose2PStart_Frames_SkyRailMetalHarbor;
+}
+
 // TODO: Exclude potentially problematic status bits (i.e DoNextAction, OnPath)
 static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status_Unknown2 | Status_Unknown3 | Status_Unknown4 | Status_Unknown5 | Status_Unknown6);
 
@@ -406,7 +412,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 	if (Duration(sentKeepalive) >= 1000)
 		requestPacket(MessageID::S_KeepAlive, udp);
 
-	if (GameState > GameState::LoadFinished && !Pose2PStart_Player && TwoPlayerMode > 0)
+	if (roundStarted())
 	{
 		if (local.system.GameState != GameState)
 			requestPacket(MessageID::S_GameState, tcp, udp);
@@ -426,7 +432,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 }
 void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 {
-	if (GameState > GameState::LoadFinished && !Pose2PStart_Player && CurrentMenu[0] >= Menu::BATTLE)
+	if (roundStarted() && CurrentMenu[0] >= Menu::BATTLE)
 	{
 		if (Globals::Program->InstanceSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
@@ -860,7 +866,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 			return true;
 	}
 
-	if (GameState > GameState::LoadFinished && !Pose2PStart_Player)
+	if (roundStarted())
 	{
 		switch (type)
 		{
@@ -921,7 +927,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 }
 bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packet)
 {
-	if (GameState > GameState::LoadFinished && !Pose2PStart_Player)
+	if (roundStarted())
 	{
 		writePlayer = (type > MessageID::P_START && type < MessageID::P_END);
 

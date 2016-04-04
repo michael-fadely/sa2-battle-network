@@ -11,6 +11,7 @@
 #include "PacketHandler.h"	// for RemoteAddress
 #include "OnGameState.h"
 #include "Hash.h"
+#include "PoseEffect2PStartMan.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
 
@@ -166,4 +167,5 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	Globals::Broker = new PacketBroker(timeout);
 
 	InitOnGameState();
+	InitPoseEffect2PStartMan();
 }
