@@ -1,9 +1,7 @@
 #include "stdafx.h"
-
-#include "AddHP.h"
-
-#include "Globals.h"
 #include <SA2ModLoader.h>
+#include "Globals.h"
+#include "AddHP.h"
 
 using namespace nethax;
 
@@ -30,9 +28,13 @@ void __stdcall AddHP_cpp(int playerNum, float amount)
 		if (playerNum != 0)
 			return;
 
-		// Should this be TCP?
-		DirtyHPHack = amount;
-		Globals::Broker->Request(MessageID::P_HP, true);
+		char charid = MainCharObj2[playerNum]->CharID;
+		if (charid == Characters_MechTails || charid == Characters_MechEggman)
+		{
+			// Should this be TCP?
+			DirtyHPHack = amount;
+			Globals::Broker->Request(MessageID::P_HP, true);
+		}
 	}
 
 	AddHPOriginal(playerNum, amount);
