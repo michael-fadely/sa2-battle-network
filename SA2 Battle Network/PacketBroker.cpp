@@ -1135,9 +1135,8 @@ void PacketBroker::preReceive()
 	// HACK: This entire section
 	if (GameState >= GameState::Ingame && Player2 != nullptr)
 	{
-		// HACK: Upgrade/Powerup failsafe
+		// HACK: Powerup failsafe
 		Player2->Data2->Powerups = inPlayer.Data2.Powerups;
-		Player2->Data2->Upgrades = inPlayer.Data2.Upgrades;
 
 		// HACK: Analog failsafe
 		if (GameState == GameState::Pause && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))
