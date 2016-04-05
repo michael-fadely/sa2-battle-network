@@ -118,15 +118,11 @@ void PacketBroker::Initialize()
 
 void PacketBroker::ReceiveLoop()
 {
-	preReceive();
-
 	sf::Packet packet;
 	receive(packet, true);
 	receive(packet, false);
 
 	timedOut = (Duration(receivedKeepalive) >= ConnectionTimeout);
-
-	postReceive();
 }
 
 void PacketBroker::receive(sf::Packet& packet, const bool isSafe)
@@ -916,7 +912,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 					packet >> local.game.P2SpecialAttacks[i];
 
 				SpecialActivateTimer[1] = 60;
-				writeSpecials();
+				memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
 				break;
 
 			RECEIVED(MessageID::S_Rings);
@@ -1123,27 +1119,6 @@ bool PacketBroker::receiveMenu(const nethax::MessageID type, sf::Packet& packet)
 	}
 
 	return false;
-}
-
-#pragma endregion
-#pragma region Crap
-
-void PacketBroker::preReceive() const
-{
-	writeSpecials();
-
-	// HACK: Powerup failsafe
-	if (GameState >= GameState::Ingame && Player2 != nullptr)
-		Player2->Data2->Powerups = inPlayer.Data2.Powerups;
-}
-void PacketBroker::postReceive() const
-{
-	writeSpecials();
-}
-
-inline void PacketBroker::writeSpecials() const
-{
-	memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
 }
 
 #pragma endregion

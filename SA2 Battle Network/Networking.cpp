@@ -99,6 +99,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::S_Seed, "S_Seed" },
 	{ MessageID::S_Stage, "S_Stage" },
 	{ MessageID::S_NextStage, "S_NextStage" },
+	{ MessageID::S_RoundStart, "S_RoundStart" },
 	{ MessageID::S_2PReady, "S_2PReady" },
 	{ MessageID::S_2PSpecials, "S_2PSpecials" },
 	{ MessageID::S_BattleOptions, "S_BattleOptions" },
@@ -107,6 +108,10 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::S_Rings, "S_Rings" },
 	{ MessageID::S_Time, "S_Time" },
 	{ MessageID::S_TimeStop, "S_TimeStop" },
+	{ MessageID::S_NBarrier, "S_NBarrier" },
+	{ MessageID::S_TBarrier, "S_TBarrier" },
+	{ MessageID::S_Speedup, "S_Speedup" },
+	{ MessageID::S_Invincibility, "S_Invincibility" },
 
 	{ MessageID::S_END, "S_END" }
 };
