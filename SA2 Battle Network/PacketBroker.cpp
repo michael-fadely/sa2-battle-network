@@ -908,7 +908,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::S_TimeStop);
 				packet >> local.game.TimeStopped;
-				writeTimeStop();
+				TimeStopped = local.game.TimeStopped;
 				break;
 
 			RECEIVED(MessageID::S_2PSpecials);
@@ -1128,23 +1128,13 @@ bool PacketBroker::receiveMenu(const nethax::MessageID type, sf::Packet& packet)
 #pragma endregion
 #pragma region Crap
 
-void PacketBroker::preReceive()
+void PacketBroker::preReceive() const
 {
 	writeSpecials();
 
-	// HACK: This entire section
+	// HACK: Powerup failsafe
 	if (GameState >= GameState::Ingame && Player2 != nullptr)
-	{
-		// HACK: Powerup failsafe
 		Player2->Data2->Powerups = inPlayer.Data2.Powerups;
-
-		// HACK: Analog failsafe
-		if (GameState == GameState::Pause && (recvInput.LeftStickX != 0 || recvInput.LeftStickY != 0))
-		{
-			recvInput.LeftStickX = 0;
-			recvInput.LeftStickY = 0;
-		}
-	}
 }
 void PacketBroker::postReceive() const
 {
@@ -1154,10 +1144,6 @@ void PacketBroker::postReceive() const
 inline void PacketBroker::writeSpecials() const
 {
 	memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
-}
-inline void PacketBroker::writeTimeStop() const
-{
-	TimeStopped = local.game.TimeStopped;
 }
 
 #pragma endregion

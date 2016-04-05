@@ -88,10 +88,9 @@ private:
 	bool receivePlayer(const nethax::MessageID type, sf::Packet& packet);
 	bool receiveMenu(const nethax::MessageID type, sf::Packet& packet);
 	
-	void preReceive();
+	void preReceive() const;
 	void postReceive() const;
 	void writeSpecials() const;
-	void writeTimeStop() const;
 
 	PacketEx tcpPacket, udpPacket;
 	PlayerObject inPlayer, outPlayer;
