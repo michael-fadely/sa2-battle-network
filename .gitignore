@@ -157,3 +157,5 @@ $RECYCLE.BIN/
 .DS_Store
 
 /stuff
+/SA2 Battle Network.VC.db
+/SFML
