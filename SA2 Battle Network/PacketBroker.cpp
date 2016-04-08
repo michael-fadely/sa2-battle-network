@@ -445,10 +445,12 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		bool sendSpinTimer = (Player1->Data2->CharID2 == Characters_Sonic
-			|| Player1->Data2->CharID2 == Characters_Shadow
-			|| Player1->Data2->CharID2 == Characters_Amy
-			|| Player1->Data2->CharID2 == Characters_MetalSonic);
+		char charid = Player1->Data2->CharID2;
+		bool sendSpinTimer = 
+			charid == Characters_Sonic ||
+			charid == Characters_Shadow ||
+			charid == Characters_Amy ||
+			charid == Characters_MetalSonic;
 
 		if (PositionThreshold(outPlayer.Data1.Position, Player1->Data1->Position))
 			requestPacket(MessageID::P_Position, udp, tcp);
