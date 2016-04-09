@@ -12,6 +12,7 @@
 #include "OnGameState.h"
 #include "PoseEffect2PStartMan.h"
 #include "ItemBoxItems.h"
+#include "CharacterSync.h"
 #include "Hash.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
@@ -170,4 +171,5 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	InitOnGameState();
 	InitPoseEffect2PStartMan();
 	InitItemBoxItems();
+	InitCharacterSync();
 }

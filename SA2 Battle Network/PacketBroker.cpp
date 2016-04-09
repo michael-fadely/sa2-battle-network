@@ -656,6 +656,11 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 			// The reason sendPlayer is not updated here is because it's done in a separate function all at once.
 			// Don't freak out!
 
+		case MessageID::P_Character:
+			out << CurrentCharacter << AltCostume[0] << AltCharacter[0]
+				<< CurrentCharacter2P << AltCostume[1] << AltCharacter[1];
+			break;
+
 		case MessageID::P_Action:
 			out << Player1->Data1->Action;
 			break;
@@ -952,6 +957,17 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 }
 bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packet)
 {
+	switch (type)
+	{
+		RECEIVED(MessageID::P_Character);
+			packet >> CurrentCharacter2P >> AltCostume[1] >> AltCharacter[1]
+				>> CurrentCharacter >> AltCostume[0] >> AltCharacter[0];
+			return true;
+
+		default:
+			break;
+	}
+
 	if (roundStarted())
 	{
 		writePlayer = (type > MessageID::P_START && type < MessageID::P_END);

@@ -52,6 +52,7 @@ namespace nethax
 		M_END,				// Marker: End of menu messages
 		P_START,			// Marker: Start of player messages
 
+		P_Character,
 		// CharObj1
 		P_Action,
 		P_NextAction,

@@ -57,7 +57,8 @@ Program::Program(const Settings& settings, const bool host, PacketHandler::Remot
 
 bool Program::CheckConnectOK()
 {
-	return CurrentMenu[0] >= Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
+	return CurrentMenu[0] >= Menu::BATTLE &&
+		(CurrentMenu[1] > SubMenu2P::I_START || Globals::isConnected());
 }
 
 bool Program::Connect()
