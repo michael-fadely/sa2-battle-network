@@ -791,7 +791,7 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 
 		case MessageID::S_Stage:
 			PrintDebug("<< Sending stage: %d", CurrentLevel);
-			out << CurrentLevel;
+			out << CurrentLevel << Current2PLevelGroup;
 			break;
 
 		case MessageID::S_NextStage:
@@ -861,7 +861,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 			break;
 
 		case MessageID::S_Stage:
-			packet >> CurrentLevel;
+			packet >> CurrentLevel >> Current2PLevelGroup;
 			return true;
 
 		case MessageID::S_NextStage:

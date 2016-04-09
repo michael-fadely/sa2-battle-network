@@ -21,6 +21,7 @@ DataPointer(uint,	FrameCount,			0x0174B038);
 DataPointer(uint,	FrameCountIngame,	(0x0174B038 + 4));
 DataPointer(uint,	FrameIncrement,		0x1DEB50C);
 DataPointer(uchar,	TimerFrames,		0x0174AFDD); // ADDR_TIME + 0x02
+DataPointer(char,	Current2PLevelGroup, 0x0174AFDF);
 DataPointer(short,	NextLevel,			0x01934BEC);
 
 #pragma pack(push, 1)
