@@ -845,6 +845,7 @@ bool PacketBroker::receiveInput(const nethax::MessageID type, sf::Packet& packet
 
 			RECEIVED(MessageID::I_AnalogAngle);
 				packet >> recvAnalog;
+				AnalogThings[1] = recvAnalog;
 				break;
 		}
 

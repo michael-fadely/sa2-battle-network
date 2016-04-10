@@ -100,11 +100,11 @@ extern "C"
 #ifdef _DEBUG
 			PrintDebug("[%04d]\t\tDIR: %d MAG: %d TIMER: %d", FrameCount, dir_delta, mag_delta, (!dir_delta && !mag_delta));
 #endif
-			// TODO: Should it ever be sent via TCP?
 			Broker->Request(MessageID::I_AnalogAngle, false);
 			sendAngle = false;
 		}
 
-		AnalogThings[1] = Broker->recvAnalog;
+		if (Broker->recvInput.LeftStickX != 0 || Broker->recvInput.LeftStickY != 0)
+			AnalogThings[1] = Broker->recvAnalog;
 	}
 }
