@@ -16,10 +16,16 @@ DataArray(ItemBoxItem, ItemBoxItems_B, 0x00B19928, 11);
 DataArray(ItemBoxItem, ItemBoxItems_C, 0x00B493A0, 11);
 DataArray(ItemBoxItem, ItemBoxItems_D, 0x00B4D120, 11);
 
-extern ItemBoxItem Speedup_original;
-extern ItemBoxItem NBarrier_original;
-extern ItemBoxItem TBarrier_original;
-extern ItemBoxItem Invincibility_original;
+namespace nethax
+{
+	namespace events
+	{
+		extern ItemBoxItem Speedup_original;
+		extern ItemBoxItem NBarrier_original;
+		extern ItemBoxItem TBarrier_original;
+		extern ItemBoxItem Invincibility_original;
 
-void InitItemBoxItems();
-void DeinitItemBoxItems();
+		void InitItemBoxItems();
+		void DeinitItemBoxItems();
+	}
+}

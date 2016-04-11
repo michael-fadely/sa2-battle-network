@@ -700,8 +700,8 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::P_HP:
-			PrintDebug("<< HP SEND: %f, %f", Player1->Data2->MechHP, DirtyHPHack);
-			out << Player1->Data2->MechHP << DirtyHPHack;
+			PrintDebug("<< HP SEND: %f, %f", Player1->Data2->MechHP, events::DirtyHPHack);
+			out << Player1->Data2->MechHP << events::DirtyHPHack;
 			break;
 
 		case MessageID::P_Speed:
@@ -736,8 +736,8 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::S_Seed:
-			PrintDebug("<< Sending seed: 0x%08X", current_seed);
-			out << current_seed;
+			PrintDebug("<< Sending seed: 0x%08X", random::current_seed);
+			out << random::current_seed;
 			break;
 
 		case MessageID::S_KeepAlive:
@@ -771,7 +771,7 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 			break;
 
 		case MessageID::S_Rings:
-			out << RingCount[0] << DirtyRingHack;
+			out << RingCount[0] << events::DirtyRingHack;
 			break;
 
 		case MessageID::S_Time:
@@ -875,9 +875,9 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 			return true;
 
 		case MessageID::S_Seed:
-			packet >> current_seed;
-			PrintDebug(">> Received seed: 0x%08X", current_seed);
-			srand_Original(current_seed);
+			packet >> random::current_seed;
+			PrintDebug(">> Received seed: 0x%08X", random::current_seed);
+			random::srand_Original(random::current_seed);
 			return true;
 	}
 
@@ -929,25 +929,25 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 				packet >> RingCount[1] >> diff;
 				PrintDebug(">> RING CHANGE: %d + %d", RingCount[1], diff);
-				AddRingsOriginal(1, diff);
+				events::AddRingsOriginal(1, diff);
 
 				break;
 			}
 
 			case MessageID::S_NBarrier:
-				NBarrier_original.Code(nullptr, 1);
+				events::NBarrier_original.Code(nullptr, 1);
 				break;
 
 			case MessageID::S_TBarrier:
-				TBarrier_original.Code(nullptr, 1);
+				events::TBarrier_original.Code(nullptr, 1);
 				break;
 
 			case MessageID::S_Speedup:
-				Speedup_original.Code(nullptr, 1);
+				events::Speedup_original.Code(nullptr, 1);
 				break;
 
 			case MessageID::S_Invincibility:
-				Invincibility_original.Code(nullptr, 1);
+				events::Invincibility_original.Code(nullptr, 1);
 				break;
 		}
 
@@ -1016,7 +1016,7 @@ bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packe
 				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
 
 				Player2->Data2->MechHP = hp;
-				AddHPOriginal(1, diff);
+				events::AddHPOriginal(1, diff);
 				inPlayer.Data2.MechHP = Player2->Data2->MechHP;
 				break;
 
@@ -1035,20 +1035,20 @@ bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packe
 
 			RECEIVED(MessageID::P_Damage);
 			{
-				do_damage = true;
+				events::do_damage = true;
 				break;
 			}
 
 			RECEIVED(MessageID::P_Hurt);
 			{
-				FunctionPointer(void, target, (int playerNum), HurtPlayerHax.Target());
+				FunctionPointer(void, target, (int playerNum), events::HurtPlayerHax.Target());
 				target(1);
 				break;
 			}
 
 			RECEIVED(MessageID::P_Kill);
 			{
-				KillPlayerOriginal(1);
+				events::KillPlayerOriginal(1);
 				break;
 			}
 		}

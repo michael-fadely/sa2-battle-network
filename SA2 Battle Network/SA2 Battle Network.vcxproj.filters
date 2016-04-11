@@ -111,9 +111,6 @@
     <ClInclude Include="Random.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="EmeraldSync.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
     <ClInclude Include="FrameSync.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>

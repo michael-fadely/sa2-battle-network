@@ -168,8 +168,8 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	Globals::Program = new Program(settings, is_server, address);
 	Globals::Broker = new PacketBroker(timeout);
 
-	InitOnGameState();
-	InitPoseEffect2PStartMan();
-	InitItemBoxItems();
-	InitCharacterSync();
+	events::InitOnGameState();
+	events::InitPoseEffect2PStartMan();
+	events::InitItemBoxItems();
+	events::InitCharacterSync();
 }

@@ -1,3 +1,9 @@
 #pragma once
 
-void InitOnGameState();
+namespace nethax
+{
+	namespace events
+	{
+		void InitOnGameState();
+	}
+}

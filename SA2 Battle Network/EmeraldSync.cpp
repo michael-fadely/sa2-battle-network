@@ -1,9 +1,12 @@
 #include "stdafx.h"
 
+#include <SA2ModLoader.h>
 #include <Trampoline.h>
 #include "FrameSync.h"
 
-#include "EmeraldSync.h"
+void __cdecl sub_7380A0_hook(void* a1);
+void __stdcall sub_739340_hook_c(void* a1);
+void __stdcall sub_7387D0_hook_c(void* a1);
 
 static void __cdecl x_original(void* a1, const Trampoline* t)
 {
@@ -37,9 +40,9 @@ static void __declspec(naked) sub_7387D0_hook_asm()
 	}
 }
 
-static Trampoline sub_739340(0x00739340, 0x0073934A, sub_739340_hook_asm);				// Probably singleplayer
-static Trampoline sub_7387D0(0x007387D0, 0x007387D6, sub_7387D0_hook_asm);				// Definitely multiplayer
-static Trampoline sub_7380A0(0x007380A0, 0x007380A6, (DetourFunction)sub_7380A0_hook);	// Definitely singleplayer
+static Trampoline sub_739340(0x00739340, 0x0073934A, sub_739340_hook_asm);
+static Trampoline sub_7387D0(0x007387D0, 0x007387D6, sub_7387D0_hook_asm);
+static Trampoline sub_7380A0(0x007380A0, 0x007380A6, (DetourFunction)sub_7380A0_hook);
 
 void __stdcall sub_739340_hook_c(void* a1)
 {

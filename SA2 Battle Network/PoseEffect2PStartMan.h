@@ -1,2 +1,8 @@
 #pragma once
-void InitPoseEffect2PStartMan();
+namespace nethax
+{
+	namespace events
+	{
+		void InitPoseEffect2PStartMan();
+	}
+}

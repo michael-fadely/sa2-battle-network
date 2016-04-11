@@ -26,7 +26,6 @@
 #include "CharacterSync.h"
 #include "Common.h"
 #include "CommonEnums.h"
-#include "EmeraldSync.h"
 #include "FrameSync.h"
 #include "Globals.h"
 #include "Hash.h"

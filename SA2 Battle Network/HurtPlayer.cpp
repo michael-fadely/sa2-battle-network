@@ -13,14 +13,14 @@ void __cdecl HurtPlayer_cpp(int playerNum);
 void __stdcall KillPlayer_cpp(int playerNum);
 void KillPlayer_asm();
 
-bool do_damage = false;
-Trampoline DamagePlayerHax(0x00473800, 0x0047380A, (DetourFunction)DamagePlayer_cpp);
-Trampoline HurtPlayerHax((size_t)HurtPlayer, 0x006C1AF6, (DetourFunction)HurtPlayer_cpp);
-Trampoline KillPlayerHax((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
+bool events::do_damage = false;
+Trampoline events::DamagePlayerHax(0x00473800, 0x0047380A, (DetourFunction)DamagePlayer_cpp);
+Trampoline events::HurtPlayerHax((size_t)HurtPlayer, 0x006C1AF6, (DetourFunction)HurtPlayer_cpp);
+Trampoline events::KillPlayerHax((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 {
-	FunctionPointer(Sint32, original, (CharObj1*, CharObj2Base*), DamagePlayerHax.Target());
+	FunctionPointer(Sint32, original, (CharObj1*, CharObj2Base*), events::DamagePlayerHax.Target());
 
 	if (!Globals::isConnected())
 		return original(data1, data2);
@@ -28,16 +28,16 @@ Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	Sint32 result = 0;
 	if (data2->PlayerNum != 0)
 	{
-		if (do_damage)
+		if (events::do_damage)
 		{
 			void* last = HurtPlayerFunc;
-			HurtPlayerFunc = HurtPlayerHax.Target();
+			HurtPlayerFunc = events::HurtPlayerHax.Target();
 
 			data1->Status |= Status_Hurt;
 			result = original(data1, data2);
 
 			HurtPlayerFunc = last;
-			do_damage = false;
+			events::do_damage = false;
 		}
 	}
 	else if ((result = original(data1, data2)) != 0)
@@ -58,7 +58,7 @@ void __cdecl HurtPlayer_cpp(int playerNum)
 		Globals::Broker->Request(MessageID::P_Hurt, true, true);
 	}
 
-	FunctionPointer(void, target, (int), HurtPlayerHax.Target());
+	FunctionPointer(void, target, (int), events::HurtPlayerHax.Target());
 	target(playerNum);
 }
 
@@ -72,7 +72,7 @@ void __stdcall KillPlayer_cpp(int playerNum)
 		Globals::Broker->Request(MessageID::P_Kill, true, true);
 	}
 
-	KillPlayerOriginal(playerNum);
+	events::KillPlayerOriginal(playerNum);
 }
 
 void __declspec(naked) KillPlayer_asm()

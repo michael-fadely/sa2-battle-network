@@ -2,20 +2,26 @@
 
 #include <Trampoline.h>
 
-extern Trampoline DamagePlayerHax;
-extern Trampoline HurtPlayerHax;
-extern Trampoline KillPlayerHax;
-
-extern bool do_damage;
-
-static inline void KillPlayerOriginal(int playerNum)
+namespace nethax
 {
-	void* target = KillPlayerHax.Target();
-	__asm
+	namespace events
 	{
-		push ebx
-		mov ebx, playerNum
-		call target
-		pop ebx
+		extern Trampoline DamagePlayerHax;
+		extern Trampoline HurtPlayerHax;
+		extern Trampoline KillPlayerHax;
+
+		extern bool do_damage;
+
+		static inline void KillPlayerOriginal(int playerNum)
+		{
+			void* target = KillPlayerHax.Target();
+			__asm
+			{
+				push ebx
+				mov ebx, playerNum
+				call target
+				pop ebx
+			}
+		}
 	}
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <SA2ModLoader.h>
+#include "PoseEffect2PStartMan.h"
 #include "Globals.h"
 
 void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
@@ -38,7 +39,7 @@ void __declspec(naked) LoadObjectBypass_asm()
 	}
 }
 
-void InitPoseEffect2PStartMan()
+void nethax::events::InitPoseEffect2PStartMan()
 {
 	WriteCall((void*)0x00477AAA, LoadObjectBypass_asm);
 }

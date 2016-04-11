@@ -5,10 +5,10 @@
 
 using namespace nethax;
 
-ItemBoxItem Speedup_original = {};
-ItemBoxItem NBarrier_original = {};
-ItemBoxItem TBarrier_original = {};
-ItemBoxItem Invincibility_original = {};
+ItemBoxItem events::Speedup_original = {};
+ItemBoxItem events::NBarrier_original = {};
+ItemBoxItem events::TBarrier_original = {};
+ItemBoxItem events::Invincibility_original = {};
 
 inline void do_things(int n, ItemBoxItem* item, void(__cdecl *func)(ObjectMaster *, int))
 {
@@ -35,7 +35,7 @@ void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_NBarrier, true);
 
-	NBarrier_original.Code(obj, n);
+	events::NBarrier_original.Code(obj, n);
 }
 
 void __cdecl Speedup_hax(ObjectMaster* obj, int n)
@@ -46,7 +46,7 @@ void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_Speedup, true);
 
-	Speedup_original.Code(obj, n);
+	events::Speedup_original.Code(obj, n);
 }
 
 void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
@@ -57,7 +57,7 @@ void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_TBarrier, true);
 
-	TBarrier_original.Code(obj, n);
+	events::TBarrier_original.Code(obj, n);
 }
 
 void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
@@ -68,10 +68,10 @@ void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_Invincibility, true);
 
-	Invincibility_original.Code(obj, n);
+	events::Invincibility_original.Code(obj, n);
 }
 
-void InitItemBoxItems()
+void events::InitItemBoxItems()
 {
 	do_things(0, &Speedup_original, Speedup_hax);
 	do_things(5, &NBarrier_original, NBarrier_hax);
@@ -79,7 +79,7 @@ void InitItemBoxItems()
 	do_things(10, &Invincibility_original, Invincibility_hax);
 }
 
-void DeinitItemBoxItems()
+void events::DeinitItemBoxItems()
 {
 	undo_things(0, &Speedup_original);
 	undo_things(5, &NBarrier_original);

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <SA2ModLoader.h>
+#include "CharacterSync.h"
 #include "Globals.h"
 
 FunctionPointer(int, Menu_Battle, (void), 0x0066A1A0);
@@ -30,10 +31,10 @@ int __cdecl Menu_Battle_hook()
 void __cdecl RandomBattle_SetCharacters_hook()
 {
 	RandomBattle_SetCharacters();
-	SetCurrentLevel(CurrentLevel);
+	events::SetCurrentLevel(CurrentLevel);
 }
 
-void InitCharacterSync()
+void events::InitCharacterSync()
 {
 	WriteCall((void*)0x00666325, Menu_Battle_hook);
 	WriteCall((void*)0x0066AA76, RandomBattle_SetCharacters_hook);

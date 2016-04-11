@@ -28,7 +28,7 @@ static void __stdcall OnGameState()
 	Broker->WaitForPlayers(MessageID::S_GameState);
 }
 
-void InitOnGameState()
+void nethax::events::InitOnGameState()
 {
 	// TODO: Make revertable
 	WriteCall(escape_addr, OnGameState);

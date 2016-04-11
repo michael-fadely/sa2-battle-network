@@ -25,8 +25,8 @@ void __declspec(naked) AddRings_asm()
 	}
 }
 
-Trampoline AddRingsHax((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
-int DirtyRingHack = 0;
+Trampoline events::AddRingsHax((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
+int events::DirtyRingHack = 0;
 
 void AddRings_cpp(int8 playerNum, int32 numRings)
 {
@@ -36,11 +36,11 @@ void AddRings_cpp(int8 playerNum, int32 numRings)
 			return;
 
 		// Should this be TCP?
-		DirtyRingHack = numRings;
+		events::DirtyRingHack = numRings;
 		Globals::Broker->Request(MessageID::S_Rings, true);
 	}
 
-	void* target = AddRingsHax.Target();
+	void* target = events::AddRingsHax.Target();
 	__asm
 	{
 		mov al, [playerNum]

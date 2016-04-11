@@ -6,13 +6,14 @@
 
 using namespace nethax;
 
-unsigned int current_seed = 0;
+unsigned int random::current_seed = 0;
 
 //FunctionPointer(void, _srand, (int seed), 0x007A89C6);
 
 void __cdecl hook_srand(unsigned int seed)
 {
 	using namespace Globals;
+	using namespace random;
 
 	current_seed = seed;
 
@@ -44,4 +45,4 @@ void __cdecl hook_srand(unsigned int seed)
 	}
 }
 
-Trampoline srand_t(0x007A89C6, 0x007A89CB, (DetourFunction)hook_srand);
+Trampoline random::srand_t(0x007A89C6, 0x007A89CB, (DetourFunction)hook_srand);

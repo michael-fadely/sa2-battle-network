@@ -1,3 +1,9 @@
 #pragma once
 
-void InitCharacterSync();
+namespace nethax
+{
+	namespace events
+	{
+		void InitCharacterSync();
+	}
+}

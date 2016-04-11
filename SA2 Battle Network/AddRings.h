@@ -2,17 +2,23 @@
 
 #include <Trampoline.h>
 
-extern Trampoline AddRingsHax;
-extern int DirtyRingHack;
-
-static inline void AddRingsOriginal(char playerNum, int numRings)
+namespace nethax
 {
-	void* target = AddRingsHax.Target();
-	__asm
+	namespace events
 	{
-		mov edx, [numRings]
-		mov al, [playerNum]
-		call target
+		extern Trampoline AddRingsHax;
+		extern int DirtyRingHack;
+
+		static inline void AddRingsOriginal(char playerNum, int numRings)
+		{
+			void* target = AddRingsHax.Target();
+			__asm
+			{
+				mov edx, [numRings]
+				mov al, [playerNum]
+				call target
+			}
+		}
+
 	}
 }
-

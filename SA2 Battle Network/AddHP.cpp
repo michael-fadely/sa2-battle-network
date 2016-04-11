@@ -6,7 +6,7 @@
 using namespace nethax;
 
 void __stdcall AddHP_cpp(int playerNum, float amount);
-float DirtyHPHack = 0.0f;
+float events::DirtyHPHack = 0.0f;
 
 void __declspec(naked) AddHP_asm()
 {
@@ -19,7 +19,7 @@ void __declspec(naked) AddHP_asm()
 	}
 }
 
-Trampoline AddHPHax((size_t)AddHPPtr, (size_t)0x0046F4C7, AddHP_asm);
+Trampoline events::AddHPHax((size_t)AddHPPtr, (size_t)0x0046F4C7, AddHP_asm);
 
 void __stdcall AddHP_cpp(int playerNum, float amount)
 {
@@ -32,10 +32,10 @@ void __stdcall AddHP_cpp(int playerNum, float amount)
 		if (charid == Characters_MechTails || charid == Characters_MechEggman)
 		{
 			// Should this be TCP?
-			DirtyHPHack = amount;
+			events::DirtyHPHack = amount;
 			Globals::Broker->Request(MessageID::P_HP, true);
 		}
 	}
 
-	AddHPOriginal(playerNum, amount);
+	events::AddHPOriginal(playerNum, amount);
 }
