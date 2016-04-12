@@ -15,8 +15,7 @@ static uint last_seed = 0;
 inline void SetSeed()
 {
 	last_seed = random::current_seed;
-	random::srand_original(FrameCount);
-	random::srand_hook(rand());
+	random::srand_hook(FrameCount);
 }
 
 inline void RestoreSeed()
