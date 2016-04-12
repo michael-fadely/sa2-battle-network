@@ -877,7 +877,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 		case MessageID::S_Seed:
 			packet >> random::current_seed;
 			PrintDebug(">> Received seed: 0x%08X", random::current_seed);
-			random::srand_Original(random::current_seed);
+			random::srand_original(random::current_seed);
 			return true;
 	}
 

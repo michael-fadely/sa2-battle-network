@@ -13,6 +13,7 @@
 #include "PoseEffect2PStartMan.h"
 #include "ItemBoxItems.h"
 #include "CharacterSync.h"
+#include "EmeraldSync.h"
 #include "Hash.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
@@ -168,8 +169,9 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	Globals::Program = new Program(settings, is_server, address);
 	Globals::Broker = new PacketBroker(timeout);
 
+	events::InitCharacterSync();
+	events::InitEmeraldSync();
+	events::InitItemBoxItems();
 	events::InitOnGameState();
 	events::InitPoseEffect2PStartMan();
-	events::InitItemBoxItems();
-	events::InitCharacterSync();
 }

@@ -6,11 +6,10 @@
 
 using namespace nethax;
 
+//FunctionPointer(void, _srand, (int seed), 0x007A89C6);
 unsigned int random::current_seed = 0;
 
-//FunctionPointer(void, _srand, (int seed), 0x007A89C6);
-
-void __cdecl hook_srand(unsigned int seed)
+void __cdecl random::srand_hook(unsigned int seed)
 {
 	using namespace Globals;
 	using namespace random;
@@ -19,13 +18,13 @@ void __cdecl hook_srand(unsigned int seed)
 
 	if (!isConnected())
 	{
-		srand_Original(seed);
+		srand_original(seed);
 		return;
 	}
 
 	if (Networking->isServer())
 	{
-		srand_Original(seed);
+		srand_original(seed);
 
 		Broker->Request(MessageID::S_Seed, true, true);
 		Broker->Finalize();
@@ -40,9 +39,9 @@ void __cdecl hook_srand(unsigned int seed)
 		}
 		else
 		{
-			srand_Original(seed);
+			srand_original(seed);
 		}
 	}
 }
 
-Trampoline random::srand_t(0x007A89C6, 0x007A89CB, (DetourFunction)hook_srand);
+Trampoline random::srand_t(0x007A89C6, 0x007A89CB, (DetourFunction)srand_hook);
