@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <string>
+#include <sstream>
 #include <Windows.h>		// for GetCommandLineW(), GetCurrentProcess()
 #include <ShellAPI.h>		// for CommandLinetoArgvW
 #include <direct.h>			// for _getcwd

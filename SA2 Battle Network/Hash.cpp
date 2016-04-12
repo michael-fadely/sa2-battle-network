@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include "typedefs.h"
 
 #include "Hash.h"
 

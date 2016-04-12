@@ -1,7 +1,11 @@
 #include "stdafx.h"
 
+#include <Windows.h>
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
+#include "Random.h"
+#include "AddressList.h"
+#include "typedefs.h"
 #include "EmeraldSync.h"
 
 using namespace nethax;
