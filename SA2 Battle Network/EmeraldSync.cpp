@@ -15,11 +15,15 @@ static uint last_seed = 0;
 inline void SetSeed()
 {
 	last_seed = random::current_seed;
-	random::srand_hook(FrameCount);
+	random::srand_hook(GetTickCount() + FrameCount);
+#ifdef _DEBUG
+	PrintDebug("Seed stored/generated: 0x%08X/0x%08X", last_seed, random::current_seed);
+#endif
 }
 
 inline void RestoreSeed()
 {
+	random::current_seed = last_seed;
 	random::srand_original(last_seed);
 }
 
