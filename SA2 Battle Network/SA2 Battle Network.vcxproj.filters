@@ -111,9 +111,6 @@
     <ClInclude Include="Random.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="FrameSync.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
     <ClInclude Include="PacketOverloads.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
@@ -198,9 +195,6 @@
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="EmeraldSync.cpp">
-      <Filter>Source Files\Events</Filter>
-    </ClCompile>
-    <ClCompile Include="FrameSync.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="Networking.cpp">

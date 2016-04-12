@@ -103,7 +103,6 @@
     <ClInclude Include="CharacterSync.h" />
     <ClInclude Include="EmeraldSync.h" />
     <ClInclude Include="Hash.h" />
-    <ClInclude Include="FrameSync.h" />
     <ClInclude Include="HurtPlayer.h" />
     <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="OnGameState.h" />
@@ -136,7 +135,6 @@
     <ClCompile Include="CharacterSync.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
-    <ClCompile Include="FrameSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
     <ClCompile Include="ItemBoxItems.cpp" />
     <ClCompile Include="Networking.cpp" />

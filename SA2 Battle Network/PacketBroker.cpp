@@ -730,11 +730,6 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 
 #pragma region System
 
-		case MessageID::S_FrameCount:
-			PrintDebug("<< Sending frame count.");
-			out << FrameCount;
-			break;
-
 		case MessageID::S_Seed:
 			PrintDebug("<< Sending seed: 0x%08X", random::current_seed);
 			out << random::current_seed;
@@ -867,11 +862,6 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 		case MessageID::S_NextStage:
 			packet >> NextLevel;
-			return true;
-
-		case MessageID::S_FrameCount:
-			packet >> FrameCount;
-			PrintDebug(">> RECEIVED FRAME COUNT CHANGE: %u", FrameCount);
 			return true;
 
 		case MessageID::S_Seed:
