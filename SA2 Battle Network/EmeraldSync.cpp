@@ -2,7 +2,6 @@
 
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
-#include "FrameSync.h"
 #include "EmeraldSync.h"
 
 using namespace nethax;
