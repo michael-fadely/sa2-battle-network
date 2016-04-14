@@ -26,22 +26,18 @@ void __cdecl random::srand_hook(unsigned int seed)
 	{
 		srand_original(seed);
 
+		Broker->WaitForPlayers(MessageID::S_Seed);
 		Broker->Request(MessageID::S_Seed, true, true);
 		Broker->Finalize();
 		Broker->SendReady(MessageID::S_Seed);
-		Broker->WaitForPlayers(MessageID::S_Seed);
 	}
 	else
 	{
-		if (Broker->WaitForPlayers(MessageID::S_Seed))
-		{
-			Broker->SendReady(MessageID::S_Seed);
-		}
-		else
-		{
+		Broker->SendReady(MessageID::S_Seed);
+
+		if (!Broker->WaitForPlayers(MessageID::S_Seed))
 			srand_original(seed);
-		}
 	}
 }
 
-Trampoline random::srand_t(0x007A89C6, 0x007A89CB, (DetourFunction)srand_hook);
+Trampoline random::srand_trampoline(0x007A89C6, 0x007A89CB, (DetourFunction)srand_hook);

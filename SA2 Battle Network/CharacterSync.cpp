@@ -18,12 +18,16 @@ int __cdecl Menu_Battle_hook()
 	{
 		if (Networking->isServer())
 		{
+			Broker->WaitForPlayers(MessageID::P_Character);
 			Broker->Request(MessageID::P_Character, true);
 			Broker->Finalize();
+			Broker->SendReady(MessageID::P_Character);
 		}
-
-		Broker->SendReady(MessageID::P_Character);
-		Broker->WaitForPlayers(MessageID::P_Character);
+		else
+		{
+			Broker->SendReady(MessageID::P_Character);
+			Broker->WaitForPlayers(MessageID::P_Character);
+		}
 	}
 
 	return result;

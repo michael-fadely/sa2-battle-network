@@ -48,16 +48,17 @@ void __stdcall events::SetCurrentLevel(short stage)
 	{
 		SetCurrentLevel_Original(stage);
 
-		Broker->Request(MessageID::S_Stage, true);
-		Broker->Finalize();
-		Broker->SendReady(MessageID::S_Stage);
-
-		if (!Broker->WaitForPlayers(MessageID::S_Stage))
-			return;
+		if (Broker->WaitForPlayers(MessageID::S_Stage))
+		{
+			Broker->Request(MessageID::S_Stage, true);
+			Broker->Finalize();
+			Broker->SendReady(MessageID::S_Stage);
+		}
 	}
 	else
 	{
 		PrintDebug("<> Waiting for stage number...");
+		Broker->SendReady(MessageID::S_Stage);
 
 		if (!Broker->WaitForPlayers(MessageID::S_Stage))
 		{
@@ -66,8 +67,6 @@ void __stdcall events::SetCurrentLevel(short stage)
 		}
 
 		PrintDebug(">> Received stage change: %d (was %d)", CurrentLevel, stage);
-
-		Broker->SendReady(MessageID::S_Stage);
 	}
 
 	PrintDebug(">> Stage received. Resuming game.");
@@ -84,18 +83,21 @@ void __cdecl SetNextLevel_Hook()
 
 	if (Networking->isServer())
 	{
+		// Note that forcing the server to wait for the clients
+		// assures the data arrives at the right time. Otherwise,
+		// NextStage could potentially be received before the client
+		// reaches this point, thus invalidating the synchronization.
+		Broker->WaitForPlayers(MessageID::S_NextStage);
 		Broker->Request(MessageID::S_NextStage, true);
 		Broker->Finalize();
 		Broker->SendReady(MessageID::S_NextStage);
-		Broker->WaitForPlayers(MessageID::S_NextStage);
 	}
 	else
 	{
 		PrintDebug("<> Waiting for next stage number...");
+		Broker->SendReady(MessageID::S_NextStage);
+
 		if (Broker->WaitForPlayers(MessageID::S_NextStage))
-		{
-			Broker->SendReady(MessageID::S_NextStage);
 			PrintDebug(">> Received next stage: %d", NextLevel);
-		}
 	}
 }
