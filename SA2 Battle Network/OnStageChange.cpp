@@ -84,7 +84,7 @@ void __cdecl SetNextLevel_Hook()
 	if (Networking->isServer())
 	{
 		// Note that forcing the server to wait for the clients
-		// assures the data arrives at the right time. Otherwise,
+		// ensures the data arrives at the right time. Otherwise,
 		// NextStage could potentially be received before the client
 		// reaches this point, thus invalidating the synchronization.
 		Broker->WaitForPlayers(MessageID::S_NextStage);
