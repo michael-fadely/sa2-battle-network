@@ -33,7 +33,7 @@ void __stdcall AddHP_cpp(int playerNum, float amount)
 		{
 			// Should this be TCP?
 			events::DirtyHPHack = amount;
-			Globals::Broker->Request(MessageID::P_HP, true);
+			Globals::Broker->Request(MessageID::P_HP, Protocol::TCP);
 		}
 	}
 

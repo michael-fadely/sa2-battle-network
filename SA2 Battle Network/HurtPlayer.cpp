@@ -42,7 +42,7 @@ Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	}
 	else if ((result = original(data1, data2)) != 0)
 	{
-		Globals::Broker->Request(MessageID::P_Damage, true);
+		Globals::Broker->Request(MessageID::P_Damage, Protocol::TCP);
 	}
 
 	return result;
@@ -55,7 +55,7 @@ void __cdecl HurtPlayer_cpp(int playerNum)
 		if (playerNum != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::P_Hurt, true, true);
+		Globals::Broker->Request(MessageID::P_Hurt, Protocol::TCP, true);
 	}
 
 	FunctionPointer(void, target, (int), events::HurtPlayerHax.Target());
@@ -69,7 +69,7 @@ void __stdcall KillPlayer_cpp(int playerNum)
 		if (playerNum != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::P_Kill, true, true);
+		Globals::Broker->Request(MessageID::P_Kill, Protocol::TCP, true);
 	}
 
 	events::KillPlayerOriginal(playerNum);

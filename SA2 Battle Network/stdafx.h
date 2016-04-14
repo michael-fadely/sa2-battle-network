@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _DEBUG
+
 #include <SA2ModLoader.h>
 #include <SFML/Network.hpp>
 #include <Trampoline.h>
@@ -47,3 +49,5 @@
 #include "Random.h"
 #include "nop.h"
 #include "typedefs.h"
+
+#endif

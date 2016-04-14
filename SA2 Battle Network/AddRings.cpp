@@ -37,7 +37,7 @@ void AddRings_cpp(int8 playerNum, int32 numRings)
 
 		// Should this be TCP?
 		events::DirtyRingHack = numRings;
-		Globals::Broker->Request(MessageID::S_Rings, true);
+		Globals::Broker->Request(MessageID::S_Rings, Protocol::TCP);
 	}
 
 	void* target = events::AddRingsHax.Target();

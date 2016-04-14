@@ -50,7 +50,7 @@ void __stdcall events::SetCurrentLevel(short stage)
 
 		if (Broker->WaitForPlayers(MessageID::S_Stage))
 		{
-			Broker->Request(MessageID::S_Stage, true);
+			Broker->Request(MessageID::S_Stage, Protocol::TCP);
 			Broker->Finalize();
 			Broker->SendReady(MessageID::S_Stage);
 		}
@@ -88,7 +88,7 @@ void __cdecl SetNextLevel_Hook()
 		// NextStage could potentially be received before the client
 		// reaches this point, thus invalidating the synchronization.
 		Broker->WaitForPlayers(MessageID::S_NextStage);
-		Broker->Request(MessageID::S_NextStage, true);
+		Broker->Request(MessageID::S_NextStage, Protocol::TCP);
 		Broker->Finalize();
 		Broker->SendReady(MessageID::S_NextStage);
 	}

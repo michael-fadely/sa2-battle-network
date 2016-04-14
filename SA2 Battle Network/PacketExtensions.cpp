@@ -1,25 +1,24 @@
 #include "stdafx.h"
 
 #include <SFML/Network.hpp>
+#include <vector>
 #include "Networking.h"
 #include "typedefs.h"
 
 #include "PacketExtensions.h"
 
+using namespace nethax;
+
 ushort PacketEx::sequence = 1;
 
-PacketEx::PacketEx(const bool safe) : sf::Packet(), isSafe(safe), empty(true), messageTypes(nullptr)
+PacketEx::PacketEx(nethax::Protocol protocol) : Packet(), Protocol(protocol), empty(true)
 {
 	initialize();
-}
-PacketEx::~PacketEx()
-{
-	delete[] messageTypes;
 }
 
 void PacketEx::initialize()
 {
-	if (!isSafe)
+	if (Protocol != Protocol::TCP)
 	{
 		if (!empty)
 		{
@@ -33,20 +32,18 @@ void PacketEx::initialize()
 	empty = true;
 	messageCount = 0;
 
-	if (messageTypes != nullptr)
-		delete[] messageTypes;
-
-	messageTypes = new bool[(int)nethax::MessageID::Count]();
+	messageTypes.clear();
+	messageTypes.resize((int)MessageID::Count);
 }
 
-bool PacketEx::isInPacket(const nethax::MessageID type) const
+bool PacketEx::isInPacket(MessageID type) const
 {
 	return messageTypes[(int)type];
 }
 
-bool PacketEx::AddType(const nethax::MessageID type, bool allowDuplicates)
+bool PacketEx::AddType(MessageID type, bool allowDupes)
 {
-	if (!allowDuplicates && isInPacket(type))
+	if (!allowDupes && isInPacket(type))
 		return false;
 
 	empty = false;

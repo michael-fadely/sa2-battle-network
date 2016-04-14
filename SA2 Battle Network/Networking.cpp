@@ -116,14 +116,14 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::S_END, "S_END" }
 };
 
-sf::Packet& operator<<(sf::Packet& packet, const nethax::MessageID& data)
+sf::Packet& operator<<(sf::Packet& packet, const MessageID& data)
 {
 	return packet << (sf::Uint8)data;
 }
 
-sf::Packet& operator>>(sf::Packet& packet, nethax::MessageID& data)
+sf::Packet& operator>>(sf::Packet& packet, MessageID& data)
 {
 	sf::Uint8 d;
-	packet >> d; data = (nethax::MessageID)d;
+	packet >> d; data = (MessageID)d;
 	return packet;
 }

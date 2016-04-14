@@ -19,7 +19,7 @@ int __cdecl Menu_Battle_hook()
 		if (Networking->isServer())
 		{
 			Broker->WaitForPlayers(MessageID::P_Character);
-			Broker->Request(MessageID::P_Character, true);
+			Broker->Request(MessageID::P_Character, Protocol::TCP);
 			Broker->Finalize();
 			Broker->SendReady(MessageID::P_Character);
 		}

@@ -83,7 +83,7 @@ static const ushort status_mask = ~(Status_HoldObject | Status_Unknown1 | Status
 
 #pragma endregion
 
-PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(false), tcpPacket(true), udpPacket(false)
+PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(false), tcpPacket(Protocol::TCP), udpPacket(Protocol::UDP)
 {
 	Initialize();
 }
@@ -119,17 +119,47 @@ void PacketBroker::Initialize()
 void PacketBroker::ReceiveLoop()
 {
 	sf::Packet packet;
-	receive(packet, true);
-	receive(packet, false);
+	receive(packet, Protocol::TCP);
+	receive(packet, Protocol::UDP);
 
 	timedOut = (Duration(receivedKeepalive) >= ConnectionTimeout);
 }
 
-void PacketBroker::receive(sf::Packet& packet, const bool isSafe)
+bool PacketBroker::Request(MessageID type, Protocol protocol, bool allowDupes)
+{
+	return request(type,
+		protocol == Protocol::TCP ? tcpPacket : udpPacket,
+		protocol != Protocol::TCP ? tcpPacket : udpPacket,
+		allowDupes);
+}
+
+bool PacketBroker::Request(MessageID type, PacketEx& packet, bool allowDupes)
+{
+	return request(type, packet, allowDupes);
+}
+
+bool PacketBroker::Demand(MessageID type, PacketEx& packet, bool allowDupes)
+{
+	if (request(type, packet, allowDupes))
+	{
+		Finalize(packet);
+		return true;
+	}
+
+	return false;
+}
+
+bool PacketBroker::Demand(MessageID type, Protocol protocol, bool allowDupes)
+{
+	PacketEx packet(protocol);
+	return Demand(type, packet, allowDupes);
+}
+
+void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 {
 	using namespace sf;
 
-	if (isSafe)
+	if (protocol == Protocol::TCP)
 	{
 		if (Globals::Networking->ReceiveSafe(packet) != Socket::Status::Done)
 			return;
@@ -168,13 +198,6 @@ void PacketBroker::receive(sf::Packet& packet, const bool isSafe)
 		packet >> newType;
 
 		// TODO: Re-implement packet loop failsafe using read offset.
-		/*
-		if (newType == lastType)
-		{
-			PrintDebug("\a<> Packet read loop failsafe! [LAST %d - RECV %d]", lastType, newType);
-			break;
-		}
-		*/
 
 		switch (newType)
 		{
@@ -225,7 +248,7 @@ void PacketBroker::receive(sf::Packet& packet, const bool isSafe)
 				packet >> length;
 
 
-				addTypeReceived(newType, length, isSafe);
+				addTypeReceived(newType, length, protocol == Protocol::TCP);
 
 				if (receiveInput(newType, packet) || receiveSystem(newType, packet))
 					break;
@@ -257,8 +280,6 @@ void PacketBroker::receive(sf::Packet& packet, const bool isSafe)
 				break;
 			}
 		}
-
-		//lastType = newType;
 	}
 }
 
@@ -271,7 +292,7 @@ bool PacketBroker::ConnectionTimedOut() const
 #endif
 }
 
-bool PacketBroker::WaitForPlayers(nethax::MessageID id)
+bool PacketBroker::WaitForPlayers(MessageID id)
 {
 	auto it = WaitRequests.find(id);
 	if (it == WaitRequests.end())
@@ -296,7 +317,7 @@ bool PacketBroker::WaitForPlayers(nethax::MessageID id)
 	return true;
 }
 
-void PacketBroker::SendReady(const nethax::MessageID id)
+void PacketBroker::SendReady(MessageID id)
 {
 	sf::Packet packet;
 	packet << MessageID::N_Ready << id;
@@ -327,7 +348,7 @@ void PacketBroker::SaveNetStat() const
 	netstat_recv << "Total packets/bytes (including overhead): " << received_packets << '/' << received_bytes + 4 * received_packets << endl;
 }
 
-inline void PacketBroker::addType(nethax::MessageStat& stat, nethax::MessageID id, ushort size, bool isSafe)
+inline void PacketBroker::addType(MessageStat& stat, MessageID id, ushort size, bool isSafe)
 {
 	if (isSafe)
 	{
@@ -341,16 +362,16 @@ inline void PacketBroker::addType(nethax::MessageStat& stat, nethax::MessageID i
 	stat.size = size;
 }
 
-void PacketBroker::addTypeReceived(nethax::MessageID id, ushort size, bool isSafe)
+void PacketBroker::addTypeReceived(MessageID id, ushort size, bool isSafe)
 {
 	if (netStat)
 		addType(recvStats[id], id, size, isSafe);
 }
 
-void PacketBroker::addTypeSent(nethax::MessageID id, ushort size, bool isSafe)
+void PacketBroker::addTypeSent(MessageID id, ushort size, Protocol protocol)
 {
 	if (netStat)
-		addType(sendStats[id], id, size, isSafe);
+		addType(sendStats[id], id, size, protocol == Protocol::TCP);
 }
 
 void PacketBroker::addBytesReceived(size_t size)
@@ -371,33 +392,34 @@ void PacketBroker::addBytesSent(size_t size)
 	}
 }
 
-bool PacketBroker::requestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, PacketEx& packetIsIn, bool allowDuplicates)
+bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allowDupes)
 {
-	if (allowDuplicates || !packetIsIn.isInPacket(packetType))
-		return requestPacket(packetType, packetAddTo);
+	if (allowDupes || !exclude.isInPacket(type))
+		return request(type, packet);
 
 	return false;
 }
-bool PacketBroker::requestPacket(const nethax::MessageID packetType, PacketEx& packetAddTo, bool allowDuplicates)
+bool PacketBroker::request(MessageID type, PacketEx& packet, bool allowDupes)
 {
-	if (packetType >= MessageID::N_Disconnect && packetAddTo.AddType(packetType, allowDuplicates))
-		return addPacket(packetType, packetAddTo);
+	if (type >= MessageID::N_Disconnect && packet.AddType(type, allowDupes))
+		return addPacket(type, packet);
 
 	return false;
 }
 
 void PacketBroker::Finalize()
 {
-	if (netStat)
-	{
-		addBytesSent(tcpPacket.getDataSize());
-		addBytesSent(udpPacket.getDataSize());
-	}
-
-	Globals::Networking->Send(tcpPacket);
-	Globals::Networking->Send(udpPacket);
+	Finalize(tcpPacket);
+	Finalize(udpPacket);
 	tcpPacket.Clear();
 	udpPacket.Clear();
+}
+
+void PacketBroker::Finalize(PacketEx& packet)
+{
+	if (netStat)
+		addBytesSent(packet.getDataSize());
+	Globals::Networking->Send(packet);
 }
 
 #pragma region Send
@@ -405,24 +427,24 @@ void PacketBroker::Finalize()
 void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 {
 	if (Duration(sentKeepalive) >= 1000)
-		requestPacket(MessageID::S_KeepAlive, udp);
+		request(MessageID::S_KeepAlive, udp);
 
 	if (roundStarted())
 	{
 		if (local.system.GameState != GameState)
-			requestPacket(MessageID::S_GameState, tcp, udp);
+			request(MessageID::S_GameState, tcp, udp);
 
 		if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
-			requestPacket(MessageID::S_PauseSelection, tcp, udp);
+			request(MessageID::S_PauseSelection, tcp, udp);
 
 		if (local.game.TimerSeconds != TimerSeconds && Globals::Networking->isServer())
-			requestPacket(MessageID::S_Time, udp, tcp);
+			request(MessageID::S_Time, udp, tcp);
 
 		if (local.game.TimeStopped != TimeStopped)
-			requestPacket(MessageID::S_TimeStop, tcp, udp);
+			request(MessageID::S_TimeStop, tcp, udp);
 
 		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
-			requestPacket(MessageID::S_2PSpecials, tcp, udp);
+			request(MessageID::S_2PSpecials, tcp, udp);
 	}
 }
 void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
@@ -440,8 +462,8 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 				Player1->Data1->Rotation = inPlayer.Data1.Rotation;
 				Player1->Data2->Speed = {};
 
-				requestPacket(MessageID::P_Position, tcp, udp);
-				requestPacket(MessageID::P_Speed, tcp, udp);
+				request(MessageID::P_Position, tcp, udp);
+				request(MessageID::P_Speed, tcp, udp);
 			}
 		}
 
@@ -453,25 +475,25 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			charid == Characters_MetalSonic;
 
 		if (PositionThreshold(outPlayer.Data1.Position, Player1->Data1->Position))
-			requestPacket(MessageID::P_Position, udp, tcp);
+			request(MessageID::P_Position, udp, tcp);
 
 		// TODO: Make less spammy
 		if (sendSpinTimer && outPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
-			requestPacket(MessageID::P_SpinTimer, tcp, udp);
+			request(MessageID::P_SpinTimer, tcp, udp);
 
 		if (Player1->Data1->Status & Status_DoNextAction && Player1->Data1->NextAction != outPlayer.Data1.NextAction)
-			requestPacket(MessageID::P_NextAction, tcp, udp);
+			request(MessageID::P_NextAction, tcp, udp);
 
 		if (outPlayer.Data1.Action != Player1->Data1->Action || (outPlayer.Data1.Status & status_mask) != (Player1->Data1->Status & status_mask))
 		{
-			requestPacket(MessageID::P_Action, tcp, udp);
-			requestPacket(MessageID::P_Status, tcp, udp);
+			request(MessageID::P_Action, tcp, udp);
+			request(MessageID::P_Status, tcp, udp);
 
-			requestPacket(MessageID::P_Animation, tcp, udp);
-			requestPacket(MessageID::P_Position, tcp, udp);
+			request(MessageID::P_Animation, tcp, udp);
+			request(MessageID::P_Position, tcp, udp);
 
 			if (sendSpinTimer)
-				requestPacket(MessageID::P_SpinTimer, tcp, udp);
+				request(MessageID::P_SpinTimer, tcp, udp);
 		}
 
 		if (Player1->Data1->Action != 18)
@@ -480,20 +502,20 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 				|| (SpeedThreshold(outPlayer.Data2.Speed, Player1->Data2->Speed))
 				|| outPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
 			{
-				requestPacket(MessageID::P_Rotation, udp, tcp);
-				requestPacket(MessageID::P_Position, udp, tcp);
-				requestPacket(MessageID::P_Speed, udp, tcp);
+				request(MessageID::P_Rotation, udp, tcp);
+				request(MessageID::P_Position, udp, tcp);
+				request(MessageID::P_Speed, udp, tcp);
 			}
 		}
 
 		if (memcmp(&outPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
-			requestPacket(MessageID::P_Scale, tcp, udp);
+			request(MessageID::P_Scale, tcp, udp);
 
 		if (outPlayer.Data2.Powerups != Player1->Data2->Powerups)
-			requestPacket(MessageID::P_Powerups, tcp, udp);
+			request(MessageID::P_Powerups, tcp, udp);
 
 		if (outPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
-			requestPacket(MessageID::P_Upgrades, tcp, udp);
+			request(MessageID::P_Upgrades, tcp, udp);
 
 		outPlayer.Copy(Player1);
 	}
@@ -504,7 +526,7 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 	{
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
-			requestPacket(MessageID::S_BattleOptions, tcp);
+			request(MessageID::S_BattleOptions, tcp);
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
@@ -519,12 +541,12 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 			case SubMenu2P::S_READY:
 			case SubMenu2P::O_READY:
 				if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
-					requestPacket(MessageID::S_2PReady, tcp);
+					request(MessageID::S_2PReady, tcp);
 				break;
 
 			case SubMenu2P::S_BATTLEMODE:
 				if (firstMenuEntry || local.menu.BattleSelection != BattleSelection)
-					requestPacket(MessageID::M_BattleSelection, tcp);
+					request(MessageID::M_BattleSelection, tcp);
 
 				break;
 
@@ -541,9 +563,9 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 				}
 
 				if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
-					requestPacket(MessageID::M_CharacterSelection, tcp);
+					request(MessageID::M_CharacterSelection, tcp);
 				if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
-					requestPacket(MessageID::M_CharacterChosen, tcp);
+					request(MessageID::M_CharacterChosen, tcp);
 
 				// I hate this so much
 				if (firstMenuEntry || (local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume)
@@ -553,7 +575,7 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 					|| (local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume)
 					|| (local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume))
 				{
-					requestPacket(MessageID::M_CostumeSelection, tcp);
+					request(MessageID::M_CostumeSelection, tcp);
 				}
 
 				break;
@@ -563,20 +585,20 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 					|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
 					|| local.menu.BattleOptionsButton != BattleOptionsButton)
 				{
-					requestPacket(MessageID::M_StageSelection, tcp);
+					request(MessageID::M_StageSelection, tcp);
 				}
 				break;
 
 			case SubMenu2P::S_BATTLEOPT:
 				if (firstMenuEntry || local.menu.BattleOptionsSelection != BattleOptionsSelection || local.menu.BattleOptionsBack != BattleOptionsBack)
-					requestPacket(MessageID::M_BattleConfigSelection, tcp);
+					request(MessageID::M_BattleConfigSelection, tcp);
 
 				break;
 		}
 	}
 }
 
-bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packet)
+bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 {
 	sf::Packet out;
 
@@ -813,7 +835,7 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 	packet << static_cast<ushort>(out.getDataSize());
 	packet.append(out.getData(), out.getDataSize());
 
-	addTypeSent(packetType, (ushort)out.getDataSize(), packet.isSafe);
+	addTypeSent(packetType, (ushort)out.getDataSize(), packet.Protocol);
 
 	return true;
 }
@@ -821,7 +843,7 @@ bool PacketBroker::addPacket(const nethax::MessageID packetType, PacketEx& packe
 #pragma endregion
 #pragma region Receive
 
-bool PacketBroker::receiveInput(const nethax::MessageID type, sf::Packet& packet)
+bool PacketBroker::receiveInput(MessageID type, sf::Packet& packet)
 {
 	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::Inactive)
 	{
@@ -849,7 +871,7 @@ bool PacketBroker::receiveInput(const nethax::MessageID type, sf::Packet& packet
 
 	return false;
 }
-bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packet)
+bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 {
 	switch (type)
 	{
@@ -946,7 +968,7 @@ bool PacketBroker::receiveSystem(const nethax::MessageID type, sf::Packet& packe
 
 	return false;
 }
-bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packet)
+bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 {
 	switch (type)
 	{
@@ -1048,7 +1070,7 @@ bool PacketBroker::receivePlayer(const nethax::MessageID type, sf::Packet& packe
 
 	return false;
 }
-bool PacketBroker::receiveMenu(const nethax::MessageID type, sf::Packet& packet)
+bool PacketBroker::receiveMenu(MessageID type, sf::Packet& packet)
 {
 	if (GameState == GameState::Inactive)
 	{

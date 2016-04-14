@@ -110,7 +110,7 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 
 			const auto npos = ip.npos;
 			auto colon = ip.find_first_of(':');
-			ushort port = colon == npos ? 21790 : (ushort)std::stoi(ip.substr(colon + 1));
+			ushort port = colon == npos ? 21790 : (ushort)stoi(ip.substr(colon + 1));
 
 			address.ip = ip.substr(0, colon);
 			address.port = port;

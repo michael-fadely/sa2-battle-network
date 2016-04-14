@@ -15,6 +15,12 @@
 
 namespace nethax
 {
+	enum class Protocol
+	{
+		UDP,
+		TCP,
+	};
+
 	enum class MessageID : uint8
 	{
 		None,

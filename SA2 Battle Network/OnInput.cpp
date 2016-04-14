@@ -32,7 +32,7 @@ extern "C"
 		bool sentButtons = false;
 		if (pad->PressedButtons || pad->ReleasedButtons)
 		{
-			Broker->Request(MessageID::I_Buttons, true);
+			Broker->Request(MessageID::I_Buttons, Protocol::TCP);
 			sentButtons = true;
 		}
 
@@ -44,12 +44,12 @@ extern "C"
 				|| !analogTimer)
 			{
 				analogTimer = 0;
-				Broker->Request(MessageID::I_Analog, false);
+				Broker->Request(MessageID::I_Analog, Protocol::UDP);
 				sendAngle = true;
 			}
 			else if (!pad->LeftStickX && !pad->LeftStickY)
 			{
-				Broker->Request(MessageID::I_Analog, true);
+				Broker->Request(MessageID::I_Analog, Protocol::TCP);
 				sendAngle = true;
 			}
 		}
@@ -100,7 +100,7 @@ extern "C"
 #ifdef _DEBUG
 			PrintDebug("[%04d]\t\tDIR: %d MAG: %d TIMER: %d", FrameCount, dir_delta, mag_delta, (!dir_delta && !mag_delta));
 #endif
-			Broker->Request(MessageID::I_AnalogAngle, false);
+			Broker->Request(MessageID::I_AnalogAngle, Protocol::UDP);
 			sendAngle = false;
 		}
 

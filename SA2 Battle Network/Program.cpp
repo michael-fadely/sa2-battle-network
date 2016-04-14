@@ -35,7 +35,7 @@ sf::Packet& operator >>(sf::Packet& packet, Program::Settings& data)
 	return packet >> data.noSpecials >> data.cheats;
 }
 
-std::string Program::Version::str() const
+string Program::Version::str() const
 {
 	return to_string(major) + "." + to_string(minor);
 }
@@ -48,10 +48,10 @@ const char* musicDisconnected	= "chao_k_net_fault.adx";
 const char* musicDefault		= "btl_sel.adx";
 
 const Program::Version	Program::versionNum	= { 3, 2 };
-const std::string		Program::version	= "SA2:BN Version: " + Program::versionNum.str();
+const string		Program::version	= "SA2:BN Version: " + versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-	remoteVersion(Program::versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false)
+	remoteVersion(versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false)
 {
 }
 
@@ -202,7 +202,7 @@ Program::ConnectStatus Program::startServer()
 
 			case MessageID::N_Password:
 			{
-				std::vector<uchar> password;
+				vector<uchar> password;
 				packet >> password;
 
 				if (!passwordProtected)

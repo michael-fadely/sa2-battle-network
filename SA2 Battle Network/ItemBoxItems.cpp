@@ -33,7 +33,7 @@ void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
 		return;
 
 	if (Globals::isConnected())
-		Globals::Broker->Request(MessageID::S_NBarrier, true);
+		Globals::Broker->Request(MessageID::S_NBarrier, Protocol::TCP);
 
 	events::NBarrier_original.Code(obj, n);
 }
@@ -44,7 +44,7 @@ void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 		return;
 
 	if (Globals::isConnected())
-		Globals::Broker->Request(MessageID::S_Speedup, true);
+		Globals::Broker->Request(MessageID::S_Speedup, Protocol::TCP);
 
 	events::Speedup_original.Code(obj, n);
 }
@@ -55,7 +55,7 @@ void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 		return;
 
 	if (Globals::isConnected())
-		Globals::Broker->Request(MessageID::S_TBarrier, true);
+		Globals::Broker->Request(MessageID::S_TBarrier, Protocol::TCP);
 
 	events::TBarrier_original.Code(obj, n);
 }
@@ -66,7 +66,7 @@ void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 		return;
 
 	if (Globals::isConnected())
-		Globals::Broker->Request(MessageID::S_Invincibility, true);
+		Globals::Broker->Request(MessageID::S_Invincibility, Protocol::TCP);
 
 	events::Invincibility_original.Code(obj, n);
 }

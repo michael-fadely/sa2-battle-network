@@ -27,7 +27,7 @@ void __cdecl random::srand_hook(unsigned int seed)
 		srand_original(seed);
 
 		Broker->WaitForPlayers(MessageID::S_Seed);
-		Broker->Request(MessageID::S_Seed, true, true);
+		Broker->Request(MessageID::S_Seed, Protocol::TCP, true);
 		Broker->Finalize();
 		Broker->SendReady(MessageID::S_Seed);
 	}

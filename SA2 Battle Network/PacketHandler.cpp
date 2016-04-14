@@ -145,13 +145,13 @@ void PacketHandler::SetRemotePort(ushort port)
 sf::Socket::Status PacketHandler::Send(PacketEx& packet)
 {
 	if (!packet.isEmpty())
-		return packet.isSafe ? SendSafe(packet) : SendFast(packet);
+		return packet.Protocol == nethax::Protocol::TCP ? SendSafe(packet) : SendFast(packet);
 
 	return sf::Socket::Status::NotReady;
 }
 sf::Socket::Status PacketHandler::Receive(PacketEx& packet, RemoteAddress& remoteAddress, const bool block)
 {
-	return packet.isSafe ? ReceiveSafe(packet, block) : ReceiveFast(packet, remoteAddress, block);
+	return packet.Protocol == nethax::Protocol::TCP ? ReceiveSafe(packet, block) : ReceiveFast(packet, remoteAddress, block);
 }
 
 sf::Socket::Status PacketHandler::SendSafe(sf::Packet& packet)
