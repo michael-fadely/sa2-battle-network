@@ -142,7 +142,7 @@ bool PacketBroker::Demand(MessageID type, PacketEx& packet, bool allowDupes)
 {
 	if (request(type, packet, allowDupes))
 	{
-		Finalize(packet);
+		Send(packet);
 		return true;
 	}
 
@@ -320,8 +320,13 @@ bool PacketBroker::WaitForPlayers(MessageID id)
 void PacketBroker::SendReady(MessageID id)
 {
 	sf::Packet packet;
-	packet << MessageID::N_Ready << id;
+	AddReady(id, packet);
 	Globals::Networking->SendSafe(packet);
+}
+
+void PacketBroker::AddReady(nethax::MessageID id, sf::Packet& packet)
+{
+	packet << MessageID::N_Ready << id;
 }
 
 void PacketBroker::SetConnectTime()
@@ -409,13 +414,13 @@ bool PacketBroker::request(MessageID type, PacketEx& packet, bool allowDupes)
 
 void PacketBroker::Finalize()
 {
-	Finalize(tcpPacket);
-	Finalize(udpPacket);
+	Send(tcpPacket);
+	Send(udpPacket);
 	tcpPacket.Clear();
 	udpPacket.Clear();
 }
 
-void PacketBroker::Finalize(PacketEx& packet)
+void PacketBroker::Send(PacketEx& packet)
 {
 	if (netStat)
 		addBytesSent(packet.getDataSize());

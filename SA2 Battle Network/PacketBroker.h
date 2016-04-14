@@ -51,7 +51,7 @@ public:
 	/// Sends the data stored in <c>packet</c>
 	/// </summary>
 	/// <param name="packet">The data to be sent.</param>
-	void Finalize(PacketEx& packet);
+	void Send(PacketEx& packet);
 
 	void SendSystem()	{ sendSystem(tcpPacket, udpPacket); }
 	void SendPlayer()	{ sendPlayer(tcpPacket, udpPacket); }
@@ -60,6 +60,7 @@ public:
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(nethax::MessageID id);
 	static void SendReady(nethax::MessageID id);
+	static void AddReady(nethax::MessageID id, sf::Packet& packet);
 	void SetConnectTime();
 	void ToggleNetStat(bool toggle);
 	void SaveNetStat() const;

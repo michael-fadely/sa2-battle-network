@@ -50,9 +50,10 @@ void __stdcall events::SetCurrentLevel(short stage)
 
 		if (Broker->WaitForPlayers(MessageID::S_Stage))
 		{
-			Broker->Request(MessageID::S_Stage, Protocol::TCP);
-			Broker->Finalize();
-			Broker->SendReady(MessageID::S_Stage);
+			PacketEx packet(Protocol::TCP);
+			Broker->Request(MessageID::S_Stage, packet);
+			Broker->AddReady(MessageID::S_Stage, packet);
+			Broker->Send(packet);
 		}
 	}
 	else
@@ -87,10 +88,13 @@ void __cdecl SetNextLevel_Hook()
 		// ensures the data arrives at the right time. Otherwise,
 		// NextStage could potentially be received before the client
 		// reaches this point, thus invalidating the synchronization.
-		Broker->WaitForPlayers(MessageID::S_NextStage);
-		Broker->Request(MessageID::S_NextStage, Protocol::TCP);
-		Broker->Finalize();
-		Broker->SendReady(MessageID::S_NextStage);
+		if (Broker->WaitForPlayers(MessageID::S_NextStage))
+		{
+			PacketEx packet(Protocol::TCP);
+			Broker->Request(MessageID::S_NextStage, packet);
+			Broker->AddReady(MessageID::S_NextStage, packet);
+			Broker->Send(packet);
+		}
 	}
 	else
 	{
