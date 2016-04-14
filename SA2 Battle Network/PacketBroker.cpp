@@ -253,10 +253,6 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 				if (receiveInput(newType, packet) || receiveSystem(newType, packet))
 					break;
 
-				// HACK: This isn't really a sufficient fix for the scale bug.
-				// I suspect it's causing some weird side effects like "falling" while going down a slope,
-				// usually interrupting spindashes. However, it fixes the scale issue.
-				// (where the scale would be received, but overwritten with 0 before it could be applied to the player due to this function call)
 				if (!writePlayer)
 					inPlayer.Copy(Player2);
 
