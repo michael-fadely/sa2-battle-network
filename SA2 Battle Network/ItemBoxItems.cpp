@@ -27,7 +27,7 @@ inline void undo_things(int n, ItemBoxItem* item)
 	ItemBoxItems_D[n] = *item;
 }
 
-void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
+static void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
 		return;
@@ -38,7 +38,7 @@ void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
 	events::NBarrier_original.Code(obj, n);
 }
 
-void __cdecl Speedup_hax(ObjectMaster* obj, int n)
+static void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
 		return;
@@ -49,7 +49,7 @@ void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 	events::Speedup_original.Code(obj, n);
 }
 
-void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
+static void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
 		return;
@@ -60,7 +60,7 @@ void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 	events::TBarrier_original.Code(obj, n);
 }
 
-void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
+static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
 		return;
