@@ -5,26 +5,31 @@
 
 using namespace nethax;
 
-ItemBoxItem events::Speedup_original = {};
-ItemBoxItem events::NBarrier_original = {};
-ItemBoxItem events::TBarrier_original = {};
-ItemBoxItem events::Invincibility_original = {};
+static Trampoline* Speedup_Trampoline;
+static Trampoline* NBarrier_Trampoline;
+static Trampoline* TBarrier_Trampoline;
+static Trampoline* Invincibility_Trampoline;
 
-inline void do_things(int n, ItemBoxItem* item, void(__cdecl *func)(ObjectMaster *, int))
+inline void ItemBox_Original(Trampoline* trampoline, ObjectMaster* object, int pnum)
 {
-	*item = ItemBoxItems_A[n];
-	ItemBoxItems_A[n].Code = func;
-	ItemBoxItems_B[n].Code = func;
-	ItemBoxItems_C[n].Code = func;
-	ItemBoxItems_D[n].Code = func;
+	((decltype(ItemBoxItem::Code))trampoline->Target())(object, pnum);
 }
 
-inline void undo_things(int n, ItemBoxItem* item)
+void events::NBarrier_original(ObjectMaster* object, int pnum)
 {
-	ItemBoxItems_A[n] = *item;
-	ItemBoxItems_B[n] = *item;
-	ItemBoxItems_C[n] = *item;
-	ItemBoxItems_D[n] = *item;
+	ItemBox_Original(NBarrier_Trampoline, object, pnum);
+}
+void events::Speedup_original(ObjectMaster* object, int pnum)
+{
+	ItemBox_Original(Speedup_Trampoline, object, pnum);
+}
+void events::TBarrier_original(ObjectMaster* object, int pnum)
+{
+	ItemBox_Original(TBarrier_Trampoline, object, pnum);
+}
+void events::Invincibility_original(ObjectMaster* object, int pnum)
+{
+	ItemBox_Original(Invincibility_Trampoline, object, pnum);
 }
 
 static void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
@@ -35,9 +40,8 @@ static void __cdecl NBarrier_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_NBarrier, Protocol::TCP);
 
-	events::NBarrier_original.Code(obj, n);
+	events::NBarrier_original(obj, n);
 }
-
 static void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
@@ -46,9 +50,8 @@ static void __cdecl Speedup_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_Speedup, Protocol::TCP);
 
-	events::Speedup_original.Code(obj, n);
+	events::Speedup_original(obj, n);
 }
-
 static void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
@@ -57,9 +60,8 @@ static void __cdecl TBarrier_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_TBarrier, Protocol::TCP);
 
-	events::TBarrier_original.Code(obj, n);
+	events::TBarrier_original(obj, n);
 }
-
 static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 {
 	if (n != 0)
@@ -68,21 +70,21 @@ static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 	if (Globals::isConnected())
 		Globals::Broker->Request(MessageID::S_Invincibility, Protocol::TCP);
 
-	events::Invincibility_original.Code(obj, n);
+	events::Invincibility_original(obj, n);
 }
 
 void events::InitItemBoxItems()
 {
-	do_things(0, &Speedup_original, Speedup_hax);
-	do_things(5, &NBarrier_original, NBarrier_hax);
-	do_things(8, &TBarrier_original, TBarrier_hax);
-	do_things(10, &Invincibility_original, Invincibility_hax);
+	NBarrier_Trampoline      = new Trampoline(0x006C8A40, 0x006C8A45, NBarrier_hax);
+	Speedup_Trampoline       = new Trampoline(0x006C9870, 0x006C9875, Speedup_hax);
+	TBarrier_Trampoline      = new Trampoline(0x006C98D0, 0x006C98D5, TBarrier_hax);
+	Invincibility_Trampoline = new Trampoline(0x006C98F0, 0x006C98F5, Invincibility_hax);
 }
 
 void events::DeinitItemBoxItems()
 {
-	undo_things(0, &Speedup_original);
-	undo_things(5, &NBarrier_original);
-	undo_things(8, &TBarrier_original);
-	undo_things(10, &Invincibility_original);
+	delete NBarrier_Trampoline;
+	delete Speedup_Trampoline;
+	delete TBarrier_Trampoline;
+	delete Invincibility_Trampoline;
 }

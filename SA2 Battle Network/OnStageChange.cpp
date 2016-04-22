@@ -14,7 +14,7 @@ using namespace Globals;
 void __cdecl SetNextLevel_Hook();
 
 Trampoline SetCurrentLevelHax(0x0043D8A0, 0x0043D8A7, events::SetCurrentLevel_asm);
-Trampoline SetNextLevelHax(0x0043C4D0, 0x0043C4D5, (DetourFunction)SetNextLevel_Hook);
+Trampoline SetNextLevelHax(0x0043C4D0, 0x0043C4D5, SetNextLevel_Hook);
 
 void __declspec(naked) events::SetCurrentLevel_asm()
 {

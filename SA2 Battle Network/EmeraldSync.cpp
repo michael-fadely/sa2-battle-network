@@ -69,7 +69,7 @@ static void __declspec(naked) EmeraldLocations_2PGroup2_hook_asm()
 
 static Trampoline EmeraldLocations_2PGroup1(0x00739340, 0x0073934A, EmeraldLocations_2PGroup1_hook_asm);
 static Trampoline EmeraldLocations_2PGroup2(0x007387D0, 0x007387D6, EmeraldLocations_2PGroup2_hook_asm);
-static Trampoline EmeraldLocations_1POr2PGroup3(0x007380A0, 0x007380A6, (DetourFunction)EmeraldLocations_1POr2PGroup3_hook);
+static Trampoline EmeraldLocations_1POr2PGroup3(0x007380A0, 0x007380A6, EmeraldLocations_1POr2PGroup3_hook);
 
 void __stdcall EmeraldLocations_2PGroup1_hook_c(void* a1)
 {

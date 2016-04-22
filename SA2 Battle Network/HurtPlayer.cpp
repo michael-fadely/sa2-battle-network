@@ -14,8 +14,8 @@ void __stdcall KillPlayer_cpp(int playerNum);
 void KillPlayer_asm();
 
 bool events::do_damage = false;
-Trampoline events::DamagePlayerHax(0x00473800, 0x0047380A, (DetourFunction)DamagePlayer_cpp);
-Trampoline events::HurtPlayerHax((size_t)HurtPlayer, 0x006C1AF6, (DetourFunction)HurtPlayer_cpp);
+Trampoline events::DamagePlayerHax(0x00473800, 0x0047380A, DamagePlayer_cpp);
+Trampoline events::HurtPlayerHax((size_t)HurtPlayer, 0x006C1AF6, HurtPlayer_cpp);
 Trampoline events::KillPlayerHax((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)

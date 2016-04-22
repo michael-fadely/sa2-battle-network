@@ -948,19 +948,19 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 			}
 
 			case MessageID::S_NBarrier:
-				events::NBarrier_original.Code(nullptr, 1);
+				events::NBarrier_original(nullptr, 1);
 				break;
 
 			case MessageID::S_TBarrier:
-				events::TBarrier_original.Code(nullptr, 1);
+				events::TBarrier_original(nullptr, 1);
 				break;
 
 			case MessageID::S_Speedup:
-				events::Speedup_original.Code(nullptr, 1);
+				events::Speedup_original(nullptr, 1);
 				break;
 
 			case MessageID::S_Invincibility:
-				events::Invincibility_original.Code(nullptr, 1);
+				events::Invincibility_original(nullptr, 1);
 				break;
 		}
 

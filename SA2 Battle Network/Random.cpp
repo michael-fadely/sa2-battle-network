@@ -43,4 +43,4 @@ void __cdecl random::srand_hook(unsigned int seed)
 	}
 }
 
-Trampoline random::srand_trampoline(0x007A89C6, 0x007A89CB, (DetourFunction)srand_hook);
+Trampoline random::srand_trampoline(0x007A89C6, 0x007A89CB, srand_hook);

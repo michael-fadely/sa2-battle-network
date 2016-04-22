@@ -20,10 +20,10 @@ namespace nethax
 {
 	namespace events
 	{
-		extern ItemBoxItem Speedup_original;
-		extern ItemBoxItem NBarrier_original;
-		extern ItemBoxItem TBarrier_original;
-		extern ItemBoxItem Invincibility_original;
+		void __cdecl NBarrier_original(ObjectMaster* object, int pnum);
+		void __cdecl Speedup_original(ObjectMaster* object, int pnum);
+		void __cdecl TBarrier_original(ObjectMaster* object, int pnum);
+		void __cdecl Invincibility_original(ObjectMaster* object, int pnum);
 
 		void InitItemBoxItems();
 		void DeinitItemBoxItems();
