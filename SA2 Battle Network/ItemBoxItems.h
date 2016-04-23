@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SA2ModLoader/SA2Structs.h>
+#include <ModLoader/MemAccess.h>
 
 // TODO: Mod Loader
 #pragma pack(push, 1)
@@ -11,19 +12,19 @@ struct ItemBoxItem
 };
 #pragma pack(pop)
 
-DataArray(ItemBoxItem, ItemBoxItems_A, 0x00B0AFA0, 11);
-DataArray(ItemBoxItem, ItemBoxItems_B, 0x00B19928, 11);
-DataArray(ItemBoxItem, ItemBoxItems_C, 0x00B493A0, 11);
-DataArray(ItemBoxItem, ItemBoxItems_D, 0x00B4D120, 11);
+DataArray(ItemBoxItem, SGItemBox_Items, 0x00B0AFA0, 11);
+DataArray(ItemBoxItem, ItemBoxBalloon_Items, 0x00B19928, 11);
+DataArray(ItemBoxItem, ItemBoxAir_Items, 0x00B493A0, 11);
+DataArray(ItemBoxItem, ItemBox_Items, 0x00B4D120, 11);
 
 namespace nethax
 {
 	namespace events
 	{
-		void __cdecl NBarrier_original(ObjectMaster* object, int pnum);
-		void __cdecl Speedup_original(ObjectMaster* object, int pnum);
-		void __cdecl TBarrier_original(ObjectMaster* object, int pnum);
-		void __cdecl Invincibility_original(ObjectMaster* object, int pnum);
+		void __stdcall NBarrier_original(int pnum);
+		void __stdcall Speedup_original(int pnum);
+		void __stdcall TBarrier_original(int pnum);
+		void __stdcall Invincibility_original(ObjectMaster* object, int pnum);
 
 		void InitItemBoxItems();
 		void DeinitItemBoxItems();
