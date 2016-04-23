@@ -132,6 +132,9 @@
     <ClInclude Include="EmeraldSync.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="OnSplitscreenMode.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -216,6 +219,9 @@
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="CharacterSync.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="OnSplitscreenMode.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

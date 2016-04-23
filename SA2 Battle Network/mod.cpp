@@ -15,6 +15,7 @@
 #include "ItemBoxItems.h"
 #include "CharacterSync.h"
 #include "EmeraldSync.h"
+#include "OnSplitscreenMode.h"
 #include "Hash.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
@@ -175,4 +176,5 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	events::InitItemBoxItems();
 	events::InitOnGameState();
 	events::InitPoseEffect2PStartMan();
+	events::InitOnSplitscreenMode();
 }

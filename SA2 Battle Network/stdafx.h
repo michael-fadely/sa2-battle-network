@@ -39,6 +39,7 @@
 #include "ModLoaderExtensions.h"
 #include "Networking.h"
 #include "OnGameState.h"
+#include "OnSplitscreenMode.h"
 #include "OnStageChange.h"
 #include "PacketBroker.h"
 #include "PacketExtensions.h"

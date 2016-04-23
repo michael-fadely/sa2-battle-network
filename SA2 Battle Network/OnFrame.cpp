@@ -2,7 +2,7 @@
 
 #include <SA2ModLoader.h>
 #include "Globals.h"			// for Globals :specialed:
-#include "CommonEnums.h"
+#include "OnSplitscreenMode.h"
 
 using namespace nethax;
 
@@ -34,17 +34,5 @@ extern "C" __declspec(dllexport) void OnFrame()
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();
-
-	if (GameState == GameState::Ingame && TwoPlayerMode > 0)
-	{
-		int pressed = ControllerPointers[0]->PressedButtons & (Buttons_L | Buttons_R);
-		int held = ControllerPointers[0]->HeldButtons & (Buttons_L | Buttons_R);
-		if (pressed == (Buttons_L | Buttons_R) || pressed != 0 && held != 0 && pressed != held)
-		{
-			if (SplitscreenMode == 1)
-				SplitscreenMode = 2;
-			else if (SplitscreenMode == 2)
-				SplitscreenMode = 1;
-		}
-	}
+	events::ToggleSplitscreen();
 }
