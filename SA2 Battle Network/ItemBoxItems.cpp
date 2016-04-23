@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <SA2ModLoader.h>
+#include <Trampoline.h>
 #include "Globals.h"
 #include "ItemBoxItems.h"
 
