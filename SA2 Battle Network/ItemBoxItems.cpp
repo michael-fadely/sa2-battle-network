@@ -10,12 +10,12 @@ static Trampoline* NBarrier_Trampoline;
 static Trampoline* TBarrier_Trampoline;
 static Trampoline* Invincibility_Trampoline;
 
-inline void ItemBox_Original(Trampoline* trampoline, ObjectMaster* object, int pnum)
+inline void __cdecl ItemBox_Original(Trampoline* trampoline, ObjectMaster* object, int pnum)
 {
 	((decltype(ItemBoxItem::Code))trampoline->Target())(object, pnum);
 }
 
-void __cdecl UserCallOriginal(void* original, int pnum)
+inline void __cdecl UserCallOriginal(void* original, int pnum)
 {
 	__asm
 	{
