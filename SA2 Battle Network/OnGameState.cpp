@@ -7,7 +7,6 @@
 #include "OnGameState.h"
 
 DataPointer(uint, dword_174B058, 0x174B058);
-void* escape_addr = (void*)0x0043AAEE;
 
 // Note that the name is misleading. This only happens when the gamestate changes to Ingame.
 // TODO: Real OnGameState
@@ -28,8 +27,8 @@ static void __stdcall OnGameState()
 	Broker->WaitForPlayers(MessageID::S_GameState);
 }
 
+// TODO: Make revertable
 void nethax::events::InitOnGameState()
 {
-	// TODO: Make revertable
-	WriteCall(escape_addr, OnGameState);
+	WriteCall((void*)0x0043AAEE, OnGameState);
 }

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SA2ModLoader/SA2Structs.h>
-#include <ModLoader/MemAccess.h>
+#include <SA2ModLoader.h>
 
 // TODO: Mod Loader
 #pragma pack(push, 1)

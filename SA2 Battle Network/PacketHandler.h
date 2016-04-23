@@ -9,7 +9,7 @@
 
 #include <SFML/Network.hpp>
 #include "typedefs.h"
-#include "PacketExtensions.h"
+#include "PacketEx.h"
 
 class PacketHandler
 {

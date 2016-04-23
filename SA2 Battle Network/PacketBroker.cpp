@@ -19,7 +19,7 @@
 #include "CommonEnums.h"
 
 #include "Networking.h"
-#include "PacketExtensions.h"			// for PacketEx
+#include "PacketEx.h"			// for PacketEx
 #include "PacketOverloads.h"
 #include "AdventurePacketOverloads.h"
 
@@ -27,9 +27,7 @@
 #include "ModLoaderExtensions.h"
 #include "AddressList.h"
 
-#include "AddRings.h"
 #include "AddHP.h"
-#include "HurtPlayer.h"
 #include "Random.h"
 #include "ItemBoxItems.h"
 
@@ -73,7 +71,7 @@ static bool SpeedThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 	return (Duration(speedTimer) >= 10000 || abs(CheckDistance(&last, &current)) >= max((speedThreshold * m), speedThreshold));
 }
 
-static bool roundStarted()
+bool roundStarted()
 {
 	return GameState > GameState::LoadFinished && TwoPlayerMode && !Pose2PStart_PlayerNum;
 }
@@ -102,7 +100,7 @@ void PacketBroker::Initialize()
 
 	receivedKeepalive = sentKeepalive = 0;
 	lastSequence = 0;
-	WaitRequests.clear();
+	waitRequests.clear();
 
 	if (netStat)
 	{
@@ -138,21 +136,23 @@ bool PacketBroker::Request(MessageID type, PacketEx& packet, bool allowDupes)
 	return request(type, packet, allowDupes);
 }
 
-bool PacketBroker::Demand(MessageID type, PacketEx& packet, bool allowDupes)
+bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* packet, bool allowDupes)
 {
-	if (request(type, packet, allowDupes))
-	{
-		Send(packet);
-		return true;
-	}
+	auto& dest = protocol == Protocol::TCP ? tcpPacket : udpPacket;
+	auto size = packet == nullptr ? 0 : packet->getDataSize();
 
-	return false;
-}
+	if (!allowDupes && dest.isInPacket(type))
+		return false;
 
-bool PacketBroker::Demand(MessageID type, Protocol protocol, bool allowDupes)
-{
-	PacketEx packet(protocol);
-	return Demand(type, packet, allowDupes);
+	if (!dest.AddType(type, allowDupes))
+		return false;
+
+	if (packet != nullptr)
+		dest.append(packet->getData(), size);
+
+	dest.Finalize();
+	AddTypeSent(type, size, dest.Protocol);
+	return true;
 }
 
 void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
@@ -217,15 +217,15 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 			case MessageID::N_Ready:
 			{
 				MessageID waitID; packet >> waitID;
-				auto it = WaitRequests.find(waitID);
+				auto it = waitRequests.find(waitID);
 
-				if (it != WaitRequests.end())
+				if (it != waitRequests.end())
 				{
 					it->second = true;
 				}
 				else
 				{
-					WaitRequests[waitID] = true;
+					waitRequests[waitID] = true;
 				}
 
 				break;
@@ -247,8 +247,7 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 				ushort length;
 				packet >> length;
 
-
-				addTypeReceived(newType, length, protocol == Protocol::TCP);
+				AddTypeReceived(newType, length, protocol == Protocol::TCP);
 
 				if (receiveInput(newType, packet) || receiveSystem(newType, packet))
 					break;
@@ -268,6 +267,9 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 				}
 
 				if (receiveMenu(newType, packet))
+					break;
+
+				if (runMessageHandler(newType, 1, packet))
 					break;
 
 				PrintDebug("\t\tSkipping %d bytes for id %02d", length, newType);
@@ -290,9 +292,9 @@ bool PacketBroker::ConnectionTimedOut() const
 
 bool PacketBroker::WaitForPlayers(MessageID id)
 {
-	auto it = WaitRequests.find(id);
-	if (it == WaitRequests.end())
-		it = WaitRequests.insert(it, pair<MessageID, bool>(id, false));
+	auto it = waitRequests.find(id);
+	if (it == waitRequests.end())
+		it = waitRequests.insert(it, pair<MessageID, bool>(id, false));
 
 	while (!it->second)
 	{
@@ -309,7 +311,7 @@ bool PacketBroker::WaitForPlayers(MessageID id)
 	}
 
 	PrintDebug(">> All players ready. Resuming game.");
-	WaitRequests.erase(it);
+	waitRequests.erase(it);
 	return true;
 }
 
@@ -320,8 +322,9 @@ void PacketBroker::SendReady(MessageID id)
 	Globals::Networking->SendSafe(packet);
 }
 
-void PacketBroker::AddReady(nethax::MessageID id, sf::Packet& packet)
+void PacketBroker::AddReady(MessageID id, sf::Packet& packet)
 {
+	AddTypeSent(id, sizeof(MessageID), Protocol::TCP);
 	packet << MessageID::N_Ready << id;
 }
 
@@ -349,6 +352,11 @@ void PacketBroker::SaveNetStat() const
 	netstat_recv << "Total packets/bytes (including overhead): " << received_packets << '/' << received_bytes + 4 * received_packets << endl;
 }
 
+void PacketBroker::RegisterMessageHandler(MessageID type, MessageHandler func)
+{
+	messageHandlers[type] = func;
+}
+
 inline void PacketBroker::addType(MessageStat& stat, MessageID id, ushort size, bool isSafe)
 {
 	if (isSafe)
@@ -363,16 +371,16 @@ inline void PacketBroker::addType(MessageStat& stat, MessageID id, ushort size, 
 	stat.size = size;
 }
 
-void PacketBroker::addTypeReceived(MessageID id, ushort size, bool isSafe)
+void PacketBroker::AddTypeReceived(MessageID id, size_t size, bool isSafe)
 {
 	if (netStat)
-		addType(recvStats[id], id, size, isSafe);
+		addType(recvStats[id], id, (ushort)size, isSafe);
 }
 
-void PacketBroker::addTypeSent(MessageID id, ushort size, Protocol protocol)
+void PacketBroker::AddTypeSent(MessageID id, size_t size, Protocol protocol)
 {
 	if (netStat)
-		addType(sendStats[id], id, size, protocol == Protocol::TCP);
+		addType(sendStats[id], id, (ushort)size, protocol == Protocol::TCP);
 }
 
 void PacketBroker::addBytesReceived(size_t size)
@@ -393,7 +401,7 @@ void PacketBroker::addBytesSent(size_t size)
 	}
 }
 
-bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allowDupes)
+inline bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allowDupes)
 {
 	if (allowDupes || !exclude.isInPacket(type))
 		return request(type, packet);
@@ -569,12 +577,12 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 					request(MessageID::M_CharacterChosen, tcp);
 
 				// I hate this so much
-				if (firstMenuEntry || (local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume)
-					|| (local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume)
-					|| (local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume)
-					|| (local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume)
-					|| (local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume)
-					|| (local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume))
+				if (firstMenuEntry || local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
+					|| local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume
+					|| local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume
+					|| local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume
+					|| local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume
+					|| local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
 				{
 					request(MessageID::M_CostumeSelection, tcp);
 				}
@@ -601,8 +609,6 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 
 bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 {
-	sf::Packet out;
-
 	switch (packetType)
 	{
 		default:
@@ -611,18 +617,18 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 #pragma region Input
 
 		case MessageID::I_Analog:
-			out << ControllerPointers[0]->LeftStickX << ControllerPointers[0]->LeftStickY;
+			packet << ControllerPointers[0]->LeftStickX << ControllerPointers[0]->LeftStickY;
 			sendInput.LeftStickX = ControllerPointers[0]->LeftStickX;
 			sendInput.LeftStickY = ControllerPointers[0]->LeftStickY;
 			break;
 
 		case MessageID::I_AnalogAngle:
-			out << AnalogThings[0];
+			packet << AnalogThings[0];
 			sendAnalog = AnalogThings[0];
 			break;
 
 		case MessageID::I_Buttons:
-			out << ControllerPointers[0]->HeldButtons;
+			packet << ControllerPointers[0]->HeldButtons;
 			sendInput.HeldButtons = ControllerPointers[0]->HeldButtons;
 			break;
 
@@ -631,7 +637,7 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 #pragma region Menu
 
 		case MessageID::M_CostumeSelection:
-			out << CharSelectThings[0].Costume << CharSelectThings[1].Costume
+			packet << CharSelectThings[0].Costume << CharSelectThings[1].Costume
 				<< CharSelectThings[2].Costume << CharSelectThings[3].Costume
 				<< CharSelectThings[4].Costume << CharSelectThings[5].Costume;
 
@@ -644,28 +650,28 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 			break;
 
 		case MessageID::M_BattleSelection:
-			out << BattleSelection;
+			packet << BattleSelection;
 			local.menu.BattleSelection = BattleSelection;
 			break;
 
 		case MessageID::M_BattleConfigSelection:
-			out << BattleOptionsSelection << BattleOptionsBack;
+			packet << BattleOptionsSelection << BattleOptionsBack;
 			local.menu.BattleOptionsSelection = BattleOptionsSelection;
 			local.menu.BattleOptionsBack = BattleOptionsBack;
 			break;
 
 		case MessageID::M_CharacterChosen:
-			out << CharacterSelected[0];
+			packet << CharacterSelected[0];
 			local.menu.CharacterSelected[0] = CharacterSelected[0];
 			break;
 
 		case MessageID::M_CharacterSelection:
-			out << CharacterSelection[0];
+			packet << CharacterSelection[0];
 			local.menu.CharacterSelection[0] = CharacterSelection[0];
 			break;
 
 		case MessageID::M_StageSelection:
-			out << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
+			packet << StageSelection2P[0] << StageSelection2P[1] << BattleOptionsButton;
 			local.menu.StageSelection2P[0] = StageSelection2P[0];
 			local.menu.StageSelection2P[1] = StageSelection2P[1];
 			local.menu.BattleOptionsButton = BattleOptionsButton;
@@ -679,121 +685,93 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 			// The reason sendPlayer is not updated here is because it's done in a separate function all at once.
 			// Don't freak out!
 
-		case MessageID::P_Character:
-			out << CurrentCharacter << AltCostume[0] << AltCharacter[0]
-				<< CurrentCharacter2P << AltCostume[1] << AltCharacter[1];
-			break;
-
 		case MessageID::P_Action:
-			out << Player1->Data1->Action;
+			packet << Player1->Data1->Action;
 			break;
 
 		case MessageID::P_NextAction:
-			out << Player1->Data1->NextAction;
+			packet << Player1->Data1->NextAction;
 			break;
 
 		case MessageID::P_Status:
-			out << Player1->Data1->Status;
+			packet << Player1->Data1->Status;
 			break;
 
 		case MessageID::P_Rotation:
 			speedTimer = rotateTimer = Millisecs();
-			out << Player1->Data1->Rotation;
+			packet << Player1->Data1->Rotation;
 			break;
 
 		case MessageID::P_Position:
 			// Informs other conditions that it shouldn't request
 			// another position out so soon
 			positionTimer = Millisecs();
-			out << Player1->Data1->Position;
+			packet << Player1->Data1->Position;
 			break;
 
 		case MessageID::P_Scale:
-			out << Player1->Data1->Scale;
+			packet << Player1->Data1->Scale;
 			break;
 
 		case MessageID::P_Powerups:
 			PrintDebug("<< Sending powerups");
-			out << Player1->Data2->Powerups;
+			packet << Player1->Data2->Powerups;
 			break;
 
 		case MessageID::P_Upgrades:
 			PrintDebug("<< Sending upgrades");
-			out << Player1->Data2->Upgrades;
-			break;
-
-		case MessageID::P_HP:
-			PrintDebug("<< HP SEND: %f, %f", Player1->Data2->MechHP, events::DirtyHPHack);
-			out << Player1->Data2->MechHP << events::DirtyHPHack;
+			packet << Player1->Data2->Upgrades;
 			break;
 
 		case MessageID::P_Speed:
 			rotateTimer = speedTimer = Millisecs();
-			out << Player1->Data2->Speed << Player1->Data2->PhysData.BaseSpeed;
+			packet << Player1->Data2->Speed << Player1->Data2->PhysData.BaseSpeed;
 			break;
 
 		case MessageID::P_Animation:
-			out << Player1->Data2->AnimInfo.Next;
+			packet << Player1->Data2->AnimInfo.Next;
 			break;
 
 		case MessageID::P_SpinTimer:
-			out << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
-			break;
-
-		case MessageID::P_Damage:
-			break;
-
-		case MessageID::P_Hurt:
-			break;
-
-		case MessageID::P_Kill:
+			packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
 			break;
 
 #pragma endregion
 
 #pragma region System
 
-		case MessageID::S_Seed:
-			PrintDebug("<< Sending seed: 0x%08X", random::current_seed);
-			out << random::current_seed;
-			break;
-
 		case MessageID::S_KeepAlive:
 			sentKeepalive = Millisecs();
 			break;
 
 		case MessageID::S_2PReady:
-			out << PlayerReady[0];
+			packet << PlayerReady[0];
 			local.menu.PlayerReady[0] = PlayerReady[0];
 			break;
 
 		case MessageID::S_2PSpecials:
-			out.append(P1SpecialAttacks, sizeof(char) * 3);
+			packet.append(P1SpecialAttacks, sizeof(char) * 3);
 			memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
 			break;
 
 		case MessageID::S_BattleOptions:
-			out.append(BattleOptions, BattleOptions_Length);
+			packet.append(BattleOptions, BattleOptions_Length);
 			memcpy(local.menu.BattleOptions, BattleOptions, BattleOptions_Length);
 			break;
 
 		case MessageID::S_GameState:
-			out << GameState;
+			packet << GameState;
 			PrintDebug("<< GameState [%d %d]", local.system.GameState, GameState);
 			local.system.GameState = GameState;
 			break;
 
 		case MessageID::S_PauseSelection:
-			out << PauseSelection;
+			packet << PauseSelection;
 			local.system.PauseSelection = PauseSelection;
 			break;
 
-		case MessageID::S_Rings:
-			out << RingCount[0] << events::DirtyRingHack;
-			break;
-
 		case MessageID::S_Time:
-			out << TimerMinutes << TimerSeconds << TimerFrames;
+			packet << TimerMinutes << TimerSeconds << TimerFrames;
 			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
 			break;
 
@@ -802,41 +780,17 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 
 			// Swap the Time Stop value, as this is connected to player number,
 			// and Player 1 and 2 are relative to the game instance.
-			out << (int8)(TimeStopped * 5 % 3);
+			packet << (int8)(TimeStopped * 5 % 3);
 
 			local.game.TimeStopped = TimeStopped;
-			break;
-
-		case MessageID::S_Stage:
-			PrintDebug("<< Sending stage: %d", CurrentLevel);
-			out << CurrentLevel << Current2PLevelGroup;
-			break;
-
-		case MessageID::S_NextStage:
-			PrintDebug("<< Sending next stage: %d", NextLevel);
-			out << NextLevel;
-			break;
-
-		case MessageID::S_NBarrier:
-			break;
-
-		case MessageID::S_TBarrier:
-			break;
-
-		case MessageID::S_Speedup:
-			break;
-
-		case MessageID::S_Invincibility:
 			break;
 
 #pragma endregion
 
 	}
 
-	packet << static_cast<ushort>(out.getDataSize());
-	packet.append(out.getData(), out.getDataSize());
-
-	addTypeSent(packetType, (ushort)out.getDataSize(), packet.Protocol);
+	packet.Finalize();
+	AddTypeSent(packetType, packet.GetTypeSize(), packet.Protocol);
 
 	return true;
 }
@@ -878,14 +832,6 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 	{
 		default:
 			break;
-
-		case MessageID::S_Stage:
-			packet >> CurrentLevel >> Current2PLevelGroup;
-			return true;
-
-		case MessageID::S_NextStage:
-			packet >> NextLevel;
-			return true;
 
 		case MessageID::S_Seed:
 			packet >> random::current_seed;
@@ -936,17 +882,6 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 				memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
 				break;
 
-			RECEIVED(MessageID::S_Rings);
-			{
-				int diff;
-
-				packet >> RingCount[1] >> diff;
-				PrintDebug(">> RING CHANGE: %d + %d", RingCount[1], diff);
-				events::AddRingsOriginal(1, diff);
-
-				break;
-			}
-
 			case MessageID::S_NBarrier:
 				events::NBarrier_original(1);
 				break;
@@ -979,17 +914,6 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 }
 bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 {
-	switch (type)
-	{
-		RECEIVED(MessageID::P_Character);
-			packet >> CurrentCharacter2P >> AltCostume[1] >> AltCharacter[1]
-				>> CurrentCharacter >> AltCostume[0] >> AltCharacter[0];
-			return true;
-
-		default:
-			break;
-	}
-
 	if (roundStarted())
 	{
 		writePlayer = (type > MessageID::P_START && type < MessageID::P_END);
@@ -1037,7 +961,7 @@ bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
 
 				Player2->Data2->MechHP = hp;
-				events::AddHPOriginal(1, diff);
+				events::AddHP_original(1, diff);
 				inPlayer.Data2.MechHP = Player2->Data2->MechHP;
 				break;
 
@@ -1053,25 +977,6 @@ bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 			RECEIVED(MessageID::P_SpinTimer);
 				packet >> inPlayer.Sonic.SpindashTimer;
 				break;
-
-			RECEIVED(MessageID::P_Damage);
-			{
-				events::do_damage = true;
-				break;
-			}
-
-			RECEIVED(MessageID::P_Hurt);
-			{
-				FunctionPointer(void, target, (int playerNum), events::HurtPlayerHax.Target());
-				target(1);
-				break;
-			}
-
-			RECEIVED(MessageID::P_Kill);
-			{
-				events::KillPlayerOriginal(1);
-				break;
-			}
 		}
 
 		return writePlayer;
@@ -1159,6 +1064,16 @@ bool PacketBroker::receiveMenu(MessageID type, sf::Packet& packet)
 	}
 
 	return false;
+}
+
+bool PacketBroker::runMessageHandler(MessageID type, int pnum, sf::Packet& packet)
+{
+	auto it = messageHandlers.find(type);
+
+	if (it == messageHandlers.end())
+		return false;
+
+	return it->second(type, pnum, packet);
 }
 
 #pragma endregion

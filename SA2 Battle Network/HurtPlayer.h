@@ -1,27 +1,13 @@
 #pragma once
 
-#include <Trampoline.h>
-
 namespace nethax
 {
 	namespace events
 	{
-		extern Trampoline DamagePlayerHax;
-		extern Trampoline HurtPlayerHax;
-		extern Trampoline KillPlayerHax;
+		void KillPlayerOriginal(int playerNum);
+		void HurtPlayerOriginal(int playerNum);
 
-		extern bool do_damage;
-
-		static inline void KillPlayerOriginal(int playerNum)
-		{
-			void* target = KillPlayerHax.Target();
-			__asm
-			{
-				push ebx
-				mov ebx, playerNum
-				call target
-				pop ebx
-			}
-		}
+		void InitHurtPlayer();
+		void DeinitHurtPlayer();
 	}
 }

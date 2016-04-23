@@ -16,11 +16,7 @@ public:
 		return empty;
 	}
 
-	void Clear()
-	{
-		clear();
-		initialize();
-	}
+	void Clear();
 
 	// Returns the number of unique messages in this instance of the packet
 	uint32 GetMessageCount() const
@@ -28,9 +24,12 @@ public:
 		return messageCount;
 	}
 
+	size_t GetTypeSize() const;
+
 	// Adds a message type to the packet.
 	// Returns true if it was added, false if it already exists.
 	bool AddType(nethax::MessageID type, bool allowDupes = false);
+	void Finalize();
 
 	// Determines whether or not the packet is "Safe" (TCP) or "Fast" (UDP)
 	// This can be changed at any time before it is sent.
@@ -40,6 +39,9 @@ private:
 	void initialize();
 
 	bool empty;
+	bool building;
+	size_t sizeOffset, dataStart;
+
 	// Array of message types in the packet (true/false)
 	std::vector<bool> messageTypes;
 	// The number of messages currently in the packet

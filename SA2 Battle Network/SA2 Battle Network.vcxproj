@@ -102,6 +102,8 @@
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="CharacterSync.h" />
     <ClInclude Include="EmeraldSync.h" />
+    <ClInclude Include="Events.h" />
+    <ClInclude Include="FunctionPointers.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HurtPlayer.h" />
     <ClInclude Include="ItemBoxItems.h" />
@@ -122,7 +124,7 @@
     <ClInclude Include="Networking.h" />
     <ClInclude Include="nop.h" />
     <ClInclude Include="PlayerObject.h" />
-    <ClInclude Include="PacketExtensions.h" />
+    <ClInclude Include="PacketEx.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="stdafx.h" />
@@ -134,6 +136,7 @@
     <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
     <ClCompile Include="CharacterSync.cpp" />
+    <ClCompile Include="Events.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="HurtPlayer.cpp" />
@@ -154,7 +157,7 @@
     <ClCompile Include="MemoryManagement.cpp" />
     <ClCompile Include="nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
-    <ClCompile Include="PacketExtensions.cpp" />
+    <ClCompile Include="PacketEx.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="stdafx.cpp">

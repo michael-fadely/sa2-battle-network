@@ -43,3 +43,8 @@ void nethax::events::InitPoseEffect2PStartMan()
 {
 	WriteCall((void*)0x00477AAA, LoadObjectBypass_asm);
 }
+
+void nethax::events::DeinitPoseEffect2PStartMan()
+{
+	WriteCall((void*)0x00477AAA, (void*)LoadObjectPtr);
+}

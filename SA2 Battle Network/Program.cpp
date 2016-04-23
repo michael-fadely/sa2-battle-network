@@ -9,6 +9,7 @@
 #include "CommonEnums.h"		// for Menu, SubMenu2P
 #include "AddressList.h"		// for CurrentMenu
 #include "PacketOverloads.h"
+#include "Events.h"
 
 #include "Program.h"
 
@@ -95,6 +96,7 @@ bool Program::Connect()
 		Globals::Broker->SetConnectTime();
 
 		applySettings(true);
+		events::Initialize();
 		P2Start = 2;
 		FrameCount = 0;
 	}
@@ -110,6 +112,7 @@ void Program::Disconnect()
 	Globals::Networking->Disconnect();
 
 	applySettings(false);
+	events::Deinitialize();
 
 	if (!isServer)
 		ApplySettings(localSettings);

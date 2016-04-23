@@ -60,9 +60,6 @@
     <ClInclude Include="MemoryStruct.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="PacketExtensions.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
     <ClInclude Include="AdventurePacketOverloads.h">
       <Filter>Header Files\Networking</Filter>
     </ClInclude>
@@ -135,6 +132,15 @@
     <ClInclude Include="OnSplitscreenMode.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="Events.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionPointers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketEx.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -142,9 +148,6 @@
     </ClCompile>
     <ClCompile Include="MemoryManagement.cpp">
       <Filter>Source Files\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketExtensions.cpp">
-      <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="PlayerObject.cpp">
       <Filter>Source Files\Memory</Filter>
@@ -223,6 +226,12 @@
     </ClCompile>
     <ClCompile Include="OnSplitscreenMode.cpp">
       <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Events.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketEx.cpp">
+      <Filter>Source Files\Networking</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -6,12 +6,18 @@
 #include "MemoryStruct.h"			// for MemStruct
 
 #include <SFML/Network.hpp>			// for sf::Packet
-#include "PacketExtensions.h"		// for PacketEx
+#include "PacketEx.h"		// for PacketEx
 #include "Networking.h"
 #include <unordered_map>
+#include <functional>
+
+// TODO: not this
+bool roundStarted();
 
 class PacketBroker
 {
+	typedef std::function<bool(nethax::MessageID, int, sf::Packet&)> MessageHandler;
+
 public:
 	explicit PacketBroker(uint timeout);
 
@@ -21,7 +27,7 @@ public:
 	/// Requests the specified message type to be added to the outbound packets.
 	/// </summary>
 	/// <param name="type">The message type.</param>
-	/// <param name="isSafe">If <c>true</c>, the request will be added to the safe packet.</param>
+	/// <param name="protocol">The protocol.</param>
 	/// <param name="allowDupes">If <c>true</c>, ignores duplicate types.</param>
 	/// <returns><c>true</c> if added to the outbound packets, <c>false</c> on failure (e.g already in outbound packets).</returns>
 	bool Request(nethax::MessageID type, nethax::Protocol protocol, bool allowDupes = false);	
@@ -34,14 +40,15 @@ public:
 	/// <returns><c>true</c> on success.</returns>
 	bool Request(nethax::MessageID type, PacketEx& packet, bool allowDupes = false);
 	/// <summary>
-	/// Adds the specific message type to the specified packet and sends immediately on success.
+	/// Appends data to the outbound packets for this frame.
 	/// </summary>
 	/// <param name="type">The message type.</param>
-	/// <param name="packet">The packet to add the data to.</param>
+	/// <param name="protocol">The protocol.</param>
+	/// <param name="packet">The packet containing data to append to the mega packet.
+	/// If <c>nullptr</c>, the message id will be added with no additional data.</param>
 	/// <param name="allowDupes">If <c>true</c>, ignores duplicate types.</param>
 	/// <returns><c>true</c> on success.</returns>
-	bool Demand(nethax::MessageID type, PacketEx& packet, bool allowDupes = false);
-	bool Demand(nethax::MessageID type, nethax::Protocol protocol, bool allowDupes = false);
+	bool Append(nethax::MessageID type, nethax::Protocol protocol, sf::Packet const* packet, bool allowDupes = false);
 
 	/// <summary>
 	/// Finalizes this frame, sending queued packets.
@@ -59,11 +66,15 @@ public:
 
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(nethax::MessageID id);
-	static void SendReady(nethax::MessageID id);
-	static void AddReady(nethax::MessageID id, sf::Packet& packet);
+	void SendReady(nethax::MessageID id);
+	void AddReady(nethax::MessageID id, sf::Packet& packet);
 	void SetConnectTime();
 	void ToggleNetStat(bool toggle);
 	void SaveNetStat() const;
+	void AddTypeReceived(nethax::MessageID id, size_t length, bool isSafe);
+	void AddTypeSent(nethax::MessageID id, size_t length, nethax::Protocol protocol);
+
+	void RegisterMessageHandler(nethax::MessageID type, MessageHandler func);
 
 	const uint ConnectionTimeout;
 	ControllerData recvInput, sendInput;
@@ -71,7 +82,8 @@ public:
 
 private:
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.
-	std::unordered_map<nethax::MessageID, bool> WaitRequests;
+	std::unordered_map<nethax::MessageID, bool> waitRequests;
+	std::unordered_map<nethax::MessageID, MessageHandler> messageHandlers;
 
 	bool netStat;
 	std::map<nethax::MessageID, nethax::MessageStat> sendStats;
@@ -79,12 +91,10 @@ private:
 	size_t received_packets, received_bytes;
 	size_t sent_packets, sent_bytes;
 
-	static void addType(nethax::MessageStat& stat, nethax::MessageID id, ushort size, bool isSafe);
-	void addTypeReceived(nethax::MessageID id, ushort length, bool isSafe);
-	void addTypeSent(nethax::MessageID id, ushort length, nethax::Protocol protocol);
 	void addBytesReceived(size_t size);
 	void addBytesSent(size_t size);
 
+	static void addType(nethax::MessageStat& stat, nethax::MessageID id, ushort size, bool isSafe);
 	bool request(nethax::MessageID type, PacketEx& packet, PacketEx& exclude, bool allowDupes = false);
 	bool request(nethax::MessageID type, PacketEx& packet, bool allowDupes = false);
 
@@ -105,6 +115,8 @@ private:
 	bool receiveSystem(nethax::MessageID type, sf::Packet& packet);
 	bool receivePlayer(nethax::MessageID type, sf::Packet& packet);
 	bool receiveMenu(nethax::MessageID type, sf::Packet& packet);
+
+	bool runMessageHandler(nethax::MessageID type, int pnum, sf::Packet& packet);
 
 	PacketEx tcpPacket, udpPacket;
 	PlayerObject inPlayer, outPlayer;

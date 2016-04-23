@@ -1,15 +1,30 @@
 #include "stdafx.h"
+#include <SA2ModLoader.h>
+#include <Trampoline.h>
+
+#include "Globals.h"
+#include "Networking.h"
 
 #include "AddRings.h"
 
-#include "Globals.h"
-#include <SA2ModLoader.h>
-
 using namespace nethax;
 
-void AddRings_cpp(int8 playerNum, int32 numRings);
+static void __cdecl AddRings_cpp(int8 playerNum, int32 numRings)
+{
+	if (Globals::isConnected())
+	{
+		if (playerNum != 0)
+			return;
 
-void __declspec(naked) AddRings_asm()
+		sf::Packet packet;
+		packet << RingCount[0] << numRings;
+		Globals::Broker->Append(MessageID::S_Rings, Protocol::TCP, &packet, true);
+	}
+
+	events::AddRings_original(playerNum, numRings);
+}
+
+static void __declspec(naked) AddRings_asm()
 {
 	__asm
 	{
@@ -25,26 +40,38 @@ void __declspec(naked) AddRings_asm()
 	}
 }
 
-Trampoline events::AddRingsHax((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
-int events::DirtyRingHack = 0;
+static Trampoline* AddRingsHax;
 
-void AddRings_cpp(int8 playerNum, int32 numRings)
+void events::AddRings_original(char playerNum, int numRings)
 {
-	if (Globals::isConnected())
-	{
-		if (playerNum != 0)
-			return;
-
-		// Should this be TCP?
-		events::DirtyRingHack = numRings;
-		Globals::Broker->Request(MessageID::S_Rings, Protocol::TCP);
-	}
-
-	void* target = events::AddRingsHax.Target();
+	void* target = AddRingsHax->Target();
 	__asm
 	{
-		mov al, [playerNum]
 		mov edx, [numRings]
+		mov al, [playerNum]
 		call target
 	}
+}
+
+static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+{
+	if (!roundStarted())
+		return false;
+
+	int diff;
+	packet >> RingCount[1] >> diff;
+	PrintDebug(">> RING CHANGE: %d + %d", RingCount[1], diff);
+	events::AddRings_original(1, diff);
+	return true;
+}
+
+void events::InitAddRings()
+{
+	AddRingsHax = new Trampoline((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
+	Globals::Broker->RegisterMessageHandler(MessageID::S_Rings, MessageHandler);
+}
+
+void events::DeinitAddRings()
+{
+	delete AddRingsHax;
 }

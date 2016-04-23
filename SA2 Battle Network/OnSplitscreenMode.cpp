@@ -13,6 +13,7 @@ static void IsSplitscreenSafe()
 	toggle_safe = SplitscreenMode == 2;
 }
 
+// TODO: Make revertable
 void events::InitOnSplitscreenMode()
 {
 	WriteJump((void*)0x004EB43B, IsSplitscreenSafe);

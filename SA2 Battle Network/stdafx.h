@@ -15,6 +15,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <sstream>
@@ -29,6 +30,7 @@
 #include "Common.h"
 #include "CommonEnums.h"
 #include "EmeraldSync.h"
+#include "Events.h"
 #include "Globals.h"
 #include "Hash.h"
 #include "HurtPlayer.h"
@@ -42,7 +44,7 @@
 #include "OnSplitscreenMode.h"
 #include "OnStageChange.h"
 #include "PacketBroker.h"
-#include "PacketExtensions.h"
+#include "PacketEx.h"
 #include "PacketHandler.h"
 #include "PacketOverloads.h"
 #include "PlayerObject.h"

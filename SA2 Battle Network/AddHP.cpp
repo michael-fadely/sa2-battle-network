@@ -1,14 +1,34 @@
 #include "stdafx.h"
 #include <SA2ModLoader.h>
+#include <Trampoline.h>
+#include "Networking.h"
 #include "Globals.h"
 #include "AddHP.h"
 
 using namespace nethax;
 
-void __stdcall AddHP_cpp(int playerNum, float amount);
-float events::DirtyHPHack = 0.0f;
+static void __stdcall AddHP_cpp(int playerNum, float amount)
+{
+	if (Globals::isConnected())
+	{
+		if (playerNum != 0)
+			return;
 
-void __declspec(naked) AddHP_asm()
+		auto data2 = MainCharObj2[playerNum];
+		char charid = data2->CharID;
+		if (charid == Characters_MechTails || charid == Characters_MechEggman)
+		{
+			PrintDebug("<< HP SEND: %f, %f", data2->MechHP, amount);
+			sf::Packet packet;
+			packet << data2->MechHP << amount;
+			Globals::Broker->Append(MessageID::P_HP, Protocol::TCP, &packet, true);
+		}
+	}
+
+	events::AddHP_original(playerNum, amount);
+}
+
+static void __declspec(naked) AddHP_asm()
 {
 	__asm
 	{
@@ -19,23 +39,27 @@ void __declspec(naked) AddHP_asm()
 	}
 }
 
-Trampoline events::AddHPHax((size_t)AddHPPtr, (size_t)0x0046F4C7, AddHP_asm);
+static Trampoline* AddHPHax;
 
-void __stdcall AddHP_cpp(int playerNum, float amount)
+void events::AddHP_original(int playerNum, float amount)
+
 {
-	if (Globals::isConnected())
+	void* target = AddHPHax->Target();
+	__asm
 	{
-		if (playerNum != 0)
-			return;
-
-		char charid = MainCharObj2[playerNum]->CharID;
-		if (charid == Characters_MechTails || charid == Characters_MechEggman)
-		{
-			// Should this be TCP?
-			events::DirtyHPHack = amount;
-			Globals::Broker->Request(MessageID::P_HP, Protocol::TCP);
-		}
+		mov eax, [playerNum]
+		push amount
+		call target
+		add esp, 4
 	}
+}
 
-	events::AddHPOriginal(playerNum, amount);
+void events::InitAddHP()
+{
+	AddHPHax = new Trampoline((size_t)AddHPPtr, (size_t)0x0046F4C7, AddHP_asm);
+}
+
+void events::DeinitAddHP()
+{
+	delete AddHPHax;
 }

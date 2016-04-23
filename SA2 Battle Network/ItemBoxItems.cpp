@@ -2,9 +2,9 @@
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
 #include "Networking.h"
-#include "PacketExtensions.h"
 #include "Globals.h"
 #include "ItemBoxItems.h"
+#include "FunctionPointers.h"
 
 using namespace nethax;
 
@@ -47,7 +47,7 @@ void __stdcall events::Invincibility_original(ObjectMaster* object, int pnum)
 
 void events::DisplayItemBoxItem_original(int pnum, int tnum)
 {
-	FunctionPointer(void, original, (int, int), DisplayItemBoxItem_Trampoline->Target());
+	_FunctionPointer(void, original, (int, int), DisplayItemBoxItem_Trampoline->Target());
 	original(pnum, tnum);
 }
 
@@ -58,7 +58,7 @@ static void __cdecl NBarrier_hax(int n)
 		if (n != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::S_NBarrier, Protocol::TCP);
+		Globals::Broker->Append(MessageID::S_NBarrier, Protocol::TCP, nullptr);
 	}
 
 	events::NBarrier_original(n);
@@ -81,7 +81,7 @@ static void __cdecl Speedup_hax(int n)
 		if (n != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::S_Speedup, Protocol::TCP);
+		Globals::Broker->Append(MessageID::S_Speedup, Protocol::TCP, nullptr);
 	}
 
 	events::Speedup_original(n);
@@ -104,7 +104,7 @@ static void __cdecl TBarrier_hax(int n)
 		if (n != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::S_TBarrier, Protocol::TCP);
+		Globals::Broker->Append(MessageID::S_TBarrier, Protocol::TCP, nullptr);
 	}
 
 	events::TBarrier_original(n);
@@ -127,7 +127,7 @@ static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 		if (n != 0)
 			return;
 
-		Globals::Broker->Request(MessageID::S_Invincibility, Protocol::TCP);
+		Globals::Broker->Append(MessageID::S_Invincibility, Protocol::TCP, nullptr);
 	}
 
 	events::Invincibility_original(obj, n);
@@ -140,14 +140,50 @@ static void __cdecl DisplayItemBoxItem_hax(int pnum, int tnum)
 		if (pnum != 0)
 			return;
 
-		// TODO: Implement some sort of packet builder and/or method to append to mega packet
-		PacketEx packet(Protocol::TCP);
-		packet.AddType(MessageID::S_ItemBoxItem);
-		packet << (short)sizeof(int) << tnum;
-		Globals::Broker->Send(packet);
+		sf::Packet packet;
+		packet << tnum;
+		Globals::Broker->Append(MessageID::S_ItemBoxItem, Protocol::TCP, &packet, true);
 	}
 
 	events::DisplayItemBoxItem_original(pnum, tnum);
+}
+
+static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+{
+	if (!roundStarted())
+		return false;
+
+	switch (type)
+	{
+		case MessageID::S_NBarrier:
+			events::NBarrier_original(1);
+			break;
+
+		case MessageID::S_TBarrier:
+			events::TBarrier_original(1);
+			break;
+
+		case MessageID::S_Speedup:
+			events::Speedup_original(1);
+			break;
+
+		case MessageID::S_Invincibility:
+			events::Invincibility_original(nullptr, 1);
+			break;
+
+		case MessageID::S_ItemBoxItem:
+		{
+			int tnum;
+			packet >> tnum;
+			events::DisplayItemBoxItem_original(1, tnum);
+			break;
+		}
+
+		default:
+			return false;
+	}
+
+	return true;
 }
 
 void events::InitItemBoxItems()
@@ -157,6 +193,12 @@ void events::InitItemBoxItems()
 	TBarrier_Trampoline           = new Trampoline(0x0046E180, 0x0046E19E, TBarrier_asm);
 	Invincibility_Trampoline      = new Trampoline(0x006C98F0, 0x006C98F5, Invincibility_hax);
 	DisplayItemBoxItem_Trampoline = new Trampoline(0x006DF440, 0x006DF445, DisplayItemBoxItem_hax);
+
+	Globals::Broker->RegisterMessageHandler(MessageID::S_NBarrier, MessageHandler);
+	Globals::Broker->RegisterMessageHandler(MessageID::S_TBarrier, MessageHandler);
+	Globals::Broker->RegisterMessageHandler(MessageID::S_Speedup, MessageHandler);
+	Globals::Broker->RegisterMessageHandler(MessageID::S_Invincibility, MessageHandler);
+	Globals::Broker->RegisterMessageHandler(MessageID::S_ItemBoxItem, MessageHandler);
 }
 
 void events::DeinitItemBoxItems()

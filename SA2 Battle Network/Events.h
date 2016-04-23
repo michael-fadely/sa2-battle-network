@@ -4,7 +4,7 @@ namespace nethax
 {
 	namespace events
 	{
-		void InitCharacterSync();
-		void DeinitCharacterSync();
+		void Initialize();
+		void Deinitialize();
 	}
 }
