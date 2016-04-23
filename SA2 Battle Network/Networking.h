@@ -99,6 +99,7 @@ namespace nethax
 		S_TBarrier,
 		S_Speedup,
 		S_Invincibility,
+		S_ItemBoxItem,
 
 		S_END,				// Marker: End of system messages
 		Count

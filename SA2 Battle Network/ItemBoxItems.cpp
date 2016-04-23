@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
+#include "Networking.h"
+#include "PacketExtensions.h"
 #include "Globals.h"
 #include "ItemBoxItems.h"
 
@@ -10,6 +12,7 @@ static Trampoline* Speedup_Trampoline;
 static Trampoline* NBarrier_Trampoline;
 static Trampoline* TBarrier_Trampoline;
 static Trampoline* Invincibility_Trampoline;
+static Trampoline* DisplayItemBoxItem_Trampoline;
 
 inline void __cdecl ItemBox_Original(Trampoline* trampoline, ObjectMaster* object, int pnum)
 {
@@ -40,6 +43,12 @@ void __stdcall events::TBarrier_original(int pnum)
 void __stdcall events::Invincibility_original(ObjectMaster* object, int pnum)
 {
 	ItemBox_Original(Invincibility_Trampoline, object, pnum);
+}
+
+void events::DisplayItemBoxItem_original(int pnum, int tnum)
+{
+	FunctionPointer(void, original, (int, int), DisplayItemBoxItem_Trampoline->Target());
+	original(pnum, tnum);
 }
 
 static void __cdecl NBarrier_hax(int n)
@@ -124,12 +133,30 @@ static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 	events::Invincibility_original(obj, n);
 }
 
+static void __cdecl DisplayItemBoxItem_hax(int pnum, int tnum)
+{
+	if (Globals::isConnected())
+	{
+		if (pnum != 0)
+			return;
+
+		// TODO: Implement some sort of packet builder and/or method to append to mega packet
+		PacketEx packet(Protocol::TCP);
+		packet.AddType(MessageID::S_ItemBoxItem);
+		packet << (short)sizeof(int) << tnum;
+		Globals::Broker->Send(packet);
+	}
+
+	events::DisplayItemBoxItem_original(pnum, tnum);
+}
+
 void events::InitItemBoxItems()
 {
-	NBarrier_Trampoline      = new Trampoline(0x0046E2E0, 0x0046E2FE, NBarrier_asm);
-	Speedup_Trampoline       = new Trampoline(0x0046E120, 0x0046E126, Speedup_asm);
-	TBarrier_Trampoline      = new Trampoline(0x0046E180, 0x0046E19E, TBarrier_asm);
-	Invincibility_Trampoline = new Trampoline(0x006C98F0, 0x006C98F5, Invincibility_hax);
+	NBarrier_Trampoline           = new Trampoline(0x0046E2E0, 0x0046E2FE, NBarrier_asm);
+	Speedup_Trampoline            = new Trampoline(0x0046E120, 0x0046E126, Speedup_asm);
+	TBarrier_Trampoline           = new Trampoline(0x0046E180, 0x0046E19E, TBarrier_asm);
+	Invincibility_Trampoline      = new Trampoline(0x006C98F0, 0x006C98F5, Invincibility_hax);
+	DisplayItemBoxItem_Trampoline = new Trampoline(0x006DF440, 0x006DF445, DisplayItemBoxItem_hax);
 }
 
 void events::DeinitItemBoxItems()
@@ -138,4 +165,5 @@ void events::DeinitItemBoxItems()
 	delete Speedup_Trampoline;
 	delete TBarrier_Trampoline;
 	delete Invincibility_Trampoline;
+	delete DisplayItemBoxItem_Trampoline;
 }

@@ -112,6 +112,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::S_TBarrier, "S_TBarrier" },
 	{ MessageID::S_Speedup, "S_Speedup" },
 	{ MessageID::S_Invincibility, "S_Invincibility" },
+	{ MessageID::S_ItemBoxItem, "S_ItemBoxItem" },
 
 	{ MessageID::S_END, "S_END" }
 };

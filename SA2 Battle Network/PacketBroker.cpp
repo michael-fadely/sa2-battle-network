@@ -962,6 +962,14 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 			case MessageID::S_Invincibility:
 				events::Invincibility_original(nullptr, 1);
 				break;
+
+			case MessageID::S_ItemBoxItem:
+			{
+				int tnum;
+				packet >> tnum;
+				events::DisplayItemBoxItem_original(1, tnum);
+				break;
+			}
 		}
 
 		return true;
