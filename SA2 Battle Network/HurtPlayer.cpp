@@ -3,6 +3,7 @@
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
 #include "Globals.h"
+#include "AddressList.h"
 #include "HurtPlayer.h"
 #include "FunctionPointers.h"
 
@@ -10,37 +11,67 @@ using namespace nethax;
 
 DataPointer(void*, HurtPlayerFunc, 0x01A5A28C);
 
-static Trampoline* DamagePlayerHax;
-static Trampoline* HurtPlayerHax;
-static Trampoline* KillPlayerHax;
-static bool do_damage = false;
+static Trampoline* DamagePlayer_trampoline;
+static Trampoline* HurtPlayer_trampoline;
+static Trampoline* KillPlayer_trampoline;
+
+// These result in some minor spaghetti
+static bool do_hurt       = false;
+static bool do_kill       = false;
+static bool called_damage = false;
+static bool called_hurt   = false;
+static bool called_kill   = false;
+
+#pragma region Originals
+
+Sint32 events::DamagePlayer_original(CharObj1* data1, CharObj2Base* data2)
+{
+	_FunctionPointer(Sint32, target, (CharObj1*, CharObj2Base*), DamagePlayer_trampoline->Target());
+	return target(data1, data2);
+}
+
+void events::HurtPlayer_original(int playerNum)
+{
+	_FunctionPointer(void, target, (int playerNum), HurtPlayer_trampoline->Target());
+	target(playerNum);
+}
+
+void events::KillPlayer_original(int playerNum)
+{
+	void* target = KillPlayer_trampoline->Target();
+	__asm
+	{
+		push ebx
+		mov ebx, playerNum
+		call target
+		pop ebx
+	}
+}
+
+#pragma endregion
+
+#pragma region Hooks
 
 static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 {
-	_FunctionPointer(Sint32, original, (CharObj1*, CharObj2Base*), DamagePlayerHax->Target());
-
 	if (!Globals::isConnected())
-		return original(data1, data2);
+		return events::DamagePlayer_original(data1, data2);
 
 	Sint32 result = 0;
 	if (data2->PlayerNum != 0)
-	{
-		if (do_damage)
-		{
-			void* last = HurtPlayerFunc;
-			HurtPlayerFunc = HurtPlayerHax->Target();
+		return result;
 
-			data1->Status |= Status_Hurt;
-			result = original(data1, data2);
-
-			HurtPlayerFunc = last;
-			do_damage = false;
-		}
-	}
-	else if ((result = original(data1, data2)) != 0)
+	called_damage = true;
+	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
 	{
-		Globals::Broker->Append(MessageID::P_Damage, Protocol::TCP, nullptr);
+		sf::Packet packet;
+		packet << called_hurt << called_kill;
+		Globals::Broker->Append(MessageID::P_Damage, Protocol::TCP, &packet);
+
+		called_hurt = false;
+		called_kill = false;
 	}
+	called_damage = false;
 
 	return result;
 }
@@ -50,12 +81,31 @@ static void __cdecl HurtPlayer_cpp(int playerNum)
 	if (Globals::isConnected())
 	{
 		if (playerNum != 0)
-			return;
+		{
+			if (!do_hurt)
+				return;
 
-		Globals::Broker->Append(MessageID::P_Hurt, Protocol::TCP, nullptr, true);
+			do_hurt = false;
+		}
+		else if (called_damage)
+		{
+			called_hurt = true;
+		}
+		else
+		{	
+			called_hurt = true;
+			events::HurtPlayer_original(playerNum);
+
+			sf::Packet packet;
+			packet << called_kill;
+			Globals::Broker->Append(MessageID::P_Hurt, Protocol::TCP, &packet, true);
+
+			called_hurt = false;
+			called_kill = false;
+		}
 	}
 
-	events::HurtPlayerOriginal(playerNum);
+	events::HurtPlayer_original(playerNum);
 }
 
 static void __stdcall KillPlayer_cpp(int playerNum)
@@ -63,12 +113,23 @@ static void __stdcall KillPlayer_cpp(int playerNum)
 	if (Globals::isConnected())
 	{
 		if (playerNum != 0)
-			return;
+		{
+			if (!do_kill)
+				return;
 
-		Globals::Broker->Append(MessageID::P_Kill, Protocol::TCP, nullptr, true);
+			do_kill = false;
+		}
+		else if (called_damage || called_hurt)
+		{
+			called_kill = true;
+		}
+		else
+		{
+			Globals::Broker->Append(MessageID::P_Kill, Protocol::TCP, nullptr, true);
+		}
 	}
 
-	events::KillPlayerOriginal(playerNum);
+	events::KillPlayer_original(playerNum);
 }
 
 static void __declspec(naked) KillPlayer_asm()
@@ -81,23 +142,7 @@ static void __declspec(naked) KillPlayer_asm()
 	}
 }
 
-void events::KillPlayerOriginal(int playerNum)
-{
-	void* target = KillPlayerHax->Target();
-	__asm
-	{
-		push ebx
-		mov ebx, playerNum
-		call target
-		pop ebx
-	}
-}
-
-void events::HurtPlayerOriginal(int playerNum)
-{
-	_FunctionPointer(void, target, (int playerNum), HurtPlayerHax->Target());
-	target(playerNum);
-}
+#pragma endregion
 
 static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 {
@@ -110,15 +155,23 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 			return false;
 
 		case MessageID::P_Damage:
-			do_damage = true;
+		{
+			packet >> do_hurt >> do_kill;
+
+			MainCharObj1[pnum]->Status |= Status_Hurt;
+			if (!events::DamagePlayer_original(MainCharObj1[pnum], MainCharObj2[pnum]))
+				MainCharObj1[pnum]->Status &= ~Status_Unknown6;
+
 			break;
+		}
 
 		case MessageID::P_Hurt:
-			events::HurtPlayerOriginal(pnum);
+			packet >> do_kill;
+			events::HurtPlayer_original(pnum);
 			break;
 
 		case MessageID::P_Kill:
-			events::KillPlayerOriginal(pnum);
+			events::KillPlayer_original(pnum);
 			break;
 	}
 
@@ -127,9 +180,9 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 
 void events::InitHurtPlayer()
 {
-	DamagePlayerHax = new Trampoline(0x00473800, 0x0047380A, DamagePlayer_cpp);
-	HurtPlayerHax = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, HurtPlayer_cpp);
-	KillPlayerHax = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
+	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
+	HurtPlayer_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, HurtPlayer_cpp);
+	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Damage, &MessageHandler);
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Hurt, &MessageHandler);
@@ -138,7 +191,7 @@ void events::InitHurtPlayer()
 
 void events::DeinitHurtPlayer()
 {
-	delete DamagePlayerHax;
-	delete HurtPlayerHax;
-	delete KillPlayerHax;
+	delete DamagePlayer_trampoline;
+	delete HurtPlayer_trampoline;
+	delete KillPlayer_trampoline;
 }

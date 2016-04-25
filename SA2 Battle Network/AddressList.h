@@ -12,6 +12,7 @@ DataPointer(char, Pose2PStart_PlayerNum, 0x0174B009);
 DataPointer(int, Pose2PStart_Frames_SkyRailMetalHarbor, 0x01DE95C0);
 DataPointer(char, Pose2PStart_PlayerNum_dupe, 0x01DE95C4);
 DataPointer(int, Pose2PStart_Frames, 0x01DE95C8);
+FunctionPointer(Sint32, DamagePlayer, (CharObj1*, CharObj2Base*), 0x00473800);
 
 // System
 DataPointer(uchar,	PlayerPaused,		0x0174AFD7);
