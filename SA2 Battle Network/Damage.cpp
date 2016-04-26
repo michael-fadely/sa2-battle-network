@@ -109,7 +109,7 @@ static void __cdecl DropRings_cpp(int playerNum)
 
 static void __stdcall KillPlayer_cpp(int playerNum)
 {
-	if (!called_damage && !called_damage && Globals::isConnected())
+	if (!called_damage && Globals::isConnected())
 	{
 		if (playerNum != 0)
 			return;
