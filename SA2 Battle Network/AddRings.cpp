@@ -9,9 +9,12 @@
 
 using namespace nethax;
 
+// HACK: Fix for damage ring drop bug
+static bool toggle_hack = true;
+
 static void __cdecl AddRings_cpp(int8 playerNum, int32 numRings)
 {
-	if (Globals::isConnected())
+	if (toggle_hack && Globals::isConnected())
 	{
 		if (playerNum != 0)
 			return;
@@ -42,6 +45,11 @@ static void __declspec(naked) AddRings_asm()
 
 static Trampoline* AddRingsHax;
 
+void events::AddRings_SyncToggle(bool value)
+{
+	toggle_hack = value;
+}
+
 void events::AddRings_original(char playerNum, int numRings)
 {
 	void* target = AddRingsHax->Target();
@@ -69,6 +77,7 @@ void events::InitAddRings()
 {
 	AddRingsHax = new Trampoline((size_t)AddRingsPtr, (size_t)0x0044CE16, AddRings_asm);
 	Globals::Broker->RegisterMessageHandler(MessageID::S_Rings, MessageHandler);
+	AddRings_SyncToggle(true);
 }
 
 void events::DeinitAddRings()

@@ -6,21 +6,17 @@
 #include "AddressList.h"
 #include "Damage.h"
 #include "FunctionPointers.h"
+#include "AddRings.h"
 
 using namespace nethax;
 
-DataPointer(void*, DropRingsFunc_ptr, 0x01A5A28C);
+//DataPointer(void*, DropRingsFunc_ptr, 0x01A5A28C);
 
 static Trampoline* DamagePlayer_trampoline;
-static Trampoline* DropRings_trampoline;
+//static Trampoline* DropRings_trampoline;
 static Trampoline* KillPlayer_trampoline;
 
-// These result in some minor spaghetti
-static bool do_drop       = false;
-static bool do_kill       = false;
 static bool called_damage = false;
-static bool called_drop   = false;
-static bool called_kill   = false;
 
 #pragma region Originals
 
@@ -30,11 +26,13 @@ Sint32 events::DamagePlayer_original(CharObj1* data1, CharObj2Base* data2)
 	return target(data1, data2);
 }
 
+/*
 void events::DropRings_original(int playerNum)
 {
 	_FunctionPointer(void, target, (int playerNum), DropRings_trampoline->Target());
 	target(playerNum);
 }
+*/
 
 void events::KillPlayer_original(int playerNum)
 {
@@ -61,21 +59,21 @@ static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	if (data2->PlayerNum != 0)
 		return result;
 
+	// HACK:
+	events::AddRings_SyncToggle(false);
 	called_damage = true;
-	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
-	{
-		sf::Packet packet;
-		packet << called_drop << called_kill;
-		Globals::Broker->Append(MessageID::P_Damage, Protocol::TCP, &packet);
 
-		called_drop = false;
-		called_kill = false;
-	}
+	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
+		Globals::Broker->Append(MessageID::P_Damage, Protocol::TCP, nullptr);
+
+	// HACK:
+	events::AddRings_SyncToggle(true);
 	called_damage = false;
 
 	return result;
 }
 
+/*
 static void __cdecl DropRings_cpp(int playerNum)
 {
 	if (Globals::isConnected())
@@ -107,26 +105,16 @@ static void __cdecl DropRings_cpp(int playerNum)
 
 	events::DropRings_original(playerNum);
 }
+*/
 
 static void __stdcall KillPlayer_cpp(int playerNum)
 {
-	if (Globals::isConnected())
+	if (!called_damage && !called_damage && Globals::isConnected())
 	{
 		if (playerNum != 0)
-		{
-			if (!do_kill)
-				return;
-
-			do_kill = false;
-		}
-		else if (called_damage || called_drop)
-		{
-			called_kill = true;
-		}
-		else
-		{
-			Globals::Broker->Append(MessageID::P_Kill, Protocol::TCP, nullptr, true);
-		}
+			return;
+		
+		Globals::Broker->Append(MessageID::P_Kill, Protocol::TCP, nullptr, true);
 	}
 
 	events::KillPlayer_original(playerNum);
@@ -155,19 +143,18 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 			return false;
 
 		case MessageID::P_Damage:
-		{
-			packet >> do_drop >> do_kill;
+			// HACK:
+			events::AddRings_SyncToggle(false);
+			called_damage = true;
 
 			MainCharObj1[pnum]->Status |= Status_Hurt;
 			if (!events::DamagePlayer_original(MainCharObj1[pnum], MainCharObj2[pnum]))
 				MainCharObj1[pnum]->Status &= ~Status_Unknown6;
+			
+			// HACK:
+			events::AddRings_SyncToggle(true);
+			called_damage = false;
 
-			break;
-		}
-
-		case MessageID::P_DropRings:
-			packet >> do_kill;
-			events::DropRings_original(pnum);
 			break;
 
 		case MessageID::P_Kill:
@@ -182,17 +169,17 @@ void events::InitDamage()
 {
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
 	// TODO: Rename HurtPlayer in mod loader
-	DropRings_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, DropRings_cpp);
+	//DropRings_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, DropRings_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Damage, &MessageHandler);
-	Globals::Broker->RegisterMessageHandler(MessageID::P_DropRings, &MessageHandler);
+	//Globals::Broker->RegisterMessageHandler(MessageID::P_DropRings, &MessageHandler);
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Kill, &MessageHandler);
 }
 
 void events::DeinitDamage()
 {
 	delete DamagePlayer_trampoline;
-	delete DropRings_trampoline;
+	//delete DropRings_trampoline;
 	delete KillPlayer_trampoline;
 }

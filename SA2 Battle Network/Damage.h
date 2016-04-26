@@ -8,7 +8,7 @@ namespace nethax
 	namespace events
 	{
 		Sint32 DamagePlayer_original(CharObj1* data1, CharObj2Base* data2);
-		void DropRings_original(int playerNum);
+		//void DropRings_original(int playerNum);
 		void KillPlayer_original(int playerNum);
 
 		void InitDamage();
