@@ -9,17 +9,17 @@
 
 using namespace nethax;
 
-DataPointer(void*, HurtPlayerFunc, 0x01A5A28C);
+DataPointer(void*, DropRingsFunc_ptr, 0x01A5A28C);
 
 static Trampoline* DamagePlayer_trampoline;
-static Trampoline* HurtPlayer_trampoline;
+static Trampoline* DropRings_trampoline;
 static Trampoline* KillPlayer_trampoline;
 
 // These result in some minor spaghetti
-static bool do_hurt       = false;
+static bool do_drop       = false;
 static bool do_kill       = false;
 static bool called_damage = false;
-static bool called_hurt   = false;
+static bool called_drop   = false;
 static bool called_kill   = false;
 
 #pragma region Originals
@@ -30,9 +30,9 @@ Sint32 events::DamagePlayer_original(CharObj1* data1, CharObj2Base* data2)
 	return target(data1, data2);
 }
 
-void events::HurtPlayer_original(int playerNum)
+void events::DropRings_original(int playerNum)
 {
-	_FunctionPointer(void, target, (int playerNum), HurtPlayer_trampoline->Target());
+	_FunctionPointer(void, target, (int playerNum), DropRings_trampoline->Target());
 	target(playerNum);
 }
 
@@ -65,10 +65,10 @@ static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
 	{
 		sf::Packet packet;
-		packet << called_hurt << called_kill;
+		packet << called_drop << called_kill;
 		Globals::Broker->Append(MessageID::P_Damage, Protocol::TCP, &packet);
 
-		called_hurt = false;
+		called_drop = false;
 		called_kill = false;
 	}
 	called_damage = false;
@@ -76,36 +76,36 @@ static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	return result;
 }
 
-static void __cdecl HurtPlayer_cpp(int playerNum)
+static void __cdecl DropRings_cpp(int playerNum)
 {
 	if (Globals::isConnected())
 	{
 		if (playerNum != 0)
 		{
-			if (!do_hurt)
+			if (!do_drop)
 				return;
 
-			do_hurt = false;
+			do_drop = false;
 		}
 		else if (called_damage)
 		{
-			called_hurt = true;
+			called_drop = true;
 		}
 		else
 		{	
-			called_hurt = true;
-			events::HurtPlayer_original(playerNum);
+			called_drop = true;
+			events::DropRings_original(playerNum);
 
 			sf::Packet packet;
 			packet << called_kill;
-			Globals::Broker->Append(MessageID::P_Hurt, Protocol::TCP, &packet, true);
+			Globals::Broker->Append(MessageID::P_DropRings, Protocol::TCP, &packet, true);
 
-			called_hurt = false;
+			called_drop = false;
 			called_kill = false;
 		}
 	}
 
-	events::HurtPlayer_original(playerNum);
+	events::DropRings_original(playerNum);
 }
 
 static void __stdcall KillPlayer_cpp(int playerNum)
@@ -119,7 +119,7 @@ static void __stdcall KillPlayer_cpp(int playerNum)
 
 			do_kill = false;
 		}
-		else if (called_damage || called_hurt)
+		else if (called_damage || called_drop)
 		{
 			called_kill = true;
 		}
@@ -156,7 +156,7 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 
 		case MessageID::P_Damage:
 		{
-			packet >> do_hurt >> do_kill;
+			packet >> do_drop >> do_kill;
 
 			MainCharObj1[pnum]->Status |= Status_Hurt;
 			if (!events::DamagePlayer_original(MainCharObj1[pnum], MainCharObj2[pnum]))
@@ -165,9 +165,9 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 			break;
 		}
 
-		case MessageID::P_Hurt:
+		case MessageID::P_DropRings:
 			packet >> do_kill;
-			events::HurtPlayer_original(pnum);
+			events::DropRings_original(pnum);
 			break;
 
 		case MessageID::P_Kill:
@@ -178,20 +178,21 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 	return true;
 }
 
-void events::InitHurtPlayer()
+void events::InitDamage()
 {
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
-	HurtPlayer_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, HurtPlayer_cpp);
+	// TODO: Rename HurtPlayer in mod loader
+	DropRings_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, DropRings_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Damage, &MessageHandler);
-	Globals::Broker->RegisterMessageHandler(MessageID::P_Hurt, &MessageHandler);
+	Globals::Broker->RegisterMessageHandler(MessageID::P_DropRings, &MessageHandler);
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Kill, &MessageHandler);
 }
 
-void events::DeinitHurtPlayer()
+void events::DeinitDamage()
 {
 	delete DamagePlayer_trampoline;
-	delete HurtPlayer_trampoline;
+	delete DropRings_trampoline;
 	delete KillPlayer_trampoline;
 }

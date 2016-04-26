@@ -20,7 +20,7 @@ void nethax::events::Initialize()
 	InitPoseEffect2PStartMan();
 	InitAddHP();
 	InitAddRings();
-	InitHurtPlayer();
+	InitDamage();
 	InitOnStageChange();
 	random::InitRandom();
 }
@@ -33,7 +33,7 @@ void nethax::events::Deinitialize()
 	DeinitPoseEffect2PStartMan();
 	DeinitAddHP();
 	DeinitAddRings();
-	DeinitHurtPlayer();
+	DeinitDamage();
 	DeinitOnStageChange();
 	random::DeinitRandom();
 }

@@ -89,7 +89,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::P_Animation, "P_Animation" },
 	{ MessageID::P_SpinTimer, "P_SpinTimer" },
 	{ MessageID::P_Damage, "P_Damage" },
-	{ MessageID::P_Hurt, "P_Hurt" },
+	{ MessageID::P_DropRings, "P_DropRings" },
 	{ MessageID::P_Kill, "P_Kill" },
 
 	{ MessageID::P_END, "P_END" },
