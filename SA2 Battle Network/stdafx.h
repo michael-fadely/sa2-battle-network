@@ -33,7 +33,7 @@
 #include "Events.h"
 #include "Globals.h"
 #include "Hash.h"
-#include "HurtPlayer.h"
+#include "Damage.h"
 #include "ItemBoxItems.h"
 #include "LazyMemory.h"
 #include "MemoryManagement.h"

@@ -8,7 +8,7 @@
 #include "CharacterSync.h"
 #include "AddHP.h"
 #include "AddRings.h"
-#include "HurtPlayer.h"
+#include "Damage.h"
 #include "OnStageChange.h"
 #include "Random.h"
 

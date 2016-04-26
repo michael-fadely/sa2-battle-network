@@ -105,7 +105,7 @@
     <ClInclude Include="Events.h" />
     <ClInclude Include="FunctionPointers.h" />
     <ClInclude Include="Hash.h" />
-    <ClInclude Include="HurtPlayer.h" />
+    <ClInclude Include="Damage.h" />
     <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnSplitscreenMode.h" />
@@ -139,7 +139,7 @@
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
-    <ClCompile Include="HurtPlayer.cpp" />
+    <ClCompile Include="Damage.cpp" />
     <ClCompile Include="ItemBoxItems.cpp" />
     <ClCompile Include="Networking.cpp" />
     <ClCompile Include="OnFrame.cpp" />

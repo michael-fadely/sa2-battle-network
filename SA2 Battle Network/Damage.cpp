@@ -4,7 +4,7 @@
 #include <Trampoline.h>
 #include "Globals.h"
 #include "AddressList.h"
-#include "HurtPlayer.h"
+#include "Damage.h"
 #include "FunctionPointers.h"
 
 using namespace nethax;
