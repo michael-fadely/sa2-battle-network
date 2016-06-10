@@ -61,7 +61,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Ws2_32.lib;sfml-network-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;sfml-network-s-d.lib;sfml-system-s-d.lib;notelemetry.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\SFML\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
       <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
@@ -87,7 +87,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Ws2_32.lib;sfml-network-s.lib;sfml-system-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;sfml-network-s.lib;sfml-system-s.lib;notelemetry.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\SFML\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
