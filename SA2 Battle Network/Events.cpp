@@ -10,6 +10,7 @@
 #include "AddRings.h"
 #include "Damage.h"
 #include "OnStageChange.h"
+#include "OnResult.h"
 #include "Random.h"
 
 void nethax::events::Initialize()
@@ -22,6 +23,7 @@ void nethax::events::Initialize()
 	InitAddRings();
 	InitDamage();
 	InitOnStageChange();
+	InitOnResult();
 	random::InitRandom();
 }
 
@@ -35,5 +37,6 @@ void nethax::events::Deinitialize()
 	DeinitAddRings();
 	DeinitDamage();
 	DeinitOnStageChange();
+	DeinitOnResult();
 	random::DeinitRandom();
 }

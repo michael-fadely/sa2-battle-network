@@ -141,6 +141,9 @@
     <ClInclude Include="Damage.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="OnResult.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -231,6 +234,9 @@
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="Damage.cpp">
+      <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="OnResult.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>

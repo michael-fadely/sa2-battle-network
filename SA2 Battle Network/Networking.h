@@ -84,6 +84,8 @@ namespace nethax
 		S_FrameCount,
 		S_KeepAlive,
 		S_Seed,
+		S_Win,
+		S_Result,
 		S_Stage,
 		S_NextStage,
 		S_RoundStart,

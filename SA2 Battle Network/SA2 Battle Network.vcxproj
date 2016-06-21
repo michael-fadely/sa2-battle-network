@@ -43,10 +43,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(MSBuildProgramFiles32)\Windows Kits\10\Include\10.0.10240.0\ucrt</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(MSBuildProgramFiles32)\Windows Kits\10\lib\10.0.10240.0\ucrt\$(PlatformShortName)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(MSBuildProgramFiles32)\Windows Kits\10\Include\10.0.10240.0\ucrt</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(MSBuildProgramFiles32)\Windows Kits\10\lib\10.0.10240.0\ucrt\$(PlatformShortName)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,6 +112,7 @@
     <ClInclude Include="Damage.h" />
     <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="OnGameState.h" />
+    <ClInclude Include="OnResult.h" />
     <ClInclude Include="OnSplitscreenMode.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="PacketOverloads.h" />
@@ -145,6 +150,7 @@
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />
+    <ClCompile Include="OnResult.cpp" />
     <ClCompile Include="OnSplitscreenMode.cpp" />
     <ClCompile Include="OnStageChange.cpp" />
     <ClCompile Include="PacketOverloads.cpp" />

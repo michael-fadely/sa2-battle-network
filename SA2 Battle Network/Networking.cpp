@@ -97,6 +97,8 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 
 	{ MessageID::S_KeepAlive, "S_KeepAlive" },
 	{ MessageID::S_Seed, "S_Seed" },
+	{ MessageID::S_Win, "S_Win" },
+	{ MessageID::S_Result, "S_Result" },
 	{ MessageID::S_Stage, "S_Stage" },
 	{ MessageID::S_NextStage, "S_NextStage" },
 	{ MessageID::S_RoundStart, "S_RoundStart" },
