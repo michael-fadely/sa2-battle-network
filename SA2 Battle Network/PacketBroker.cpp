@@ -505,7 +505,7 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 				request(MessageID::P_SpinTimer, tcp, udp);
 		}
 
-		if (Player1->Data1->Action != 18)
+		if (Player1->Data1->Action != Action_ObjectControl)
 		{
 			if (RotationThreshold(outPlayer.Data1.Rotation, Player1->Data1->Rotation)
 				|| (SpeedThreshold(outPlayer.Data2.Speed, Player1->Data2->Speed))
