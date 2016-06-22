@@ -162,7 +162,9 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 		case MessageID::S_WinData:
 		{
 			packet >> remote_data.Action >> remote_data.Selection;
+#ifdef _DEBUG
 			PrintDebug("WINDATA A/S: %d/%d", (int)remote_data.Action, (int)remote_data.Selection);
+#endif
 			return true;
 		}
 	}
