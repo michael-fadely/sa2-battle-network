@@ -86,6 +86,7 @@ namespace nethax
 		S_Seed,
 		S_Win,
 		S_Result,
+		S_WinData,
 		S_Stage,
 		S_NextStage,
 		S_RoundStart,
