@@ -168,8 +168,7 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 void events::InitDamage()
 {
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
-	// TODO: Rename HurtPlayer in mod loader
-	//DropRings_trampoline = new Trampoline((size_t)HurtPlayer, 0x006C1AF6, DropRings_cpp);
+	//DropRings_trampoline = new Trampoline((size_t)DropRings, 0x006C1AF6, DropRings_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Damage, &MessageHandler);
