@@ -52,7 +52,7 @@ const Program::Version	Program::versionNum	= { 3, 2 };
 const string		Program::version	= "SA2:BN Version: " + versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
-	remoteVersion(versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false)
+	remoteVersion(versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false), playerNum(-1)
 {
 }
 
@@ -95,6 +95,9 @@ bool Program::Connect()
 		Globals::Broker->ToggleNetStat(localSettings.netStat);
 		Globals::Broker->SetConnectTime();
 
+		if (playerNum >= 0)
+			Globals::Broker->SetPlayerNumber(playerNum);
+
 		applySettings(true);
 		events::Initialize();
 		P2Start = 2;
@@ -119,6 +122,7 @@ void Program::Disconnect()
 
 	Globals::Broker->SaveNetStat();
 	Globals::Broker->Initialize();
+	playerNum = -1;
 	PlayJingle(musicDisconnected);
 }
 
@@ -259,13 +263,17 @@ Program::ConnectStatus Program::startServer()
 	}
 
 	packet.clear();
-	packet << MessageID::N_Settings << localSettings << MessageID::N_Connected;
+	packet << MessageID::N_Settings << localSettings
+		<< MessageID::N_SetPlayer << (PlayerNumber)1
+		<< MessageID::N_Connected;
 
 	if ((status = Globals::Networking->SendSafe(packet)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
 		return ConnectStatus::Error;
 	}
+
+	Globals::Broker->SetPlayerNumber(0);
 
 	PrintDebug(">> Connected!");
 	return ConnectStatus::Success;
@@ -348,6 +356,11 @@ Program::ConnectStatus Program::startClient()
 					PrintDebug(!localSettings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
 					rejected = true;
 					return ConnectStatus::Error;
+
+				case MessageID::N_SetPlayer:
+					packet >> playerNum;
+					PrintDebug("Received player number: %d", playerNum);
+					break;
 
 				case MessageID::N_Connected:
 					PrintDebug("<< Connected!");

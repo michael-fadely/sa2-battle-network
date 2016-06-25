@@ -7,10 +7,8 @@
 
 using namespace nethax;
 
-//FunctionPointer(void, _srand, (int seed), 0x007A89C6);
 unsigned int random::current_seed = 0;
-
-Trampoline* srand_trampoline;
+static Trampoline* srand_trampoline = nullptr;
 
 void random::srand_original(unsigned int seed)
 {
@@ -59,8 +57,24 @@ void __cdecl random::srand_hook(unsigned int seed)
 	}
 }
 
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
+{
+	switch (type)
+	{
+		default:
+			return false;
+
+		case MessageID::S_Seed:
+			packet >> random::current_seed;
+			PrintDebug(">> Received seed: 0x%08X", random::current_seed);
+			random::srand_original(random::current_seed);
+			return true;
+	}
+}
+
 void random::InitRandom()
 {
+	Globals::Broker->RegisterMessageHandler(MessageID::S_Seed, MessageHandler);
 	srand_trampoline = new Trampoline(0x007A89C6, 0x007A89CB, srand_hook);
 }
 

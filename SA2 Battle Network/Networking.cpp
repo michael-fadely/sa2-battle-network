@@ -54,6 +54,8 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::N_Connected, "N_Connected" },
 	{ MessageID::N_Ready, "N_Ready" },
 	{ MessageID::N_Disconnect, "N_Disconnect" },
+	{ MessageID::N_SetPlayer, "N_SetPlayer" },
+	{ MessageID::N_PlayerNumber, "N_PlayerNumber" },
 
 	{ MessageID::N_END, "N_END" },
 	{ MessageID::I_START, "I_START" },

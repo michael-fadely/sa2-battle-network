@@ -37,6 +37,8 @@ namespace nethax
 		N_Connected,		// Connection setup successful
 		N_Ready,			// Client is ready at current sync block
 		N_Disconnect,		// Request disconnect
+		N_SetPlayer,		// Send a player number change
+		N_PlayerNumber,		// The player number this message came from
 
 		N_END,				// Marker: End of Networking messages
 		I_START,			// Marker: Start of input messages

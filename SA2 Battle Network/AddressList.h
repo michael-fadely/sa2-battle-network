@@ -48,6 +48,9 @@ struct CharSelectThing
 };
 #pragma pack(pop)
 
+DataArray(int, RumblePort_A, 0x01DEFDB0, 4);
+DataArray(int, RumblePort_B, 0x008ACF78, 4);
+
 // Menu
 DataArray(char,		CharacterSelected,		0x01D1B8B2, 2);
 DataArray(int,		PlayerReady,			0x01AEE598, 2);

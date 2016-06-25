@@ -8,18 +8,20 @@
 #define RECEIVED RECV_CONCISE
 #endif
 
+#define Player MainCharacter
+
 // Standard Includes
-#include <cmath>						// for abs
+#include <cmath> // for abs
 #include <fstream>
 #include <thread>
 
 // Local Includes
-#include "Globals.h"					// for Globals :specialed:
+#include "Globals.h"
 #include "Common.h"
 #include "CommonEnums.h"
 
 #include "Networking.h"
-#include "PacketEx.h"			// for PacketEx
+#include "PacketEx.h"
 #include "PacketOverloads.h"
 #include "AdventurePacketOverloads.h"
 
@@ -28,8 +30,7 @@
 #include "AddressList.h"
 
 #include "AddHP.h"
-#include "Random.h"
-#include "ItemBoxItems.h"
+#include "OnInput.h"
 
 // This Class
 #include "PacketBroker.h"
@@ -43,13 +44,13 @@ using namespace nethax;
 // TODO: Re-evaluate all this science.
 // TODO: Consider using the same timer for all three.
 
-static const float	positionThreshold	= 16.0f;
-static const int	rotateThreshold		= NJM_DEG_ANG(11.25);
-static const float	speedThreshold		= 0.1f;
+static const float	positionThreshold = 16.0f;
+static const int	rotateThreshold   = NJM_DEG_ANG(11.25);
+static const float	speedThreshold    = 0.1f;
 
 static uint positionTimer = 0;
-static uint rotateTimer = 0;
-static uint speedTimer = 0;
+static uint rotateTimer   = 0;
+static uint speedTimer    = 0;
 
 static bool PositionThreshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
@@ -87,20 +88,16 @@ PacketBroker::PacketBroker(uint timeout) : ConnectionTimeout(timeout), netStat(f
 }
 void PacketBroker::Initialize()
 {
-	local		= {};
-	recvInput	= {};
-	recvAnalog	= {};
-	sendInput	= {};
-	sendAnalog	= {};
+	local = {};
 
-	firstMenuEntry	= false;
-	wroteP2Start	= false;
-	writePlayer		= false;
-	timedOut		= false;
+	firstMenuEntry = false;
+	writePlayer    = false;
+	timedOut       = false;
 
 	receivedKeepalive = sentKeepalive = 0;
 	lastSequence = 0;
 	waitRequests.clear();
+	playerNum = -1;
 
 	if (netStat)
 	{
@@ -187,7 +184,7 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 		lastSequence = sequence % USHRT_MAX;
 	}
 
-	//MessageID lastType = MessageID::None;
+	PlayerNumber pnum = -1;
 
 	if (netStat)
 		addBytesReceived(packet.getDataSize());
@@ -231,6 +228,19 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 				break;
 			}
 
+			case MessageID::N_PlayerNumber:
+				packet >> pnum;
+				break;
+
+				// TODO: verification that this is from the host
+			case MessageID::N_SetPlayer:
+			{
+				PlayerNumber changed;
+				packet >> changed;
+				SetPlayerNumber(changed);
+				break;
+			}
+
 			case MessageID::S_KeepAlive:
 				receivedKeepalive = Millisecs();
 				packet.seekRead(sizeof(ushort), SEEK_CUR);
@@ -249,30 +259,36 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 
 				AddTypeReceived(newType, length, protocol == Protocol::TCP);
 
-				if (receiveInput(newType, packet) || receiveSystem(newType, packet))
-					break;
-
-				if (!writePlayer)
-					inPlayer.Copy(Player2);
-
-				if (receivePlayer(newType, packet))
+				if (pnum >= 0)
 				{
-					if (GameState >= GameState::Ingame)
+					if (receiveSystem(newType, pnum, packet))
+						break;
+
+					if (pnum != playerNum)
 					{
-						writePlayer = false;
-						PlayerObject::WritePlayer(Player2, &inPlayer);
+						if (!writePlayer)
+							inPlayer.Copy(Player[pnum]);
+
+						if (receivePlayer(newType, pnum, packet))
+						{
+							if (GameState >= GameState::Ingame)
+							{
+								writePlayer = false;
+								PlayerObject::WritePlayer(Player[pnum], &inPlayer);
+							}
+
+							break;
+						}
 					}
 
-					break;
+					if (receiveMenu(newType, pnum, packet))
+						break;
 				}
 
-				if (receiveMenu(newType, packet))
+				if (runMessageHandler(newType, pnum, packet))
 					break;
 
-				if (runMessageHandler(newType, 1, packet))
-					break;
-
-				PrintDebug("\t\tSkipping %d bytes for id %02d", length, newType);
+				PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d", pnum, length, newType);
 				packet.seekRead(length, SEEK_CUR);
 
 				break;
@@ -281,6 +297,7 @@ void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
 	}
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
 bool PacketBroker::ConnectionTimedOut() const
 {
 #ifdef _DEBUG
@@ -357,6 +374,16 @@ void PacketBroker::RegisterMessageHandler(MessageID type, MessageHandler func)
 	messageHandlers[type] = func;
 }
 
+void PacketBroker::SetPlayerNumber(PlayerNumber number)
+{
+	auto from = playerNum < 0 ? 0 : playerNum;
+	if (from != number)
+		SwapInput(from, number);
+	playerNum = number;
+
+	Finalize();
+}
+
 inline void PacketBroker::addType(MessageStat& stat, MessageID id, ushort size, bool isSafe)
 {
 	if (isSafe)
@@ -422,12 +449,15 @@ void PacketBroker::Finalize()
 	Send(udpPacket);
 	tcpPacket.Clear();
 	udpPacket.Clear();
+	tcpPacket << MessageID::N_PlayerNumber << playerNum;
+	udpPacket << MessageID::N_PlayerNumber << playerNum;
 }
 
 void PacketBroker::Send(PacketEx& packet)
 {
 	if (netStat)
 		addBytesSent(packet.getDataSize());
+	
 	Globals::Networking->Send(packet);
 }
 
@@ -452,7 +482,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 		if (local.game.TimeStopped != TimeStopped)
 			request(MessageID::S_TimeStop, tcp, udp);
 
-		if (memcmp(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3) != 0)
+		if (memcmp(local.game.SpecialAttacks[playerNum], playerNum == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
 			request(MessageID::S_2PSpecials, tcp, udp);
 	}
 }
@@ -462,38 +492,38 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 	{
 		if (Globals::Program->InstanceSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
-			if (ControllerPointers[0]->HeldButtons & Buttons_Y && ControllerPointers[0]->PressedButtons & Buttons_Up)
+			if (ControllerPointers[playerNum]->HeldButtons & Buttons_Y && ControllerPointers[playerNum]->PressedButtons & Buttons_Up)
 			{
 				// Teleport to recvPlayer
 				PrintDebug("<> Teleporting to other player...");;
 
-				Player1->Data1->Position = inPlayer.Data1.Position;
-				Player1->Data1->Rotation = inPlayer.Data1.Rotation;
-				Player1->Data2->Speed = {};
+				Player[playerNum]->Data1->Position = inPlayer.Data1.Position;
+				Player[playerNum]->Data1->Rotation = inPlayer.Data1.Rotation;
+				Player[playerNum]->Data2->Speed = {};
 
 				request(MessageID::P_Position, tcp, udp);
 				request(MessageID::P_Speed, tcp, udp);
 			}
 		}
 
-		char charid = Player1->Data2->CharID2;
+		char charid = Player[playerNum]->Data2->CharID2;
 		bool sendSpinTimer = 
 			charid == Characters_Sonic ||
 			charid == Characters_Shadow ||
 			charid == Characters_Amy ||
 			charid == Characters_MetalSonic;
 
-		if (PositionThreshold(outPlayer.Data1.Position, Player1->Data1->Position))
+		if (PositionThreshold(outPlayer.Data1.Position, Player[playerNum]->Data1->Position))
 			request(MessageID::P_Position, udp, tcp);
 
 		// TODO: Make less spammy
-		if (sendSpinTimer && outPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player1->Data2)->SpindashTimer)
+		if (sendSpinTimer && outPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player[playerNum]->Data2)->SpindashTimer)
 			request(MessageID::P_SpinTimer, tcp, udp);
 
-		if (Player1->Data1->Status & Status_DoNextAction && Player1->Data1->NextAction != outPlayer.Data1.NextAction)
+		if (Player[playerNum]->Data1->Status & Status_DoNextAction && Player[playerNum]->Data1->NextAction != outPlayer.Data1.NextAction)
 			request(MessageID::P_NextAction, tcp, udp);
 
-		if (outPlayer.Data1.Action != Player1->Data1->Action || (outPlayer.Data1.Status & status_mask) != (Player1->Data1->Status & status_mask))
+		if (outPlayer.Data1.Action != Player[playerNum]->Data1->Action || (outPlayer.Data1.Status & status_mask) != (Player[playerNum]->Data1->Status & status_mask))
 		{
 			request(MessageID::P_Action, tcp, udp);
 			request(MessageID::P_Status, tcp, udp);
@@ -505,11 +535,11 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 				request(MessageID::P_SpinTimer, tcp, udp);
 		}
 
-		if (Player1->Data1->Action != Action_ObjectControl)
+		if (Player[playerNum]->Data1->Action != Action_ObjectControl)
 		{
-			if (RotationThreshold(outPlayer.Data1.Rotation, Player1->Data1->Rotation)
-				|| (SpeedThreshold(outPlayer.Data2.Speed, Player1->Data2->Speed))
-				|| outPlayer.Data2.PhysData.BaseSpeed != Player1->Data2->PhysData.BaseSpeed)
+			if (RotationThreshold(outPlayer.Data1.Rotation, Player[playerNum]->Data1->Rotation)
+				|| (SpeedThreshold(outPlayer.Data2.Speed, Player[playerNum]->Data2->Speed))
+				|| outPlayer.Data2.PhysData.BaseSpeed != Player[playerNum]->Data2->PhysData.BaseSpeed)
 			{
 				request(MessageID::P_Rotation, udp, tcp);
 				request(MessageID::P_Position, udp, tcp);
@@ -517,16 +547,16 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		if (memcmp(&outPlayer.Data1.Scale, &Player1->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
+		if (memcmp(&outPlayer.Data1.Scale, &Player[playerNum]->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
 			request(MessageID::P_Scale, tcp, udp);
 
-		if (outPlayer.Data2.Powerups != Player1->Data2->Powerups)
+		if (outPlayer.Data2.Powerups != Player[playerNum]->Data2->Powerups)
 			request(MessageID::P_Powerups, tcp, udp);
 
-		if (outPlayer.Data2.Upgrades != Player1->Data2->Upgrades)
+		if (outPlayer.Data2.Upgrades != Player[playerNum]->Data2->Upgrades)
 			request(MessageID::P_Upgrades, tcp, udp);
 
-		outPlayer.Copy(Player1);
+		outPlayer.Copy(Player[playerNum]);
 	}
 }
 void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
@@ -539,8 +569,8 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
-		if ((firstMenuEntry = (local.menu.sub != CurrentMenu[1] && Globals::Networking->isServer())))
-			local.menu.sub = CurrentMenu[1];
+		if ((firstMenuEntry = (local.menu.SubMenu != CurrentMenu[1] && Globals::Networking->isServer())))
+			local.menu.SubMenu = CurrentMenu[1];
 
 		switch (CurrentMenu[1])
 		{
@@ -549,7 +579,7 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 
 			case SubMenu2P::S_READY:
 			case SubMenu2P::O_READY:
-				if (firstMenuEntry || local.menu.PlayerReady[0] != PlayerReady[0])
+				if (firstMenuEntry || local.menu.PlayerReady[playerNum] != PlayerReady[playerNum])
 					request(MessageID::S_2PReady, tcp);
 				break;
 
@@ -571,13 +601,14 @@ void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 					CurrentMenu[1] = SubMenu2P::O_CHARSEL;
 				}
 
-				if (firstMenuEntry || local.menu.CharacterSelection[0] != CharacterSelection[0])
+				if (firstMenuEntry || local.menu.CharacterSelection[playerNum] != CharacterSelection[playerNum])
 					request(MessageID::M_CharacterSelection, tcp);
-				if (firstMenuEntry || local.menu.CharacterSelected[0] != CharacterSelected[0])
+				if (firstMenuEntry || local.menu.CharacterSelected[playerNum] != CharacterSelected[playerNum])
 					request(MessageID::M_CharacterChosen, tcp);
 
 				// I hate this so much
-				if (firstMenuEntry || local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
+				if (firstMenuEntry
+					|| local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
 					|| local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume
 					|| local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume
 					|| local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume
@@ -614,26 +645,6 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 		default:
 			return false;
 
-#pragma region Input
-
-		case MessageID::I_Analog:
-			packet << ControllerPointers[0]->LeftStickX << ControllerPointers[0]->LeftStickY;
-			sendInput.LeftStickX = ControllerPointers[0]->LeftStickX;
-			sendInput.LeftStickY = ControllerPointers[0]->LeftStickY;
-			break;
-
-		case MessageID::I_AnalogAngle:
-			packet << AnalogThings[0];
-			sendAnalog = AnalogThings[0];
-			break;
-
-		case MessageID::I_Buttons:
-			packet << ControllerPointers[0]->HeldButtons;
-			sendInput.HeldButtons = ControllerPointers[0]->HeldButtons;
-			break;
-
-#pragma endregion
-
 #pragma region Menu
 
 		case MessageID::M_CostumeSelection:
@@ -661,13 +672,13 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 			break;
 
 		case MessageID::M_CharacterChosen:
-			packet << CharacterSelected[0];
-			local.menu.CharacterSelected[0] = CharacterSelected[0];
+			packet << CharacterSelected[playerNum];
+			local.menu.CharacterSelected[playerNum] = CharacterSelected[playerNum];
 			break;
 
 		case MessageID::M_CharacterSelection:
-			packet << CharacterSelection[0];
-			local.menu.CharacterSelection[0] = CharacterSelection[0];
+			packet << CharacterSelection[playerNum];
+			local.menu.CharacterSelection[playerNum] = CharacterSelection[playerNum];
 			break;
 
 		case MessageID::M_StageSelection:
@@ -686,54 +697,54 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 			// Don't freak out!
 
 		case MessageID::P_Action:
-			packet << Player1->Data1->Action;
+			packet << Player[playerNum]->Data1->Action;
 			break;
 
 		case MessageID::P_NextAction:
-			packet << Player1->Data1->NextAction;
+			packet << Player[playerNum]->Data1->NextAction;
 			break;
 
 		case MessageID::P_Status:
-			packet << Player1->Data1->Status;
+			packet << Player[playerNum]->Data1->Status;
 			break;
 
 		case MessageID::P_Rotation:
 			speedTimer = rotateTimer = Millisecs();
-			packet << Player1->Data1->Rotation;
+			packet << Player[playerNum]->Data1->Rotation;
 			break;
 
 		case MessageID::P_Position:
 			// Informs other conditions that it shouldn't request
 			// another position out so soon
 			positionTimer = Millisecs();
-			packet << Player1->Data1->Position;
+			packet << Player[playerNum]->Data1->Position;
 			break;
 
 		case MessageID::P_Scale:
-			packet << Player1->Data1->Scale;
+			packet << Player[playerNum]->Data1->Scale;
 			break;
 
 		case MessageID::P_Powerups:
 			PrintDebug("<< Sending powerups");
-			packet << Player1->Data2->Powerups;
+			packet << Player[playerNum]->Data2->Powerups;
 			break;
 
 		case MessageID::P_Upgrades:
 			PrintDebug("<< Sending upgrades");
-			packet << Player1->Data2->Upgrades;
+			packet << Player[playerNum]->Data2->Upgrades;
 			break;
 
 		case MessageID::P_Speed:
 			rotateTimer = speedTimer = Millisecs();
-			packet << Player1->Data2->Speed << Player1->Data2->PhysData.BaseSpeed;
+			packet << Player[playerNum]->Data2->Speed << Player[playerNum]->Data2->PhysData.BaseSpeed;
 			break;
 
 		case MessageID::P_Animation:
-			packet << Player1->Data2->AnimInfo.Next;
+			packet << Player[playerNum]->Data2->AnimInfo.Next;
 			break;
 
 		case MessageID::P_SpinTimer:
-			packet << ((SonicCharObj2*)Player1->Data2)->SpindashTimer;
+			packet << ((SonicCharObj2*)Player[playerNum]->Data2)->SpindashTimer;
 			break;
 
 #pragma endregion
@@ -745,14 +756,17 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 			break;
 
 		case MessageID::S_2PReady:
-			packet << PlayerReady[0];
-			local.menu.PlayerReady[0] = PlayerReady[0];
+			packet << PlayerReady[playerNum];
+			local.menu.PlayerReady[playerNum] = PlayerReady[playerNum];
 			break;
 
 		case MessageID::S_2PSpecials:
-			packet.append(P1SpecialAttacks, sizeof(char) * 3);
-			memcpy(local.game.P1SpecialAttacks, P1SpecialAttacks, sizeof(char) * 3);
+		{
+			auto& specials = playerNum == 0 ? P1SpecialAttacks : P2SpecialAttacks;
+			packet.append(specials, sizeof(char) * 3);
+			memcpy(local.game.SpecialAttacks[playerNum], specials, sizeof(char) * 3);
 			break;
+		}
 
 		case MessageID::S_BattleOptions:
 			packet.append(BattleOptions, BattleOptions_Length);
@@ -777,11 +791,7 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 
 		case MessageID::S_TimeStop:
 			PrintDebug("<< Sending Time Stop");
-
-			// Swap the Time Stop value, as this is connected to player number,
-			// and Player 1 and 2 are relative to the game instance.
-			packet << (int8)(TimeStopped * 5 % 3);
-
+			packet << TimeStopped;
 			local.game.TimeStopped = TimeStopped;
 			break;
 
@@ -798,48 +808,9 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 #pragma endregion
 #pragma region Receive
 
-bool PacketBroker::receiveInput(MessageID type, sf::Packet& packet)
+// TODO: remove from this class
+bool PacketBroker::receiveSystem(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
-	if (CurrentMenu[0] == Menu::BATTLE || TwoPlayerMode > 0 && GameState > GameState::Inactive)
-	{
-		switch (type)
-		{
-			default:
-				return false;
-
-			RECEIVED(MessageID::I_Buttons);
-				packet >> recvInput.HeldButtons;
-				break;
-
-			RECEIVED(MessageID::I_Analog);
-				packet >> recvInput.LeftStickX >> recvInput.LeftStickY;
-				break;
-
-			RECEIVED(MessageID::I_AnalogAngle);
-				packet >> recvAnalog;
-				AnalogThings[1] = recvAnalog;
-				break;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
-{
-	switch (type)
-	{
-		default:
-			break;
-
-		case MessageID::S_Seed:
-			packet >> random::current_seed;
-			PrintDebug(">> Received seed: 0x%08X", random::current_seed);
-			random::srand_original(random::current_seed);
-			return true;
-	}
-
 	if (roundStarted())
 	{
 		switch (type)
@@ -876,35 +847,11 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 
 			RECEIVED(MessageID::S_2PSpecials);
 				for (int i = 0; i < 3; i++)
-					packet >> local.game.P2SpecialAttacks[i];
+					packet >> local.game.SpecialAttacks[pnum][i];
 
-				SpecialActivateTimer[1] = 60;
-				memcpy(P2SpecialAttacks, &local.game.P2SpecialAttacks, sizeof(char) * 3);
+				SpecialActivateTimer[pnum] = 60;
+				memcpy(pnum == 0 ? P1SpecialAttacks : P2SpecialAttacks, &local.game.SpecialAttacks[pnum], sizeof(char) * 3);
 				break;
-
-			case MessageID::S_NBarrier:
-				events::NBarrier_original(1);
-				break;
-
-			case MessageID::S_TBarrier:
-				events::TBarrier_original(1);
-				break;
-
-			case MessageID::S_Speedup:
-				events::Speedup_original(1);
-				break;
-
-			case MessageID::S_Invincibility:
-				events::Invincibility_original(nullptr, 1);
-				break;
-
-			case MessageID::S_ItemBoxItem:
-			{
-				int tnum;
-				packet >> tnum;
-				events::DisplayItemBoxItem_original(1, tnum);
-				break;
-			}
 		}
 
 		return true;
@@ -912,9 +859,9 @@ bool PacketBroker::receiveSystem(MessageID type, sf::Packet& packet)
 
 	return false;
 }
-bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
+bool PacketBroker::receivePlayer(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
-	if (roundStarted())
+	if (roundStarted() && pnum != playerNum)
 	{
 		writePlayer = (type > MessageID::P_START && type < MessageID::P_END);
 
@@ -960,9 +907,9 @@ bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 				packet >> hp >> diff;
 				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
 
-				Player2->Data2->MechHP = hp;
-				events::AddHP_original(1, diff);
-				inPlayer.Data2.MechHP = Player2->Data2->MechHP;
+				Player[pnum]->Data2->MechHP = hp;
+				events::AddHP_original(pnum, diff);
+				inPlayer.Data2.MechHP = Player[pnum]->Data2->MechHP;
 				break;
 
 			RECEIVED(MessageID::P_Speed);
@@ -984,7 +931,7 @@ bool PacketBroker::receivePlayer(MessageID type, sf::Packet& packet)
 
 	return false;
 }
-bool PacketBroker::receiveMenu(MessageID type, sf::Packet& packet)
+bool PacketBroker::receiveMenu(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	if (GameState == GameState::Inactive)
 	{
@@ -994,20 +941,20 @@ bool PacketBroker::receiveMenu(MessageID type, sf::Packet& packet)
 				return false;
 
 			RECEIVED(MessageID::S_2PReady);
-				packet >> local.menu.PlayerReady[1];
-				PlayerReady[1] = local.menu.PlayerReady[1];
+				packet >> local.menu.PlayerReady[pnum];
+				PlayerReady[pnum] = local.menu.PlayerReady[pnum];
 
-				PrintDebug(">> Player 2 ready state changed. ", local.menu.PlayerReady[1]);
+				PrintDebug(">> Player ready state changed. ", local.menu.PlayerReady[pnum]);
 				break;
 
 			RECEIVED(MessageID::M_CharacterSelection);
-				packet >> local.menu.CharacterSelection[1];
-				CharacterSelection[1] = local.menu.CharacterSelection[1];
+				packet >> local.menu.CharacterSelection[pnum];
+				CharacterSelection[pnum] = local.menu.CharacterSelection[pnum];
 				break;
 
 			RECEIVED(MessageID::M_CharacterChosen);
-				packet >> local.menu.CharacterSelected[1];
-				CharacterSelected[1] = local.menu.CharacterSelected[1];
+				packet >> local.menu.CharacterSelected[pnum];
+				CharacterSelected[pnum] = local.menu.CharacterSelected[pnum];
 				break;
 
 			RECEIVED(MessageID::M_CostumeSelection);
@@ -1066,7 +1013,7 @@ bool PacketBroker::receiveMenu(MessageID type, sf::Packet& packet)
 	return false;
 }
 
-bool PacketBroker::runMessageHandler(MessageID type, int pnum, sf::Packet& packet)
+bool PacketBroker::runMessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	auto it = messageHandlers.find(type);
 

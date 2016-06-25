@@ -2,7 +2,6 @@
 
 #include <SA2ModLoader.h>
 #include "Globals.h"			// for Globals :specialed:
-#include "OnSplitscreenMode.h"
 
 using namespace nethax;
 
@@ -34,5 +33,4 @@ extern "C" __declspec(dllexport) void OnFrame()
 	Globals::Broker->SendSystem();
 	Globals::Broker->SendPlayer();
 	Globals::Broker->SendMenu();
-	events::ToggleSplitscreen();
 }

@@ -1,8 +1,11 @@
 #include "stdafx.h"
+
 #include <Trampoline.h>
 #include "Globals.h"
 #include "OnResult.h"
 #include "FunctionPointers.h"
+#include "Networking.h"
+#include "PacketOverloads.h"
 
 using namespace nethax;
 using namespace Globals;
@@ -40,7 +43,7 @@ static void __cdecl OnResult(Sint32 player)
 	if (Networking->isServer())
 	{
 		sf::Packet packet;
-		packet << (Uint8)(player == 0);
+		packet << (PlayerNumber)player;
 		Broker->Append(MessageID::S_Result, Protocol::TCP, &packet);
 		OnResult_orig(player);
 	}
@@ -64,7 +67,7 @@ static void __cdecl OnWin(Sint32 player)
 	if (Networking->isServer())
 	{
 		sf::Packet packet;
-		packet << (Uint8)(player == 0);
+		packet << (PlayerNumber)player;
 		Broker->Append(MessageID::S_Win, Protocol::TCP, &packet);
 		OnWin_orig(player);
 	}
@@ -90,53 +93,67 @@ static void __cdecl DispWinnerAndContinue_Delete_wrapper(ObjectMaster* obj)
 {
 	disp_deleted = true;
 	delete_sub(obj);
+	delete_sub = nullptr;
+	remote_data = {};
+	local_data = {};
 }
 
-static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* obj)
+static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 {
-	_ObjectFunc(mainsub, DispTrampoline->Target());
-	mainsub(obj);
-
 	if (disp_deleted)
 	{
 		disp_deleted = false;
 		return;
 	}
 
-	if (!local_data.Action)
+	if (delete_sub == nullptr)
 	{
-		local_data = {};
-		remote_data = {};
-
-		delete_sub = obj->DeleteSub;
-		delete_sub = DispWinnerAndContinue_Delete_wrapper;
+		delete_sub = _this->DeleteSub;
+		_this->DeleteSub = DispWinnerAndContinue_Delete_wrapper;
 	}
 
-	auto data = (DispWinnerAndContinue_Data*)obj->Data2;
-
-	if (data == nullptr || !data->Action)
+	auto data = (DispWinnerAndContinue_Data*)_this->Data2;
+	if (data == nullptr)
 		return;
+
+	_ObjectFunc(mainsub, DispTrampoline->Target());
+
+	if (data->Action == 0)
+	{
+		mainsub(_this);
+		return;
+	}
+
+	mainsub(_this);
 
 	if (Networking->isServer())
 	{
+		if (disp_deleted)
+		{
+			disp_deleted = false;
+			return;
+		}
+
 		if (local_data.Action != data->Action || local_data.Selection != data->Selection)
 		{
 			sf::Packet packet;
 			packet << data->Action << data->Selection;
 			Broker->Append(MessageID::S_WinData, Protocol::TCP, &packet);
 		}
+
+		local_data = *data;
 	}
 	else if (remote_data.Action != 0)
 	{
-		data->Action    = remote_data.Action;
+		data->Action = remote_data.Action;
 		data->Selection = remote_data.Selection;
-		data->Timer     = 0; // just let the server handle this with the action
-	}
 
-	local_data = *data;
+		if (data->Action != 4 && data->Action != 5)
+			data->Timer = 0;
+	}
 }
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	switch (type)
 	{
@@ -145,7 +162,7 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 
 		case MessageID::S_Win:
 		{
-			Uint8 player;
+			PlayerNumber player;
 			packet >> player;
 			OnWin_orig(player);
 			return true;
@@ -153,7 +170,7 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 
 		case MessageID::S_Result:
 		{
-			Uint8 player;
+			PlayerNumber player;
 			packet >> player;
 			OnResult_orig(player);
 			return true;
@@ -163,7 +180,7 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 		{
 			packet >> remote_data.Action >> remote_data.Selection;
 #ifdef _DEBUG
-			PrintDebug("WINDATA A/S: %d/%d", (int)remote_data.Action, (int)remote_data.Selection);
+			PrintDebug("WIN DATA A/S: %d/%d", (int)remote_data.Action, (int)remote_data.Selection);
 #endif
 			return true;
 		}

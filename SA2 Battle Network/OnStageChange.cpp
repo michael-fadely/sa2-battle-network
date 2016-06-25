@@ -120,7 +120,7 @@ static void __cdecl SetNextLevel_Hook()
 	}
 }
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	switch (type)
 	{

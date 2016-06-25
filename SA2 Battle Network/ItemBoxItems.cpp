@@ -55,7 +55,7 @@ static void __cdecl NBarrier_hax(int n)
 {
 	if (Globals::isConnected())
 	{
-		if (n != 0)
+		if (n != Globals::Broker->GetPlayerNumber())
 			return;
 
 		Globals::Broker->Append(MessageID::S_NBarrier, Protocol::TCP, nullptr);
@@ -78,7 +78,7 @@ static void __cdecl Speedup_hax(int n)
 {
 	if (Globals::isConnected())
 	{
-		if (n != 0)
+		if (n != Globals::Broker->GetPlayerNumber())
 			return;
 
 		Globals::Broker->Append(MessageID::S_Speedup, Protocol::TCP, nullptr);
@@ -101,7 +101,7 @@ static void __cdecl TBarrier_hax(int n)
 {
 	if (Globals::isConnected())
 	{
-		if (n != 0)
+		if (n != Globals::Broker->GetPlayerNumber())
 			return;
 
 		Globals::Broker->Append(MessageID::S_TBarrier, Protocol::TCP, nullptr);
@@ -124,7 +124,7 @@ static void __cdecl Invincibility_hax(ObjectMaster* obj, int n)
 {
 	if (Globals::isConnected())
 	{
-		if (n != 0)
+		if (n != Globals::Broker->GetPlayerNumber())
 			return;
 
 		Globals::Broker->Append(MessageID::S_Invincibility, Protocol::TCP, nullptr);
@@ -137,7 +137,7 @@ static void __cdecl DisplayItemBoxItem_hax(int pnum, int tnum)
 {
 	if (Globals::isConnected())
 	{
-		if (pnum != 0)
+		if (pnum != Globals::Broker->GetPlayerNumber())
 			return;
 
 		sf::Packet packet;
@@ -148,7 +148,7 @@ static void __cdecl DisplayItemBoxItem_hax(int pnum, int tnum)
 	events::DisplayItemBoxItem_original(pnum, tnum);
 }
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	if (!roundStarted())
 		return false;
@@ -156,26 +156,26 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 	switch (type)
 	{
 		case MessageID::S_NBarrier:
-			events::NBarrier_original(1);
+			events::NBarrier_original(pnum);
 			break;
 
 		case MessageID::S_TBarrier:
-			events::TBarrier_original(1);
+			events::TBarrier_original(pnum);
 			break;
 
 		case MessageID::S_Speedup:
-			events::Speedup_original(1);
+			events::Speedup_original(pnum);
 			break;
 
 		case MessageID::S_Invincibility:
-			events::Invincibility_original(nullptr, 1);
+			events::Invincibility_original(nullptr, pnum);
 			break;
 
 		case MessageID::S_ItemBoxItem:
 		{
 			int tnum;
 			packet >> tnum;
-			events::DisplayItemBoxItem_original(1, tnum);
+			events::DisplayItemBoxItem_original(pnum, tnum);
 			break;
 		}
 

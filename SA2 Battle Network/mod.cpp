@@ -11,7 +11,6 @@
 #include "Globals.h"		// PacketHandler, Program, PacketBroker
 #include "PacketHandler.h"	// for RemoteAddress
 #include "OnGameState.h"
-#include "OnSplitscreenMode.h"
 #include "Hash.h"
 
 void MainThread(const char* path, int argc, wchar_t** argv);
@@ -168,5 +167,4 @@ void MainThread(const char* path, int argc, wchar_t** argv)
 	Globals::Broker = new PacketBroker(timeout);
 
 	events::InitOnGameState();
-	events::InitOnSplitscreenMode();
 }

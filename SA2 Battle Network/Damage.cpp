@@ -10,12 +10,8 @@
 
 using namespace nethax;
 
-//DataPointer(void*, DropRingsFunc_ptr, 0x01A5A28C);
-
 static Trampoline* DamagePlayer_trampoline;
-//static Trampoline* DropRings_trampoline;
 static Trampoline* KillPlayer_trampoline;
-
 static bool called_damage = false;
 
 #pragma region Originals
@@ -25,14 +21,6 @@ Sint32 events::DamagePlayer_original(CharObj1* data1, CharObj2Base* data2)
 	_FunctionPointer(Sint32, target, (CharObj1*, CharObj2Base*), DamagePlayer_trampoline->Target());
 	return target(data1, data2);
 }
-
-/*
-void events::DropRings_original(int playerNum)
-{
-	_FunctionPointer(void, target, (int playerNum), DropRings_trampoline->Target());
-	target(playerNum);
-}
-*/
 
 void events::KillPlayer_original(int playerNum)
 {
@@ -50,13 +38,13 @@ void events::KillPlayer_original(int playerNum)
 
 #pragma region Hooks
 
-static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
+static Sint32 __cdecl DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 {
 	if (!Globals::isConnected())
 		return events::DamagePlayer_original(data1, data2);
 
 	Sint32 result = 0;
-	if (data2->PlayerNum != 0)
+	if (data2->PlayerNum != Globals::Broker->GetPlayerNumber())
 		return result;
 
 	// HACK:
@@ -73,45 +61,11 @@ static Sint32 DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
 	return result;
 }
 
-/*
-static void __cdecl DropRings_cpp(int playerNum)
-{
-	if (Globals::isConnected())
-	{
-		if (playerNum != 0)
-		{
-			if (!do_drop)
-				return;
-
-			do_drop = false;
-		}
-		else if (called_damage)
-		{
-			called_drop = true;
-		}
-		else
-		{	
-			called_drop = true;
-			events::DropRings_original(playerNum);
-
-			sf::Packet packet;
-			packet << called_kill;
-			Globals::Broker->Append(MessageID::P_DropRings, Protocol::TCP, &packet, true);
-
-			called_drop = false;
-			called_kill = false;
-		}
-	}
-
-	events::DropRings_original(playerNum);
-}
-*/
-
 static void __stdcall KillPlayer_cpp(int playerNum)
 {
 	if (!called_damage && Globals::isConnected())
 	{
-		if (playerNum != 0)
+		if (playerNum != Globals::Broker->GetPlayerNumber())
 			return;
 		
 		Globals::Broker->Append(MessageID::P_Kill, Protocol::TCP, nullptr, true);
@@ -132,7 +86,7 @@ static void __declspec(naked) KillPlayer_asm()
 
 #pragma endregion
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	if (!roundStarted())
 		return false;
@@ -168,17 +122,14 @@ static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
 void events::InitDamage()
 {
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
-	//DropRings_trampoline = new Trampoline((size_t)DropRings, 0x006C1AF6, DropRings_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Damage, &MessageHandler);
-	//Globals::Broker->RegisterMessageHandler(MessageID::P_DropRings, &MessageHandler);
 	Globals::Broker->RegisterMessageHandler(MessageID::P_Kill, &MessageHandler);
 }
 
 void events::DeinitDamage()
 {
 	delete DamagePlayer_trampoline;
-	//delete DropRings_trampoline;
 	delete KillPlayer_trampoline;
 }

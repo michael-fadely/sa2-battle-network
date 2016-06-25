@@ -32,12 +32,16 @@ void MemManage::nop2PSpecials(const bool apply)
 
 void MemManage::swapSpawn(const bool swapstart)
 {
+	return;
+
 	uint8 swap = (swapstart) ? 0x94 : 0x95;
 	WriteMemory(0x43D9B1, &swap, sizeof(uint8));
 }
 
 void MemManage::swapCharsel(const bool swapcharsel)
 {
+	return;
+
 	uint8 E4 = 0xE4;
 	uint8 E0 = 0xE0;
 
@@ -60,6 +64,8 @@ void MemManage::swapCharsel(const bool swapcharsel)
 static bool input = false;
 void MemManage::swapInput(const bool apply)
 {
+	return;
+
 	if (input == apply)
 		return;
 

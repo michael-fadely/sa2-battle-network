@@ -12,6 +12,7 @@
 #include "OnStageChange.h"
 #include "OnResult.h"
 #include "Random.h"
+#include "OnInput.h"
 
 void nethax::events::Initialize()
 {
@@ -24,6 +25,7 @@ void nethax::events::Initialize()
 	InitDamage();
 	InitOnStageChange();
 	InitOnResult();
+	InitOnInput();
 	random::InitRandom();
 }
 
@@ -38,5 +40,6 @@ void nethax::events::Deinitialize()
 	DeinitDamage();
 	DeinitOnStageChange();
 	DeinitOnResult();
+	DeinitOnInput();
 	random::DeinitRandom();
 }

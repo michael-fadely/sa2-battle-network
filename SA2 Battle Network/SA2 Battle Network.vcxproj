@@ -112,8 +112,8 @@
     <ClInclude Include="Damage.h" />
     <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="OnGameState.h" />
+    <ClInclude Include="OnInput.h" />
     <ClInclude Include="OnResult.h" />
-    <ClInclude Include="OnSplitscreenMode.h" />
     <ClInclude Include="OnStageChange.h" />
     <ClInclude Include="PacketOverloads.h" />
     <ClInclude Include="PoseEffect2PStartMan.h" />
@@ -151,7 +151,6 @@
     <ClCompile Include="OnGameState.cpp" />
     <ClCompile Include="OnInput.cpp" />
     <ClCompile Include="OnResult.cpp" />
-    <ClCompile Include="OnSplitscreenMode.cpp" />
     <ClCompile Include="OnStageChange.cpp" />
     <ClCompile Include="PacketOverloads.cpp" />
     <ClCompile Include="PoseEffect2PStartMan.cpp" />

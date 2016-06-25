@@ -126,9 +126,6 @@
     <ClInclude Include="EmeraldSync.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="OnSplitscreenMode.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
     <ClInclude Include="Events.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
@@ -142,6 +139,9 @@
       <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="OnResult.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="OnInput.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
   </ItemGroup>
@@ -222,9 +222,6 @@
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="CharacterSync.cpp">
-      <Filter>Source Files\Events</Filter>
-    </ClCompile>
-    <ClCompile Include="OnSplitscreenMode.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
     <ClCompile Include="Events.cpp">

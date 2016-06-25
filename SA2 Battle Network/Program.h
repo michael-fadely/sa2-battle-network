@@ -64,4 +64,5 @@ private:
 	void applySettings(bool apply) const;
 	ConnectStatus startServer();
 	ConnectStatus startClient();
+	PlayerNumber playerNum;
 };

@@ -50,10 +50,10 @@ static void __cdecl RandomBattle_SetCharacters_hook()
 	events::SetCurrentLevel(CurrentLevel);
 }
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
-	packet >> CurrentCharacter2P >> AltCostume[1] >> AltCharacter[1]
-		>> CurrentCharacter >> AltCostume[0] >> AltCharacter[0];
+	packet >> CurrentCharacter >> AltCostume[0] >> AltCharacter[0]
+		>> CurrentCharacter2P >> AltCostume[1] >> AltCharacter[1];
 	return true;
 }
 

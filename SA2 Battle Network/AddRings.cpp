@@ -16,11 +16,11 @@ static void __cdecl AddRings_cpp(int8 playerNum, int32 numRings)
 {
 	if (toggle_hack && Globals::isConnected())
 	{
-		if (playerNum != 0)
+		if (playerNum != Globals::Broker->GetPlayerNumber())
 			return;
 
 		sf::Packet packet;
-		packet << RingCount[0] << numRings;
+		packet << RingCount[playerNum] << numRings;
 		Globals::Broker->Append(MessageID::S_Rings, Protocol::TCP, &packet, true);
 	}
 
@@ -61,15 +61,16 @@ void events::AddRings_original(char playerNum, int numRings)
 	}
 }
 
-static bool MessageHandler(MessageID type, int pnum, sf::Packet& packet)
+static bool MessageHandler(MessageID type, PlayerNumber pnum, sf::Packet& packet)
 {
 	if (!roundStarted())
 		return false;
 
 	int diff;
-	packet >> RingCount[1] >> diff;
-	PrintDebug(">> RING CHANGE: %d + %d", RingCount[1], diff);
-	events::AddRings_original(1, diff);
+	packet >> RingCount[pnum] >> diff;
+	PrintDebug(">> RING CHANGE: %d + %d", RingCount[pnum], diff);
+	events::AddRings_original(pnum, diff);
+
 	return true;
 }
 

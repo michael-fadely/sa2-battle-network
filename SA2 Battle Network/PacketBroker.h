@@ -16,7 +16,7 @@ bool roundStarted();
 
 class PacketBroker
 {
-	typedef std::function<bool(nethax::MessageID, int, sf::Packet&)> MessageHandler;
+	typedef std::function<bool(nethax::MessageID, PlayerNumber, sf::Packet&)> MessageHandler;
 
 public:
 	explicit PacketBroker(uint timeout);
@@ -76,9 +76,10 @@ public:
 
 	void RegisterMessageHandler(nethax::MessageID type, MessageHandler func);
 
+	void SetPlayerNumber(PlayerNumber number);
+	auto GetPlayerNumber() const { return playerNum; }
+
 	const uint ConnectionTimeout;
-	ControllerData recvInput, sendInput;
-	PolarCoord recvAnalog, sendAnalog;
 
 private:
 	// TODO: Consider an integer instead of a boolean for multiple wait requests.
@@ -111,12 +112,11 @@ private:
 	// Read and send Menu variables
 	void sendMenu(PacketEx& tcp, PacketEx& udp);
 
-	bool receiveInput(nethax::MessageID type, sf::Packet& packet);
-	bool receiveSystem(nethax::MessageID type, sf::Packet& packet);
-	bool receivePlayer(nethax::MessageID type, sf::Packet& packet);
-	bool receiveMenu(nethax::MessageID type, sf::Packet& packet);
+	bool receiveSystem(nethax::MessageID type, PlayerNumber pnum, sf::Packet& packet);
+	bool receivePlayer(nethax::MessageID type, PlayerNumber pnum, sf::Packet& packet);
+	bool receiveMenu(nethax::MessageID type, PlayerNumber pnum, sf::Packet& packet);
 
-	bool runMessageHandler(nethax::MessageID type, int pnum, sf::Packet& packet);
+	bool runMessageHandler(nethax::MessageID type, PlayerNumber pnum, sf::Packet& packet);
 
 	PacketEx tcpPacket, udpPacket;
 	PlayerObject inPlayer, outPlayer;
@@ -126,7 +126,6 @@ private:
 
 	// Toggles and things
 	bool firstMenuEntry;
-	bool wroteP2Start;
 
 	// Set in ReceivePlayer to true upon receival of a valid player message.
 	bool writePlayer;
@@ -134,4 +133,5 @@ private:
 	bool timedOut;
 	uint sentKeepalive, receivedKeepalive;
 	ushort lastSequence;
+	PlayerNumber playerNum;
 };

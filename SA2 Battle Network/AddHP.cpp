@@ -11,7 +11,7 @@ static void __stdcall AddHP_cpp(int playerNum, float amount)
 {
 	if (Globals::isConnected())
 	{
-		if (playerNum != 0)
+		if (playerNum != Globals::Broker->GetPlayerNumber())
 			return;
 
 		auto data2 = MainCharObj2[playerNum];
