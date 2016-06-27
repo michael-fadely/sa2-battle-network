@@ -43,13 +43,13 @@ string Program::Version::str() const
 
 #pragma endregion
 
-const char* musicConnecting		= "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
-const char* musicConnected		= "chao_k_net_fine.adx";
-const char* musicDisconnected	= "chao_k_net_fault.adx";
-const char* musicDefault		= "btl_sel.adx";
+const char* musicConnecting   = "chao_k_m2.adx"; // originally chao_k_net_connect.adx, but that's super short and annoying
+const char* musicConnected    = "chao_k_net_fine.adx";
+const char* musicDisconnected = "chao_k_net_fault.adx";
+const char* musicDefault      = "btl_sel.adx";
 
-const Program::Version	Program::versionNum	= { 3, 2 };
-const string		Program::version	= "SA2:BN Version: " + versionNum.str();
+const Program::Version Program::versionNum = { 3, 2 };
+const string Program::version = "SA2:BN Version: " + versionNum.str();
 
 Program::Program(const Settings& settings, const bool host, PacketHandler::RemoteAddress address) :
 	remoteVersion(versionNum), localSettings(settings), remoteSettings({}), Address(address), isServer(host), setMusic(false), rejected(false), playerNum(-1)
@@ -133,10 +133,10 @@ void Program::ApplySettings(const Settings& settings)
 	CheatsEnabled = (Bool)settings.cheats;
 	if (!CheatsEnabled)
 	{
-		Cheats_GiveMaxRings		= 0;
-		Cheats_GiveAllUpgrades	= 0;
-		Cheats_GiveMaxLives		= 0;
-		Cheats_ExitStage		= 0;
+		Cheats_GiveMaxRings    = 0;
+		Cheats_GiveAllUpgrades = 0;
+		Cheats_GiveMaxLives    = 0;
+		Cheats_ExitStage       = 0;
 	}
 }
 
@@ -152,6 +152,7 @@ void Program::applySettings(bool apply) const
 	MemManage::swapCharsel(apply);
 }
 
+// TODO: player count limit
 Program::ConnectStatus Program::startServer()
 {
 	sf::Packet packet;
@@ -160,7 +161,8 @@ Program::ConnectStatus Program::startServer()
 	if (!Globals::Networking->isBound())
 		PrintDebug("Hosting server on port %d...", Address.port);
 
-	if ((status = Globals::Networking->Listen(Address.port, false)) != sf::Socket::Done)
+	PacketHandler::Node node;
+	if ((status = Globals::Networking->Listen(Address.port, node, false)) != sf::Socket::Done)
 	{
 		if (status == sf::Socket::Error)
 			PrintDebug("<> An error occurred while trying to listen for connections on port %d", Address.port);
@@ -168,7 +170,8 @@ Program::ConnectStatus Program::startServer()
 		return ConnectStatus::Listening;
 	}
 
-	if ((status = Globals::Networking->ReceiveTCP(packet,, true)) != sf::Socket::Done)
+	auto connection = Globals::Networking->Connections().back();
+	if ((status = Globals::Networking->ReceiveTCP(packet, connection, true)) != sf::Socket::Done)
 	{
 		PrintDebug(">> An error occurred while waiting for version number.");
 		return ConnectStatus::Error;
@@ -199,7 +202,7 @@ Program::ConnectStatus Program::startServer()
 					PrintDebug("->\tYour version: %s - Remote version: %s", versionNum.str().c_str(), remoteVersion.str().c_str());
 
 					packet << MessageID::N_VersionMismatch << versionNum;
-					Globals::Networking->SendTCP(packet,,);
+					Globals::Networking->SendTCP(packet, node);
 
 					return ConnectStatus::Error;
 				}
@@ -233,7 +236,7 @@ Program::ConnectStatus Program::startServer()
 			case MessageID::N_Bind:
 			{
 				packet >> remotePort;
-				Globals::Networking->SetRemotePort(remotePort);
+				Globals::Networking->SetRemotePort(node, remotePort);
 				break;
 			}
 		}
@@ -243,7 +246,7 @@ Program::ConnectStatus Program::startServer()
 	{
 		packet.clear();
 		packet << MessageID::N_PasswordMismatch;
-		Globals::Networking->SendTCP(packet,,);
+		Globals::Networking->SendTCP(packet, node);
 		return ConnectStatus::Error;
 	}
 
@@ -256,7 +259,7 @@ Program::ConnectStatus Program::startServer()
 	packet.clear();
 	packet << MessageID::N_VersionOK;
 
-	if ((status = Globals::Networking->SendTCP(packet,,)) != sf::Socket::Status::Done)
+	if ((status = Globals::Networking->SendTCP(packet, node)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
 		return ConnectStatus::Error;
@@ -264,10 +267,10 @@ Program::ConnectStatus Program::startServer()
 
 	packet.clear();
 	packet << MessageID::N_Settings << localSettings
-		<< MessageID::N_SetPlayer << (PlayerNumber)1
+		<< MessageID::N_SetPlayer << (PlayerNumber)Globals::Networking->ConnectionCount()
 		<< MessageID::N_Connected;
 
-	if ((status = Globals::Networking->SendTCP(packet,,)) != sf::Socket::Status::Done)
+	if ((status = Globals::Networking->SendTCP(packet, node)) != sf::Socket::Status::Done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
 		return ConnectStatus::Error;
@@ -304,7 +307,7 @@ Program::ConnectStatus Program::startClient()
 
 	packet << MessageID::N_Bind << Globals::Networking->GetLocalPort();
 
-	if ((status = Globals::Networking->SendTCP(packet,,)) != sf::Socket::Done)
+	if ((status = Globals::Networking->SendTCP(packet)) != sf::Socket::Done)
 	{
 		PrintDebug("<< An error occurred while sending the version number!");
 		return ConnectStatus::Error;
@@ -314,9 +317,10 @@ Program::ConnectStatus Program::startClient()
 
 	// TODO: Timeout on both of these loops.
 	MessageID id = MessageID::None;
+	auto connection = Globals::Networking->Connections().back();
 	do
 	{
-		if ((status = Globals::Networking->ReceiveTCP(packet,, true)) != sf::Socket::Done)
+		if ((status = Globals::Networking->ReceiveTCP(packet, connection, true)) != sf::Socket::Done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
 			return ConnectStatus::Error;

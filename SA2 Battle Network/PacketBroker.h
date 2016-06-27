@@ -103,7 +103,7 @@ private:
 	// Adds the packet template for packetType to packet
 	bool addPacket(nethax::MessageID packetType, PacketEx& packet);
 
-	void receive(sf::Packet& packet, int8 node, nethax::Protocol protocol);
+	void receive(sf::Packet& packet, PacketHandler::Node node, nethax::Protocol protocol);
 
 	// Read and send System variables
 	void sendSystem(PacketEx& tcp, PacketEx& udp);

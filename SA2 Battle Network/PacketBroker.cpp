@@ -129,7 +129,7 @@ void PacketBroker::ReceiveLoop()
 			handler->SendTCP(packet, -1, connection.node);
 	}
 
-	int8 node;
+	PacketHandler::Node node;
 	PacketHandler::RemoteAddress remoteAddress;
 	auto result = handler->ReceiveUDP(packet, node, remoteAddress);
 	if (node >= 0 && result == sf::Socket::Status::Done)
@@ -170,7 +170,7 @@ bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* p
 	return true;
 }
 
-void PacketBroker::receive(sf::Packet& packet, int8 node, nethax::Protocol protocol)
+void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax::Protocol protocol)
 {
 	using namespace sf;
 

@@ -16,7 +16,7 @@ PacketHandler::~PacketHandler()
 	Disconnect();
 }
 
-sf::Socket::Status PacketHandler::Listen(ushort port, bool block)
+sf::Socket::Status PacketHandler::Listen(ushort port, Node& node, bool block)
 {
 	sf::Socket::Status result;
 
@@ -40,13 +40,8 @@ sf::Socket::Status PacketHandler::Listen(ushort port, bool block)
 
 		bound = true;
 	}
-	
-	if (what.tcpSocket == nullptr)
-	{
-		auto socket = new sf::TcpSocket();
-		what.tcpSocket = socket;
-		socket->setBlocking(false);
-	}
+
+	initCommunication();
 
 	// Now attempt to accept the connection.
 	do
@@ -61,13 +56,13 @@ sf::Socket::Status PacketHandler::Listen(ushort port, bool block)
 	if (result != sf::Socket::Status::Done)
 		return result;
 
+	// Set host state to true to ensure everything knows what to do.
+	host = true;
+
 	// Pull the remote address out of the socket
 	// and store it for later use with UDP.
 	what.udpAddress.ip = what.tcpSocket->getRemoteAddress();
-	connections.push_back(what);
-	what = {};
-
-	host = true;		// Set host state to true to ensure everything knows what to do.
+	node = addConnection();
 
 	return result;
 }
@@ -85,15 +80,10 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, ushort port, bool bl
 			bound = true;
 		}
 
-		what.udpAddress.ip   = ip;
+		what.udpAddress.ip = ip;
 		what.udpAddress.port = port;
 
-		if (what.tcpSocket == nullptr)
-		{
-			auto socket = new sf::TcpSocket();
-			what.tcpSocket = socket;
-			socket->setBlocking(false);
-		}
+		initCommunication();
 
 		// Now we attempt to connect to ip and port
 		// If blocking is enabled, we wait until something happens.
@@ -109,11 +99,10 @@ sf::Socket::Status PacketHandler::Connect(sf::IpAddress ip, ushort port, bool bl
 		if (!block && result != sf::Socket::Status::Done)
 			return result;
 
-		connections.push_back(what);
-		what = {};
-
 		// Even though host defaults to false, ensure that it is in fact false.
 		host = false;
+
+		addConnection();
 	}
 
 	return result;
@@ -145,7 +134,7 @@ sf::Socket::Status PacketHandler::bindPort(ushort port, bool isServer)
 	return result;
 }
 
-PacketHandler::Connection PacketHandler::getConnection(int8 node)
+PacketHandler::Connection PacketHandler::getConnection(Node node)
 {
 	auto c = find_if(connections.begin(), connections.end(), [node](Connection& c)
 	{
@@ -153,9 +142,44 @@ PacketHandler::Connection PacketHandler::getConnection(int8 node)
 	});
 
 	if (c == connections.end())
-		return {};
+		return{};
 
 	return *c;
+}
+
+void PacketHandler::initCommunication()
+{
+	if (what.tcpSocket != nullptr)
+		return;
+
+	auto socket = new sf::TcpSocket();
+	what.tcpSocket = socket;
+	socket->setBlocking(false);
+}
+
+PacketHandler::Node PacketHandler::addConnection()
+{
+	if (host)
+	{
+		Node last_node = 0;
+		for (auto& i : connections)
+		{
+			if (i.tcpSocket == nullptr && i.node == -1)
+			{
+				i.node = last_node + 1;
+				i.tcpSocket = what.tcpSocket;
+				i.udpAddress = what.udpAddress;
+				return i.node;
+			}
+			last_node = i.node;
+		}
+	}
+
+	auto node = host ? (Node)connections.size() + 1 : 0;
+	what.node = node;
+	connections.push_back(what);
+	what = {};
+	return node;
 }
 
 sf::Socket::Status PacketHandler::Connect(RemoteAddress remoteAddress, bool block)
@@ -163,7 +187,7 @@ sf::Socket::Status PacketHandler::Connect(RemoteAddress remoteAddress, bool bloc
 	return Connect(remoteAddress.ip, remoteAddress.port, block);
 }
 
-void PacketHandler::SetRemotePort(int8 node, ushort port)
+void PacketHandler::SetRemotePort(Node node, ushort port)
 {
 	auto connection = find_if(connections.begin(), connections.end(), [node](Connection& c)
 	{
@@ -176,14 +200,14 @@ void PacketHandler::SetRemotePort(int8 node, ushort port)
 	connection->udpAddress.port = port;
 }
 
-sf::Socket::Status PacketHandler::Send(PacketEx& packet, int8 node, int8 node_exclude)
+sf::Socket::Status PacketHandler::Send(PacketEx& packet, Node node, Node node_exclude)
 {
 	if (!packet.isEmpty())
 		return packet.Protocol == nethax::Protocol::TCP ? SendTCP(packet, node, node_exclude) : SendUDP(packet, node, node_exclude);
 
 	return sf::Socket::Status::NotReady;
 }
-sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, int8 node, int8 node_exclude)
+sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, Node node, Node node_exclude)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -195,7 +219,7 @@ sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, int8 node, int8 no
 				continue;
 
 			result = i.tcpSocket->send(packet);
-			
+
 			if (result != sf::Socket::Status::Done)
 				throw exception("Data send failure.");
 		}
@@ -213,7 +237,7 @@ sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, int8 node, int8 no
 
 	return result;
 }
-sf::Socket::Status PacketHandler::SendUDP(sf::Packet& packet, int8 node, int8 node_exclude)
+sf::Socket::Status PacketHandler::SendUDP(sf::Packet& packet, Node node, Node node_exclude)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
@@ -262,7 +286,7 @@ sf::Socket::Status PacketHandler::ReceiveTCP(sf::Packet& packet, Connection& con
 
 	return result;
 }
-sf::Socket::Status PacketHandler::ReceiveUDP(sf::Packet& packet, int8& node, RemoteAddress& remoteAddress, bool block)
+sf::Socket::Status PacketHandler::ReceiveUDP(sf::Packet& packet, Node& node, RemoteAddress& remoteAddress, bool block)
 {
 	sf::Socket::Status result = sf::Socket::Status::NotReady;
 
