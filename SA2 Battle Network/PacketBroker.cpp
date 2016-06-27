@@ -114,10 +114,28 @@ void PacketBroker::Initialize()
 void PacketBroker::ReceiveLoop()
 {
 	sf::Packet packet;
-	receive(packet, Protocol::TCP);
-	receive(packet, Protocol::UDP);
 
-	timedOut = (Duration(receivedKeepalive) >= ConnectionTimeout);
+	auto handler = Globals::Networking;
+	for (auto& connection : handler->Connections())
+	{
+		auto result = handler->ReceiveTCP(packet, connection);
+
+		if (result != sf::Socket::Status::Done)
+			continue;
+
+		receive(packet, connection.node, Protocol::TCP);
+
+		if (handler->isServer())
+			handler->SendTCP(packet, -1, connection.node);
+	}
+
+	int8 node;
+	PacketHandler::RemoteAddress remoteAddress;
+	auto result = handler->ReceiveUDP(packet, node, remoteAddress);
+	if (node >= 0 && result == sf::Socket::Status::Done)
+		receive(packet, node, Protocol::UDP);
+
+	timedOut = Duration(receivedKeepalive) >= ConnectionTimeout;
 }
 
 bool PacketBroker::Request(MessageID type, Protocol protocol, bool allowDupes)
@@ -152,24 +170,13 @@ bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* p
 	return true;
 }
 
-void PacketBroker::receive(sf::Packet& packet, Protocol protocol)
+void PacketBroker::receive(sf::Packet& packet, int8 node, nethax::Protocol protocol)
 {
 	using namespace sf;
 
-	if (protocol == Protocol::TCP)
+	// TODO: multi-connection friendly
+	if (protocol == Protocol::UDP)
 	{
-		if (Globals::Networking->ReceiveSafe(packet) != Socket::Status::Done)
-			return;
-	}
-	else
-	{
-		PacketHandler::RemoteAddress remoteAddress;
-		if (Globals::Networking->ReceiveFast(packet, remoteAddress) != Socket::Status::Done)
-			return;
-
-		if (!Globals::Networking->isConnectedAddress(remoteAddress))
-			return;
-
 		ushort sequence = 0;
 		packet >> sequence;
 
@@ -336,7 +343,7 @@ void PacketBroker::SendReady(MessageID id)
 {
 	sf::Packet packet;
 	AddReady(id, packet);
-	Globals::Networking->SendSafe(packet);
+	Globals::Networking->SendTCP(packet);
 }
 
 void PacketBroker::AddReady(MessageID id, sf::Packet& packet)

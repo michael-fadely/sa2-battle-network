@@ -12,9 +12,12 @@
 #include <WinCrypt.h>
 #include <Winsock2.h>
 #include <direct.h>
+
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <exception>
 #include <functional>
 #include <map>
 #include <string>
@@ -22,6 +25,7 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <deque>
 
 #include "AddRings.h"
 #include "AddressList.h"
