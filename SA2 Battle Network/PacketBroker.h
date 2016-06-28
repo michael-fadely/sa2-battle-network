@@ -82,8 +82,9 @@ public:
 	const uint ConnectionTimeout;
 
 private:
-	// TODO: Consider an integer instead of a boolean for multiple wait requests.
-	std::unordered_map<nethax::MessageID, bool> waitRequests;
+	std::unordered_map<PacketHandler::Node, uint> keepAlive;
+	std::unordered_map<PacketHandler::Node, ushort> sequences;
+	std::unordered_map<nethax::MessageID, PlayerNumber> waitRequests;
 	std::unordered_map<nethax::MessageID, MessageHandler> messageHandlers;
 
 	bool netStat;
@@ -131,7 +132,6 @@ private:
 	bool writePlayer;
 
 	bool timedOut;
-	uint sentKeepalive, receivedKeepalive;
-	ushort lastSequence;
+	uint sentKeepAlive;
 	PlayerNumber playerNum;
 };

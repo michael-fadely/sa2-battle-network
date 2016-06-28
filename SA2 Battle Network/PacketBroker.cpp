@@ -94,10 +94,11 @@ void PacketBroker::Initialize()
 	writePlayer    = false;
 	timedOut       = false;
 
-	receivedKeepalive = sentKeepalive = 0;
-	lastSequence = 0;
-	waitRequests.clear();
+	sentKeepAlive = 0;
 	playerNum = -1;
+	sequences.clear();
+	keepAlive.clear();
+	waitRequests.clear();
 
 	if (netStat)
 	{
@@ -126,16 +127,41 @@ void PacketBroker::ReceiveLoop()
 		receive(packet, connection.node, Protocol::TCP);
 
 		if (handler->isServer())
-			handler->SendTCP(packet, -1, connection.node);
+			handler->SendTCP(packet, PacketHandler::BroadcastNode, connection.node);
 	}
 
 	PacketHandler::Node node;
 	PacketHandler::RemoteAddress remoteAddress;
 	auto result = handler->ReceiveUDP(packet, node, remoteAddress);
+
 	if (node >= 0 && result == sf::Socket::Status::Done)
+	{
 		receive(packet, node, Protocol::UDP);
 
-	timedOut = Duration(receivedKeepalive) >= ConnectionTimeout;
+		if (handler->isServer())
+			handler->SendUDP(packet, PacketHandler::BroadcastNode, node);
+	}
+
+	auto connections = Globals::Networking->ConnectionCount();
+	decltype(connections) timeouts = 0;
+
+	for (auto it = keepAlive.begin(); it != keepAlive.end();)
+	{
+		if (Duration(it->second) >= ConnectionTimeout)
+		{
+			PrintDebug("<> Player %d timed out.", it->first);
+			sequences.erase(it->first);
+			Globals::Networking->Disconnect(it->first);
+			it = keepAlive.erase(it);
+			++timeouts;
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	timedOut = timeouts >= connections;
 }
 
 bool PacketBroker::Request(MessageID type, Protocol protocol, bool allowDupes)
@@ -174,9 +200,9 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 {
 	using namespace sf;
 
-	// TODO: multi-connection friendly
 	if (protocol == Protocol::UDP)
 	{
+		auto& lastSequence = sequences[node];
 		ushort sequence = 0;
 		packet >> sequence;
 
@@ -207,30 +233,32 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 		{
 			case MessageID::None:
 				PrintDebug("\a>> Reached end of packet.");
+				packet.clear();
 				break;
 
 			case MessageID::Count:
 				PrintDebug(">> Received message count?! Malformed packet warning!");
+				packet.clear();
 				break;
 
 			case MessageID::N_Disconnect:
-				PrintDebug(">> Received disconnect request from client.");
-				Globals::Networking->Disconnect();
+				PrintDebug(">> Player %d disconnected.", node);
+				sequences.erase(node);
+				keepAlive.erase(node);
+				Globals::Networking->Disconnect(node);
+				packet.clear();
 				break;
 
 			case MessageID::N_Ready:
 			{
+				PrintDebug(">> Player %d is ready.", node);
 				MessageID waitID; packet >> waitID;
 				auto it = waitRequests.find(waitID);
 
 				if (it != waitRequests.end())
-				{
-					it->second = true;
-				}
+					++it->second;
 				else
-				{
-					waitRequests[waitID] = true;
-				}
+					++waitRequests[waitID];
 
 				break;
 			}
@@ -249,7 +277,7 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 			}
 
 			case MessageID::S_KeepAlive:
-				receivedKeepalive = Millisecs();
+				keepAlive[node] = Millisecs();
 				packet.seekRead(sizeof(ushort), SEEK_CUR);
 				break;
 
@@ -318,10 +346,11 @@ bool PacketBroker::WaitForPlayers(MessageID id)
 {
 	auto it = waitRequests.find(id);
 	if (it == waitRequests.end())
-		it = waitRequests.insert(it, pair<MessageID, bool>(id, false));
+		it = waitRequests.insert(it, pair<MessageID, uint>(id, 0));
 
-	while (!it->second)
+	while (it->second < (PlayerNumber)Globals::Networking->ConnectionCount())
 	{
+		// This handles incrementing of it->second
 		ReceiveLoop();
 
 		if (ConnectionTimedOut())
@@ -354,7 +383,9 @@ void PacketBroker::AddReady(MessageID id, sf::Packet& packet)
 
 void PacketBroker::SetConnectTime()
 {
-	receivedKeepalive = sentKeepalive = Millisecs();
+	sentKeepAlive = Millisecs();
+	for (auto& i : Globals::Networking->Connections())
+		keepAlive[i.node] = sentKeepAlive;
 }
 
 void PacketBroker::ToggleNetStat(bool toggle)
@@ -472,7 +503,7 @@ void PacketBroker::Send(PacketEx& packet)
 
 void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 {
-	if (Duration(sentKeepalive) >= 1000)
+	if (Duration(sentKeepAlive) >= 1000)
 		request(MessageID::S_KeepAlive, udp);
 
 	if (roundStarted())
@@ -759,7 +790,7 @@ bool PacketBroker::addPacket(MessageID packetType, PacketEx& packet)
 #pragma region System
 
 		case MessageID::S_KeepAlive:
-			sentKeepalive = Millisecs();
+			sentKeepAlive = Millisecs();
 			break;
 
 		case MessageID::S_2PReady:

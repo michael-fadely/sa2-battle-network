@@ -11,6 +11,8 @@ class PacketHandler
 {
 public:
 	typedef int8 Node;
+	static const Node BroadcastNode = -1;
+
 	PacketHandler();
 	~PacketHandler();
 
@@ -31,6 +33,7 @@ public:
 	sf::Socket::Status Connect(RemoteAddress remoteAddress, bool block = true);
 	sf::Socket::Status Connect(sf::IpAddress ip, ushort port, bool block = true);
 	void Disconnect();
+	void Disconnect(Node node);
 	bool isBound() const { return bound; }
 	bool isConnected() const { return connections.size() > 0; }
 	auto ConnectionCount() const { return connections.size(); }
@@ -39,9 +42,9 @@ public:
 	auto Connections() const { return connections; }
 	void SetRemotePort(Node node, ushort port);
 
-	sf::Socket::Status Send(PacketEx& packet, Node node = -1, Node node_exclude = -1);
-	sf::Socket::Status SendTCP(sf::Packet& packet, Node node = -1, Node node_exclude = -1);
-	sf::Socket::Status SendUDP(sf::Packet& packet, Node node = -1, Node node_exclude = -1);
+	sf::Socket::Status Send(PacketEx& packet, Node node = BroadcastNode, Node node_exclude = BroadcastNode);
+	sf::Socket::Status SendTCP(sf::Packet& packet, Node node = BroadcastNode, Node node_exclude = BroadcastNode);
+	sf::Socket::Status SendUDP(sf::Packet& packet, Node node = BroadcastNode, Node node_exclude = BroadcastNode);
 	sf::Socket::Status ReceiveTCP(sf::Packet& packet, Connection& connection, bool block = false) const;
 	sf::Socket::Status ReceiveUDP(sf::Packet& packet, Node& node, RemoteAddress& remoteAddress, bool block = false);
 	bool isConnectedAddress(RemoteAddress& remoteAddress) const;

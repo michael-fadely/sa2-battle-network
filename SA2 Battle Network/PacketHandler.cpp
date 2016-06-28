@@ -6,6 +6,9 @@
 
 using namespace std;
 
+// TODO: Handle disconnects
+// TODO: Handle Connections that have invalid nodes on send
+
 PacketHandler::PacketHandler() : bound(false), host(false), what({})
 {
 	listener.setBlocking(false);
@@ -121,6 +124,24 @@ void PacketHandler::Disconnect()
 
 	bound = false;
 }
+
+void PacketHandler::Disconnect(Node node)
+{
+	if (connections.size() == 1)
+		Disconnect();
+
+	auto c = find_if(connections.begin(), connections.end(), [node](Connection& c)
+	{
+		return c.node == node;
+	});
+
+	if (c == connections.end())
+		return;
+
+	c->tcpSocket->disconnect();
+	connections.erase(c);
+}
+
 sf::Socket::Status PacketHandler::bindPort(ushort port, bool isServer)
 {
 	sf::Socket::Status result;
@@ -142,7 +163,7 @@ PacketHandler::Connection PacketHandler::getConnection(Node node)
 	});
 
 	if (c == connections.end())
-		return{};
+		return {};
 
 	return *c;
 }
@@ -159,22 +180,6 @@ void PacketHandler::initCommunication()
 
 PacketHandler::Node PacketHandler::addConnection()
 {
-	if (host)
-	{
-		Node last_node = 0;
-		for (auto& i : connections)
-		{
-			if (i.tcpSocket == nullptr && i.node == -1)
-			{
-				i.node = last_node + 1;
-				i.tcpSocket = what.tcpSocket;
-				i.udpAddress = what.udpAddress;
-				return i.node;
-			}
-			last_node = i.node;
-		}
-	}
-
 	auto node = host ? (Node)connections.size() + 1 : 0;
 	what.node = node;
 	connections.push_back(what);
@@ -307,7 +312,7 @@ sf::Socket::Status PacketHandler::ReceiveUDP(sf::Packet& packet, Node& node, Rem
 
 		if (connection == connections.end())
 		{
-			node = -1;
+			node = BroadcastNode;
 		}
 		else
 		{
