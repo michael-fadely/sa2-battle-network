@@ -120,6 +120,7 @@ private:
 	bool runMessageHandler(nethax::MessageID type, PlayerNumber pnum, sf::Packet& packet);
 
 	PacketEx tcpPacket, udpPacket;
+	// TODO: not this
 	PlayerObject inPlayer, outPlayer;
 
 	// Used for comparison to determine what to send.

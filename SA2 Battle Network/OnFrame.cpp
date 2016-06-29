@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
 #include <SA2ModLoader.h>
-#include "Globals.h"			// for Globals :specialed:
+#include "Globals.h"
+#include "CommonEnums.h"
 
 using namespace nethax;
 
@@ -10,10 +11,12 @@ extern "C" __declspec(dllexport) void OnFrame()
 	if (!Globals::isInitialized())
 		return;
 
-	if (!Globals::isConnected())
+	auto thisthing = Globals::Networking->isServer() && CurrentMenu[0] == Menu::BATTLE && CurrentMenu[1] > SubMenu2P::I_START;
+	if (!Globals::isConnected() || thisthing)
 	{
 		Globals::Program->Connect();
-		return;
+		if (!thisthing)
+			return;
 	}
 
 	if (!Globals::Program->CheckConnectOK())

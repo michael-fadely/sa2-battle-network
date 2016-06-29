@@ -99,9 +99,13 @@ bool Program::Connect()
 			Globals::Broker->SetPlayerNumber(playerNum);
 
 		applySettings(true);
-		events::Initialize();
 		P2Start = 2;
-		FrameCount = 0;
+
+		if (Globals::Networking->ConnectionCount() == 1)
+		{
+			events::Initialize();
+			FrameCount = 0;
+		}
 	}
 
 	return result == ConnectStatus::Success;
@@ -153,6 +157,7 @@ void Program::applySettings(bool apply) const
 }
 
 // TODO: player count limit
+// TODO: play type (normal, spectate)
 Program::ConnectStatus Program::startServer()
 {
 	sf::Packet packet;

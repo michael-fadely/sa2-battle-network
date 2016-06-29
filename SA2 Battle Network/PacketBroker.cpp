@@ -117,6 +117,8 @@ void PacketBroker::ReceiveLoop()
 	sf::Packet packet;
 
 	auto handler = Globals::Networking;
+	auto isServer = handler->isServer();
+
 	for (auto& connection : handler->Connections())
 	{
 		auto result = handler->ReceiveTCP(packet, connection);
@@ -126,20 +128,32 @@ void PacketBroker::ReceiveLoop()
 
 		receive(packet, connection.node, Protocol::TCP);
 
-		if (handler->isServer())
-			handler->SendTCP(packet, PacketHandler::BroadcastNode, connection.node);
+		if (isServer)
+		{
+			sf::Packet out;
+			out << MessageID::N_Node << connection.node;
+			out.append(packet.getData(), packet.getDataSize());
+
+			handler->SendTCP(out, PacketHandler::BroadcastNode, connection.node);
+		}
 	}
 
-	PacketHandler::Node node;
-	PacketHandler::RemoteAddress remoteAddress;
-	auto result = handler->ReceiveUDP(packet, node, remoteAddress);
+	PacketHandler::Node udpNode;
+	PacketHandler::RemoteAddress udpAddress;
+	auto result = handler->ReceiveUDP(packet, udpNode, udpAddress);
 
-	if (node >= 0 && result == sf::Socket::Status::Done)
+	if (udpNode >= 0 && result == sf::Socket::Status::Done)
 	{
-		receive(packet, node, Protocol::UDP);
+		receive(packet, udpNode, Protocol::UDP);
 
-		if (handler->isServer())
-			handler->SendUDP(packet, PacketHandler::BroadcastNode, node);
+		if (isServer)
+		{
+			sf::Packet out;
+			out << MessageID::N_Node << udpNode;
+			out.append(packet.getData(), packet.getDataSize());
+
+			handler->SendUDP(out, PacketHandler::BroadcastNode, udpNode);
+		}
 	}
 
 	auto connections = Globals::Networking->ConnectionCount();
@@ -199,22 +213,39 @@ bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* p
 void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax::Protocol protocol)
 {
 	using namespace sf;
+	PacketHandler::Node realNode = node;
+	auto isServer = Globals::Networking->isServer();
+
+	if (!isServer && packet.getDataSize() >= sizeof(MessageID) + sizeof(PacketHandler::Node))
+	{
+		MessageID type;
+		packet >> type;
+
+		if (type != MessageID::N_Node)
+			packet.seekRead(0, SEEK_SET);
+		else
+			packet >> realNode;
+	}
 
 	if (protocol == Protocol::UDP)
 	{
-		auto& lastSequence = sequences[node];
+		auto it = sequences.find(realNode);
+
+		if (it == sequences.end())
+			it = sequences.insert(it, make_pair(realNode, 0));
+
 		ushort sequence = 0;
 		packet >> sequence;
 
 		// TODO: Rejection threshold
-		if (sequence == 0 || sequence <= lastSequence)
+		if (sequence == 0 || sequence <= it->second)
 		{
 			PrintDebug(">> Received out of order packet. Rejecting.");
-			lastSequence = sequence % USHRT_MAX;
+			it->second = sequence % USHRT_MAX;
 			return;
 		}
 
-		lastSequence = sequence % USHRT_MAX;
+		it->second = sequence % USHRT_MAX;
 	}
 
 	PlayerNumber pnum = -1;
@@ -242,22 +273,26 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 				break;
 
 			case MessageID::N_Disconnect:
-				PrintDebug(">> Player %d disconnected.", node);
-				sequences.erase(node);
-				keepAlive.erase(node);
-				Globals::Networking->Disconnect(node);
-				packet.clear();
+				PrintDebug(">> Player %d disconnected.", realNode);
+				sequences.erase(realNode);
+				keepAlive.erase(realNode);
+
+				if (isServer || realNode == 0)
+				{
+					Globals::Networking->Disconnect(node);
+					packet.clear();
+				}
 				break;
 
 			case MessageID::N_Ready:
 			{
-				PrintDebug(">> Player %d is ready.", node);
+				PrintDebug(">> Player %d is ready.", realNode);
 				MessageID waitID; packet >> waitID;
 				auto it = waitRequests.find(waitID);
 
 				if (it != waitRequests.end())
 					++it->second;
-				else
+				else if (isServer)
 					++waitRequests[waitID];
 
 				break;
@@ -267,9 +302,11 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 				packet >> pnum;
 				break;
 
-				// TODO: verification that this is from the host
 			case MessageID::N_SetPlayer:
 			{
+				if (realNode != 0)
+					break;
+
 				PlayerNumber changed;
 				packet >> changed;
 				SetPlayerNumber(changed);
@@ -294,7 +331,7 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 
 				AddTypeReceived(newType, length, protocol == Protocol::TCP);
 
-				if (pnum >= 0)
+				if (pnum >= 0 && pnum < 2)
 				{
 					if (receiveSystem(newType, pnum, packet))
 						break;
@@ -346,7 +383,7 @@ bool PacketBroker::WaitForPlayers(MessageID id)
 {
 	auto it = waitRequests.find(id);
 	if (it == waitRequests.end())
-		it = waitRequests.insert(it, pair<MessageID, uint>(id, 0));
+		it = waitRequests.insert(it, make_pair(id, 0));
 
 	while (it->second < (PlayerNumber)Globals::Networking->ConnectionCount())
 	{
@@ -385,7 +422,10 @@ void PacketBroker::SetConnectTime()
 {
 	sentKeepAlive = Millisecs();
 	for (auto& i : Globals::Networking->Connections())
+	{
 		keepAlive[i.node] = sentKeepAlive;
+		sequences[i.node] = 0;
+	}
 }
 
 void PacketBroker::ToggleNetStat(bool toggle)
@@ -505,6 +545,9 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 {
 	if (Duration(sentKeepAlive) >= 1000)
 		request(MessageID::S_KeepAlive, udp);
+	// TODO: check if spectator
+	if (playerNum > 1)
+		return;
 
 	if (roundStarted())
 	{
@@ -526,6 +569,10 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 }
 void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 {
+	// TODO: check if spectator
+	if (playerNum > 1)
+		return;
+
 	if (roundStarted() && CurrentMenu[0] >= Menu::BATTLE)
 	{
 		if (Globals::Program->InstanceSettings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
@@ -599,6 +646,10 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 }
 void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
 {
+	// TODO: check if spectator
+	if (playerNum >= 1)
+		return;
+
 	if (GameState == GameState::Inactive && CurrentMenu[0] == Menu::BATTLE)
 	{
 		// Send battle options
