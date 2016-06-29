@@ -99,6 +99,9 @@ void PacketBroker::Initialize()
 	sequences.clear();
 	keepAlive.clear();
 	waitRequests.clear();
+	
+	for (auto i = 0; i < 2; i++)
+		netPlayer[i] = {};
 
 	if (netStat)
 	{
@@ -339,14 +342,14 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 					if (pnum != playerNum)
 					{
 						if (!writePlayer)
-							inPlayer.Copy(Player[pnum]);
+							netPlayer[pnum].Copy(Player[pnum]);
 
 						if (receivePlayer(newType, pnum, packet))
 						{
 							if (GameState >= GameState::Ingame)
 							{
 								writePlayer = false;
-								PlayerObject::WritePlayer(Player[pnum], &inPlayer);
+								PlayerObject::WritePlayer(Player[pnum], &netPlayer[pnum]);
 							}
 
 							break;
@@ -580,10 +583,12 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			if (ControllerPointers[playerNum]->HeldButtons & Buttons_Y && ControllerPointers[playerNum]->PressedButtons & Buttons_Up)
 			{
 				// Teleport to recvPlayer
-				PrintDebug("<> Teleporting to other player...");;
+				PrintDebug("<> Teleporting to other player...");
 
-				Player[playerNum]->Data1->Position = inPlayer.Data1.Position;
-				Player[playerNum]->Data1->Rotation = inPlayer.Data1.Rotation;
+				auto n = (int)(playerNum != 1);
+
+				Player[playerNum]->Data1->Position = netPlayer[n].Data1.Position;
+				Player[playerNum]->Data1->Rotation = netPlayer[n].Data1.Rotation;
 				Player[playerNum]->Data2->Speed = {};
 
 				request(MessageID::P_Position, tcp, udp);
@@ -598,17 +603,17 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			charid == Characters_Amy ||
 			charid == Characters_MetalSonic;
 
-		if (PositionThreshold(outPlayer.Data1.Position, Player[playerNum]->Data1->Position))
+		if (PositionThreshold(netPlayer[playerNum].Data1.Position, Player[playerNum]->Data1->Position))
 			request(MessageID::P_Position, udp, tcp);
 
 		// TODO: Make less spammy
-		if (sendSpinTimer && outPlayer.Sonic.SpindashTimer != ((SonicCharObj2*)Player[playerNum]->Data2)->SpindashTimer)
+		if (sendSpinTimer && netPlayer[playerNum].Sonic.SpindashTimer != ((SonicCharObj2*)Player[playerNum]->Data2)->SpindashTimer)
 			request(MessageID::P_SpinTimer, tcp, udp);
 
-		if (Player[playerNum]->Data1->Status & Status_DoNextAction && Player[playerNum]->Data1->NextAction != outPlayer.Data1.NextAction)
+		if (Player[playerNum]->Data1->Status & Status_DoNextAction && Player[playerNum]->Data1->NextAction != netPlayer[playerNum].Data1.NextAction)
 			request(MessageID::P_NextAction, tcp, udp);
 
-		if (outPlayer.Data1.Action != Player[playerNum]->Data1->Action || (outPlayer.Data1.Status & status_mask) != (Player[playerNum]->Data1->Status & status_mask))
+		if (netPlayer[playerNum].Data1.Action != Player[playerNum]->Data1->Action || (netPlayer[playerNum].Data1.Status & status_mask) != (Player[playerNum]->Data1->Status & status_mask))
 		{
 			request(MessageID::P_Action, tcp, udp);
 			request(MessageID::P_Status, tcp, udp);
@@ -622,9 +627,9 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 
 		if (Player[playerNum]->Data1->Action != Action_ObjectControl)
 		{
-			if (RotationThreshold(outPlayer.Data1.Rotation, Player[playerNum]->Data1->Rotation)
-				|| (SpeedThreshold(outPlayer.Data2.Speed, Player[playerNum]->Data2->Speed))
-				|| outPlayer.Data2.PhysData.BaseSpeed != Player[playerNum]->Data2->PhysData.BaseSpeed)
+			if (RotationThreshold(netPlayer[playerNum].Data1.Rotation, Player[playerNum]->Data1->Rotation)
+				|| (SpeedThreshold(netPlayer[playerNum].Data2.Speed, Player[playerNum]->Data2->Speed))
+				|| netPlayer[playerNum].Data2.PhysData.BaseSpeed != Player[playerNum]->Data2->PhysData.BaseSpeed)
 			{
 				request(MessageID::P_Rotation, udp, tcp);
 				request(MessageID::P_Position, udp, tcp);
@@ -632,16 +637,16 @@ void PacketBroker::sendPlayer(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		if (memcmp(&outPlayer.Data1.Scale, &Player[playerNum]->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
+		if (memcmp(&netPlayer[playerNum].Data1.Scale, &Player[playerNum]->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
 			request(MessageID::P_Scale, tcp, udp);
 
-		if (outPlayer.Data2.Powerups != Player[playerNum]->Data2->Powerups)
+		if (netPlayer[playerNum].Data2.Powerups != Player[playerNum]->Data2->Powerups)
 			request(MessageID::P_Powerups, tcp, udp);
 
-		if (outPlayer.Data2.Upgrades != Player[playerNum]->Data2->Upgrades)
+		if (netPlayer[playerNum].Data2.Upgrades != Player[playerNum]->Data2->Upgrades)
 			request(MessageID::P_Upgrades, tcp, udp);
 
-		outPlayer.Copy(Player[playerNum]);
+		netPlayer[playerNum].Copy(Player[playerNum]);
 	}
 }
 void PacketBroker::sendMenu(PacketEx& tcp, PacketEx& udp)
@@ -960,35 +965,35 @@ bool PacketBroker::receivePlayer(MessageID type, PlayerNumber pnum, sf::Packet& 
 				return false;
 
 			RECEIVED(MessageID::P_Action);
-				packet >> inPlayer.Data1.Action;
+				packet >> netPlayer[pnum].Data1.Action;
 				break;
 
 			RECEIVED(MessageID::P_NextAction);
-				packet >> inPlayer.Data1.NextAction;
+				packet >> netPlayer[pnum].Data1.NextAction;
 				break;
 
 			RECEIVED(MessageID::P_Status);
-				packet >> inPlayer.Data1.Status;
+				packet >> netPlayer[pnum].Data1.Status;
 				break;
 
 			RECEIVED(MessageID::P_Rotation);
-				packet >> inPlayer.Data1.Rotation;
+				packet >> netPlayer[pnum].Data1.Rotation;
 				break;
 
 			RECEIVED(MessageID::P_Position);
-				packet >> inPlayer.Data1.Position;
+				packet >> netPlayer[pnum].Data1.Position;
 				break;
 
 			RECEIVED(MessageID::P_Scale);
-				packet >> inPlayer.Data1.Scale;
+				packet >> netPlayer[pnum].Data1.Scale;
 				break;
 
 			RECEIVED(MessageID::P_Powerups);
-				packet >> inPlayer.Data2.Powerups;
+				packet >> netPlayer[pnum].Data2.Powerups;
 				break;
 
 			RECEIVED(MessageID::P_Upgrades);
-				packet >> inPlayer.Data2.Upgrades;
+				packet >> netPlayer[pnum].Data2.Upgrades;
 				break;
 
 			RECEIVED(MessageID::P_HP);
@@ -998,20 +1003,20 @@ bool PacketBroker::receivePlayer(MessageID type, PlayerNumber pnum, sf::Packet& 
 
 				Player[pnum]->Data2->MechHP = hp;
 				events::AddHP_original(pnum, diff);
-				inPlayer.Data2.MechHP = Player[pnum]->Data2->MechHP;
+				netPlayer[pnum].Data2.MechHP = Player[pnum]->Data2->MechHP;
 				break;
 
 			RECEIVED(MessageID::P_Speed);
-				packet >> inPlayer.Data2.Speed;
-				packet >> inPlayer.Data2.PhysData.BaseSpeed;
+				packet >> netPlayer[pnum].Data2.Speed;
+				packet >> netPlayer[pnum].Data2.PhysData.BaseSpeed;
 				break;
 
 			RECEIVED(MessageID::P_Animation);
-				packet >> inPlayer.Data2.AnimInfo.Next;
+				packet >> netPlayer[pnum].Data2.AnimInfo.Next;
 				break;
 
 			RECEIVED(MessageID::P_SpinTimer);
-				packet >> inPlayer.Sonic.SpindashTimer;
+				packet >> netPlayer[pnum].Sonic.SpindashTimer;
 				break;
 		}
 
