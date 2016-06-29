@@ -50,9 +50,7 @@ void __cdecl random::srand_hook(unsigned int seed)
 	}
 	else
 	{
-		Broker->SendReady(MessageID::S_Seed);
-
-		if (!Broker->WaitForPlayers(MessageID::S_Seed))
+		if (!Broker->SendReadyAndWait(MessageID::S_Seed))
 			srand_original(seed);
 	}
 }

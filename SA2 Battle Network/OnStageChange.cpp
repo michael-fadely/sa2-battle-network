@@ -67,9 +67,7 @@ void __stdcall events::SetCurrentLevel(short stage)
 	else
 	{
 		PrintDebug("<> Waiting for stage number...");
-		Broker->SendReady(MessageID::S_Stage);
-
-		if (!Broker->WaitForPlayers(MessageID::S_Stage))
+		if (!Broker->SendReadyAndWait(MessageID::S_Stage))
 		{
 			SetCurrentLevel_Original(stage);
 			return;
@@ -113,9 +111,8 @@ static void __cdecl SetNextLevel_Hook()
 	else
 	{
 		PrintDebug("<> Waiting for next stage number...");
-		Broker->SendReady(MessageID::S_NextStage);
 
-		if (Broker->WaitForPlayers(MessageID::S_NextStage))
+		if (Broker->SendReadyAndWait(MessageID::S_NextStage))
 			PrintDebug(">> Received next stage: %d", NextLevel);
 	}
 }

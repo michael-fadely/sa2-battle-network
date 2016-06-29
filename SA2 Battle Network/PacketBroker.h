@@ -67,6 +67,7 @@ public:
 	bool ConnectionTimedOut() const;
 	bool WaitForPlayers(nethax::MessageID id);
 	void SendReady(nethax::MessageID id);
+	bool SendReadyAndWait(nethax::MessageID id);
 	void AddReady(nethax::MessageID id, sf::Packet& packet);
 	void SetConnectTime();
 	void ToggleNetStat(bool toggle);

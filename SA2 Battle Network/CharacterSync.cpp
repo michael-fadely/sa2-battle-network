@@ -36,8 +36,7 @@ static int __cdecl Menu_Battle_hook()
 		}
 		else
 		{
-			Broker->SendReady(MessageID::P_Character);
-			Broker->WaitForPlayers(MessageID::P_Character);
+			Broker->SendReadyAndWait(MessageID::P_Character);
 		}
 	}
 

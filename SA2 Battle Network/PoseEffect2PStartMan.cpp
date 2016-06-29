@@ -10,8 +10,7 @@ void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
 
 	if (isConnected())
 	{
-		Broker->SendReady(MessageID::S_RoundStart);
-		Broker->WaitForPlayers(MessageID::S_RoundStart);
+		Broker->SendReadyAndWait(MessageID::S_RoundStart);
 		MainCharObj1[0]->Action = 0;
 		MainCharObj1[1]->Action = 0;
 	}

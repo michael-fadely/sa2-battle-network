@@ -120,44 +120,48 @@ void PacketBroker::ReceiveLoop()
 	sf::Packet packet;
 
 	auto handler = Globals::Networking;
-	auto isServer = handler->isServer();
+	bool multi_connection = handler->isServer() && handler->ConnectionCount();
+	sf::Socket::Status result;
 
 	for (auto& connection : handler->Connections())
 	{
-		auto result = handler->ReceiveTCP(packet, connection);
 
-		if (result != sf::Socket::Status::Done)
-			continue;
-
-		receive(packet, connection.node, Protocol::TCP);
-
-		if (isServer)
+		do
 		{
-			sf::Packet out;
-			out << MessageID::N_Node << connection.node;
-			out.append(packet.getData(), packet.getDataSize());
+			result = handler->ReceiveTCP(packet, connection);
+			receive(packet, connection.node, Protocol::TCP);
 
-			handler->SendTCP(out, PacketHandler::BroadcastNode, connection.node);
-		}
+			if (multi_connection)
+			{
+				sf::Packet out;
+				out << MessageID::N_Node << connection.node;
+				out.append(packet.getData(), packet.getDataSize());
+
+				handler->SendTCP(out, PacketHandler::BroadcastNode, connection.node);
+			}
+		} while (result == sf::Socket::Status::Done);
 	}
 
-	PacketHandler::Node udpNode;
-	PacketHandler::RemoteAddress udpAddress;
-	auto result = handler->ReceiveUDP(packet, udpNode, udpAddress);
-
-	if (udpNode >= 0 && result == sf::Socket::Status::Done)
+	do
 	{
-		receive(packet, udpNode, Protocol::UDP);
+		PacketHandler::Node udpNode;
+		PacketHandler::RemoteAddress udpAddress;
+		result = handler->ReceiveUDP(packet, udpNode, udpAddress);
 
-		if (isServer)
+		if (udpNode >= 0 && result == sf::Socket::Status::Done)
 		{
-			sf::Packet out;
-			out << MessageID::N_Node << udpNode;
-			out.append(packet.getData(), packet.getDataSize());
+			receive(packet, udpNode, Protocol::UDP);
 
-			handler->SendUDP(out, PacketHandler::BroadcastNode, udpNode);
+			if (multi_connection)
+			{
+				sf::Packet out;
+				out << MessageID::N_Node << udpNode;
+				out.append(packet.getData(), packet.getDataSize());
+
+				handler->SendUDP(out, PacketHandler::BroadcastNode, udpNode);
+			}
 		}
-	}
+	} while (result == sf::Socket::Status::Done);
 
 	auto connections = Globals::Networking->ConnectionCount();
 	decltype(connections) timeouts = 0;
@@ -413,6 +417,22 @@ void PacketBroker::SendReady(MessageID id)
 	sf::Packet packet;
 	AddReady(id, packet);
 	Globals::Networking->SendTCP(packet);
+}
+
+bool PacketBroker::SendReadyAndWait(nethax::MessageID id)
+{
+	if (Globals::Networking->isServer())
+	{
+		bool result = WaitForPlayers(id);
+		if (result)
+			SendReady(id);
+		return result;
+	}
+	else
+	{
+		SendReady(id);
+		return WaitForPlayers(id);
+	}
 }
 
 void PacketBroker::AddReady(MessageID id, sf::Packet& packet)

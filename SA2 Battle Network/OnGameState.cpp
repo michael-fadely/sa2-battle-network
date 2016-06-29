@@ -23,8 +23,7 @@ static void __stdcall OnGameState()
 	if (!isConnected())
 		return;
 
-	Broker->SendReady(MessageID::S_GameState);
-	Broker->WaitForPlayers(MessageID::S_GameState);
+	Broker->SendReadyAndWait(MessageID::S_GameState);
 }
 
 // TODO: Make revertable

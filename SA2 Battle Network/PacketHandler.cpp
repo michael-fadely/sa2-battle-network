@@ -225,7 +225,7 @@ sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, Node node, Node no
 
 			result = i.tcpSocket->send(packet);
 
-			if (result != sf::Socket::Status::Done)
+			if (result == sf::Socket::Status::Error)
 				throw exception("Data send failure.");
 		}
 	}
@@ -236,7 +236,7 @@ sf::Socket::Status PacketHandler::SendTCP(sf::Packet& packet, Node node, Node no
 			throw exception("No connections exist with the specified node.");
 
 		result = connection.tcpSocket->send(packet);
-		if (result != sf::Socket::Status::Done)
+		if (result == sf::Socket::Status::Error)
 			throw exception("Data send failure.");
 	}
 
