@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 // Defines
-#define RECV_VERBOSE(type) case type: PrintDebug(">> [%06d] " #type, FrameCount)
+#define RECV_VERBOSE(type) case type: PrintDebug(">> [%06d] [P%d] " #type, FrameCount, pnum)
 #define RECV_CONCISE(type) case type:
 
 #ifndef RECEIVED
@@ -142,10 +142,11 @@ void PacketBroker::ReceiveLoop()
 		} while (result == sf::Socket::Status::Done);
 	}
 
+	PacketHandler::RemoteAddress udpAddress;
+	PacketHandler::Node udpNode;
+	
 	do
 	{
-		PacketHandler::Node udpNode;
-		PacketHandler::RemoteAddress udpAddress;
 		result = handler->ReceiveUDP(packet, udpNode, udpAddress);
 
 		if (udpNode >= 0 && result == sf::Socket::Status::Done)
@@ -185,38 +186,6 @@ void PacketBroker::ReceiveLoop()
 	timedOut = timeouts >= connections;
 }
 
-bool PacketBroker::Request(MessageID type, Protocol protocol, bool allowDupes)
-{
-	return request(type,
-		protocol == Protocol::TCP ? tcpPacket : udpPacket,
-		protocol != Protocol::TCP ? tcpPacket : udpPacket,
-		allowDupes);
-}
-
-bool PacketBroker::Request(MessageID type, PacketEx& packet, bool allowDupes)
-{
-	return request(type, packet, allowDupes);
-}
-
-bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* packet, bool allowDupes)
-{
-	auto& dest = protocol == Protocol::TCP ? tcpPacket : udpPacket;
-	auto size = packet == nullptr ? 0 : packet->getDataSize();
-
-	if (!allowDupes && dest.isInPacket(type))
-		return false;
-
-	if (!dest.AddType(type, allowDupes))
-		return false;
-
-	if (packet != nullptr)
-		dest.append(packet->getData(), size);
-
-	dest.Finalize();
-	AddTypeSent(type, size, dest.Protocol);
-	return true;
-}
-
 void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax::Protocol protocol)
 {
 	using namespace sf;
@@ -236,23 +205,33 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 
 	if (protocol == Protocol::UDP)
 	{
-		auto it = sequences.find(realNode);
+		MessageID type;
+		packet >> type;
 
-		if (it == sequences.end())
-			it = sequences.insert(it, make_pair(realNode, 0));
-
-		ushort sequence = 0;
-		packet >> sequence;
-
-		// TODO: Rejection threshold
-		if (sequence == 0 || sequence <= it->second)
+		if (type != MessageID::N_Sequence)
 		{
-			PrintDebug(">> Received out of order packet. Rejecting.");
-			it->second = sequence % USHRT_MAX;
-			return;
+			throw;
 		}
+		else
+		{
+			auto it = sequences.find(realNode);
 
-		it->second = sequence % USHRT_MAX;
+			if (it == sequences.end())
+				it = sequences.insert(it, make_pair(realNode, 0));
+
+			ushort sequence = 0;
+			packet >> sequence;
+
+			// TODO: Rejection threshold
+			if (sequence == 0 || sequence <= it->second)
+			{
+				PrintDebug(">> Received out of order packet. Rejecting.");
+				it->second = sequence % USHRT_MAX;
+				return;
+			}
+
+			it->second = sequence % USHRT_MAX;
+		}
 	}
 
 	PlayerNumber pnum = -1;
@@ -485,6 +464,38 @@ void PacketBroker::SetPlayerNumber(PlayerNumber number)
 	Finalize();
 }
 
+bool PacketBroker::Request(MessageID type, Protocol protocol, bool allowDupes)
+{
+	return request(type,
+		protocol == Protocol::TCP ? tcpPacket : udpPacket,
+		protocol != Protocol::TCP ? tcpPacket : udpPacket,
+		allowDupes);
+}
+
+bool PacketBroker::Request(MessageID type, PacketEx& packet, bool allowDupes)
+{
+	return request(type, packet, allowDupes);
+}
+
+bool PacketBroker::Append(MessageID type, Protocol protocol, sf::Packet const* packet, bool allowDupes)
+{
+	auto& dest = protocol == Protocol::TCP ? tcpPacket : udpPacket;
+	auto size = packet == nullptr ? 0 : packet->getDataSize();
+
+	if (!allowDupes && dest.isInPacket(type))
+		return false;
+
+	if (!dest.AddType(type, allowDupes))
+		return false;
+
+	if (packet != nullptr)
+		dest.append(packet->getData(), size);
+
+	dest.Finalize();
+	AddTypeSent(type, size, dest.Protocol);
+	return true;
+}
+
 inline void PacketBroker::addType(MessageStat& stat, MessageID id, ushort size, bool isSafe)
 {
 	if (isSafe)
@@ -568,6 +579,7 @@ void PacketBroker::sendSystem(PacketEx& tcp, PacketEx& udp)
 {
 	if (Duration(sentKeepAlive) >= 1000)
 		request(MessageID::S_KeepAlive, udp);
+
 	// TODO: check if spectator
 	if (playerNum > 1)
 		return;

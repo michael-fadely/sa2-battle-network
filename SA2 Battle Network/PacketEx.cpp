@@ -27,7 +27,7 @@ void PacketEx::initialize()
 			++sequence;
 		}
 
-		*this << sequence;
+		*this << MessageID::N_Sequence << sequence;
 	}
 
 	empty = true;

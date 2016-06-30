@@ -44,6 +44,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 
 	{ MessageID::N_START, "N_START" },
 
+	{ MessageID::N_Sequence, "N_Sequence" },
 	{ MessageID::N_VersionCheck, "N_VersionCheck" },
 	{ MessageID::N_VersionMismatch, "N_VersionMismatch" },
 	{ MessageID::N_VersionOK, "N_VersionOK" },
@@ -56,6 +57,7 @@ const std::map<MessageID, const char*> nethax::MessageID_string = {
 	{ MessageID::N_Disconnect, "N_Disconnect" },
 	{ MessageID::N_SetPlayer, "N_SetPlayer" },
 	{ MessageID::N_PlayerNumber, "N_PlayerNumber" },
+	{ MessageID::N_Node, "N_Node" },
 
 	{ MessageID::N_END, "N_END" },
 	{ MessageID::I_START, "I_START" },

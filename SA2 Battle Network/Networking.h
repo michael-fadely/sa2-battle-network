@@ -27,6 +27,7 @@ namespace nethax
 
 		N_START,			// Marker: Start of Networking messages
 
+		N_Sequence,			// UDP Sequence
 		N_VersionCheck,		// Initial version check upon connection
 		N_VersionMismatch,	// Client version mismatch
 		N_VersionOK,		// Client version match
