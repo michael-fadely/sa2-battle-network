@@ -21,6 +21,7 @@ inline void SetSeed()
 {
 	last_seed = random::current_seed;
 	random::srand_hook(GetTickCount() + FrameCount);
+
 #ifdef _DEBUG
 	PrintDebug("Seed stored/generated: 0x%08X/0x%08X", last_seed, random::current_seed);
 #endif

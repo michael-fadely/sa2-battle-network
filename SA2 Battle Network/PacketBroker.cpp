@@ -175,6 +175,7 @@ void PacketBroker::ReceiveLoop()
 	auto connections = Globals::Networking->ConnectionCount();
 	decltype(connections) timeouts = 0;
 
+#ifndef _DEBUG
 	for (auto it = keepAlive.begin(); it != keepAlive.end();)
 	{
 		if (Duration(it->second) >= ConnectionTimeout)
@@ -190,6 +191,7 @@ void PacketBroker::ReceiveLoop()
 			++it;
 		}
 	}
+#endif
 
 	timedOut = timeouts >= connections;
 }
@@ -282,12 +284,16 @@ void PacketBroker::receive(sf::Packet& packet, PacketHandler::Node node, nethax:
 			{
 				PrintDebug(">> Player %d is ready.", realNode);
 				MessageID waitID; packet >> waitID;
-				auto it = waitRequests.find(waitID);
 
-				if (it != waitRequests.end())
-					++it->second;
-				else if (isServer)
-					++waitRequests[waitID];
+				if (isServer || realNode == 0)
+				{
+					auto it = waitRequests.find(waitID);
+
+					if (it != waitRequests.end())
+						++it->second;
+					else if (isServer)
+						++waitRequests[waitID];
+				}
 
 				break;
 			}

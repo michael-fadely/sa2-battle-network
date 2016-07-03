@@ -102,10 +102,7 @@ bool Program::Connect()
 		P2Start = 2;
 
 		if (Globals::Networking->ConnectionCount() == 1)
-		{
 			events::Initialize();
-			FrameCount = 0;
-		}
 	}
 
 	return result == ConnectStatus::Success;
