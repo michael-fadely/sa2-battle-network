@@ -120,15 +120,19 @@ void PacketBroker::ReceiveLoop()
 	sf::Packet packet;
 
 	auto handler = Globals::Networking;
-	bool multi_connection = handler->isServer() && handler->ConnectionCount();
+	bool multi_connection = handler->isServer() && handler->ConnectionCount() > 1;
 	sf::Socket::Status result;
 
 	for (auto& connection : handler->Connections())
 	{
-
-		do
+		result = sf::Socket::Status::Done;
+		for (auto i = 0; i < 2 && result != sf::Socket::Status::NotReady; i++)
 		{
 			result = handler->ReceiveTCP(packet, connection);
+			
+			if (result != sf::Socket::Status::Done)
+				continue;
+
 			receive(packet, connection.node, Protocol::TCP);
 
 			if (multi_connection)
@@ -139,15 +143,19 @@ void PacketBroker::ReceiveLoop()
 
 				handler->SendTCP(out, PacketHandler::BroadcastNode, connection.node);
 			}
-		} while (result == sf::Socket::Status::Done);
+		}
 	}
 
+	result = sf::Socket::Status::Done;
 	PacketHandler::RemoteAddress udpAddress;
 	PacketHandler::Node udpNode;
 	
-	do
+	for (auto i = 0; i < 2 && result != sf::Socket::Status::NotReady; i++)
 	{
 		result = handler->ReceiveUDP(packet, udpNode, udpAddress);
+
+		if (result != sf::Socket::Status::Done)
+			continue;
 
 		if (udpNode >= 0 && result == sf::Socket::Status::Done)
 		{
@@ -162,7 +170,7 @@ void PacketBroker::ReceiveLoop()
 				handler->SendUDP(out, PacketHandler::BroadcastNode, udpNode);
 			}
 		}
-	} while (result == sf::Socket::Status::Done);
+	}
 
 	auto connections = Globals::Networking->ConnectionCount();
 	decltype(connections) timeouts = 0;
