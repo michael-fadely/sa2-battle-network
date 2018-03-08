@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SA2ModLoader/SA2Structs.h>
+#include <SA2Structs.h>
 #include <ninja.h>
 
 namespace nethax
