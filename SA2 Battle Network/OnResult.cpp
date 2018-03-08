@@ -14,6 +14,16 @@ static Trampoline* WinTrampoline    = nullptr;
 static Trampoline* ResultTrampoline = nullptr;
 static Trampoline* DispTrampoline   = nullptr;
 
+enum DispAction : __int8
+{
+	DispAction_Initialize = 0x0,
+	DispAction_Transition = 0x1,
+	DispAction_YesNo      = 0x2,
+	DispAction_Exit       = 0x3,
+	DispAction_Continue   = 0x4,
+	DispAction_Restart    = 0x5,
+};
+
 #pragma pack(push, 1)
 struct DispWinnerAndContinue_Data
 {
@@ -27,7 +37,6 @@ struct DispWinnerAndContinue_Data
 	int field_10;
 };
 #pragma pack(pop)
-
 
 static void __cdecl OnResult_orig(Sint32 player)
 {
@@ -143,12 +152,12 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 
 		local_data = *data;
 	}
-	else if (remote_data.Action != 0)
+	else if (remote_data.Action != DispAction_Initialize)
 	{
 		data->Action = remote_data.Action;
 		data->Selection = remote_data.Selection;
 
-		if (data->Action != 4 && data->Action != 5)
+		if (data->Action != DispAction_Continue && data->Action != DispAction_Restart)
 			data->Timer = 0;
 	}
 }
