@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include <algorithm>
-#include <Winsock2.h>
+#include <WinSock2.h>
 #include "PacketHandler.h"
 
 using namespace std;

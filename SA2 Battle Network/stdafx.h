@@ -10,7 +10,7 @@
 #include <WinSock2.h>
 #include <Windows.h>
 #include <WinCrypt.h>
-#include <Winsock2.h>
+#include <WinSock2.h>
 #include <direct.h>
 
 #include <algorithm>
