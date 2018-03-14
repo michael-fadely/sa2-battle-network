@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3F122E9B-E722-461F-9DCE-4A82957736B0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SA2_Battle_Network</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)sa2-mod-loader\SA2ModLoader\include;$(SolutionDir)sa2-mod-loader\libmodutils;$(SolutionDir)simple-winsock-wrapper\include</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PreprocessorDefinitions>NOMINMAX;RECEIVED=RECV_VERBOSE;WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\SFML\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
+    </Link>
+    <PreBuildEvent>
+      <Command>xcopy /Y /D "$(ProjectDir)mod.ini" "$(OutDir)"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(SolutionDir)sa2-mod-loader\SA2ModLoader\include;$(SolutionDir)sa2-mod-loader\libmodutils;$(SolutionDir)simple-winsock-wrapper\include</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PreprocessorDefinitions>NOMINMAX;RECEIVED=RECV_CONCISE;WIN32_LEAN_AND_MEAN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\SFML\lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+    </Link>
+    <PreBuildEvent>
+      <Command>xcopy /Y /D "$(ProjectDir)mod.ini" "$(OutDir)"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\sa2-mod-loader\libmodutils\Trampoline.h" />
+    <ClInclude Include="AddHP.h" />
+    <ClInclude Include="AddressList.h" />
+    <ClInclude Include="AddRings.h" />
+    <ClInclude Include="AdventurePacketOverloads.h" />
+    <ClInclude Include="CharacterSync.h" />
+    <ClInclude Include="EmeraldSync.h" />
+    <ClInclude Include="Events.h" />
+    <ClInclude Include="FunctionPointers.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="Hash.h" />
+    <ClInclude Include="Damage.h" />
+    <ClInclude Include="ItemBoxItems.h" />
+    <ClInclude Include="OnGameState.h" />
+    <ClInclude Include="OnInput.h" />
+    <ClInclude Include="OnResult.h" />
+    <ClInclude Include="OnStageChange.h" />
+    <ClInclude Include="PacketOverloads.h" />
+    <ClInclude Include="PoseEffect2PStartMan.h" />
+    <ClInclude Include="Program.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonEnums.h" />
+    <ClInclude Include="LazyMemory.h" />
+    <ClInclude Include="PacketBroker.h" />
+    <ClInclude Include="MemoryManagement.h" />
+    <ClInclude Include="MemoryStruct.h" />
+    <ClInclude Include="ModLoaderExtensions.h" />
+    <ClInclude Include="Networking.h" />
+    <ClInclude Include="nop.h" />
+    <ClInclude Include="PlayerObject.h" />
+    <ClInclude Include="PacketEx.h" />
+    <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="Random.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="typedefs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sa2-mod-loader\libmodutils\Trampoline.cpp" />
+    <ClCompile Include="AddHP.cpp" />
+    <ClCompile Include="AddRings.cpp" />
+    <ClCompile Include="AdventurePacketOverloads.cpp" />
+    <ClCompile Include="CharacterSync.cpp" />
+    <ClCompile Include="Events.cpp" />
+    <ClCompile Include="globals.cpp" />
+    <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="EmeraldSync.cpp" />
+    <ClCompile Include="Damage.cpp" />
+    <ClCompile Include="ItemBoxItems.cpp" />
+    <ClCompile Include="Networking.cpp" />
+    <ClCompile Include="OnFrame.cpp" />
+    <ClCompile Include="OnGameState.cpp" />
+    <ClCompile Include="OnInput.cpp" />
+    <ClCompile Include="OnResult.cpp" />
+    <ClCompile Include="OnStageChange.cpp" />
+    <ClCompile Include="PoseEffect2PStartMan.cpp" />
+    <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Common.cpp" />
+    <ClCompile Include="mod.cpp" />
+    <ClCompile Include="PacketBroker.cpp" />
+    <ClCompile Include="MemoryManagement.cpp" />
+    <ClCompile Include="nop.cpp" />
+    <ClCompile Include="PlayerObject.cpp" />
+    <ClCompile Include="PacketEx.cpp" />
+    <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="Random.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mod.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\simple-winsock-wrapper\sws\sws.vcxproj">
+      <Project>{4994eb4d-2482-41cb-8d70-5e6f861a15ac}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
