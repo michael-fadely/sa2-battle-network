@@ -35,9 +35,6 @@ using namespace nethax;
 
 #pragma region science
 
-// TODO: Re-evaluate all this
-// TODO: Consider using the same timer for all three.
-
 static const float POSITION_THRESHOLD = 16.0f;
 static const int   ROTATE_THRESHOLD   = NJM_DEG_ANG(11.25);
 static const float SPEED_THRESHOLD    = 0.1f;
@@ -269,8 +266,6 @@ void PacketBroker::receive(sws::Packet& packet, node_t node, Protocol protocol)
 	{
 		MessageID new_type = MessageID::None;
 		packet >> new_type;
-
-		// TODO: Re-implement packet loop failsafe using read offset.
 
 		switch (new_type)
 		{
