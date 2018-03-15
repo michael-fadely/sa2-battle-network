@@ -7,11 +7,12 @@
 class Hash
 {
 public:	
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Hash"/> class.
-	/// </summary>
-	/// <param name="dwProvType">Provider type. See "Cryptographic Provider Types" on MSDN for details.</param>
-	/// <param name="dwFlags">See the MSDN definition of CryptAcquireContext for details.</param>
+	/**
+	 * \brief 
+	 * Initializes a new instance of the \sa Hash class.
+	 * \param dwProvType Provider type. See "Cryptographic Provider Types" on MSDN for details.
+	 * \param dwFlags See the MSDN definition of CryptAcquireContext for details.
+	 */
 	Hash(DWORD dwProvType = PROV_RSA_AES, DWORD dwFlags = CRYPT_VERIFYCONTEXT);
 	~Hash();
 

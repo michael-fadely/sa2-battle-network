@@ -24,44 +24,44 @@ public:
 	void initialize();
 	void receive_loop();
 
-	/// <summary>
-	/// Requests the specified message type to be added to the outbound packets.
-	/// </summary>
-	/// <param name="type">The message type.</param>
-	/// <param name="protocol">The protocol.</param>
-	/// <param name="allowDupes">If <c>true</c>, ignores duplicate types.</param>
-	/// <returns><c>true</c> if added to the outbound packets, <c>false</c> on failure (e.g already in outbound packets).</returns>
+	/**
+	 * \brief Requests the specified message type to be added to the outbound packets.
+	 * \param type The message type.
+	 * \param protocol The protocol.
+	 * \param allow_dupes If \c true, ignores duplicate types.
+	 * \return \c true if added to the outbound packets, \c false on failure (e.g already in outbound packets).
+	 */
 	bool request(nethax::MessageID type, nethax::Protocol protocol, bool allow_dupes = false);
 
-	/// <summary>
-	/// Requests the specified message type to be added to the specified packet.
-	/// </summary>
-	/// <param name="type">The message type.</param>
-	/// <param name="packet">The packet to add the data to.</param>
-	/// <param name="allowDupes">If <c>true</c>, ignores duplicate types.</param>
-	/// <returns><c>true</c> on success.</returns>
+	/**
+	 * \brief Requests the specified message type to be added to the specified packet.
+	 * \param type The message type.
+	 * \param packet The packet to add the data to.
+	 * \param allow_dupes If \c true, ignores duplicate types.
+	 * \return \c true on success.
+	 */
 	bool request(nethax::MessageID type, PacketEx& packet, bool allow_dupes = false);
 
-	/// <summary>
-	/// Appends data to the outbound packets for this frame.
-	/// </summary>
-	/// <param name="type">The message type.</param>
-	/// <param name="protocol">The protocol.</param>
-	/// <param name="packet">The packet containing data to append to the mega packet.
-	/// If <c>nullptr</c>, the message id will be added with no additional data.</param>
-	/// <param name="allowDupes">If <c>true</c>, ignores duplicate types.</param>
-	/// <returns><c>true</c> on success.</returns>
+	/**
+	 * \brief Appends data to the outbound packets for this frame.
+	 * \param type The message type.
+	 * \param protocol The protocol.
+	 * \param packet The packet containing data to append to the mega packet.
+	 *  If \c nullptr, the message id will be added with no additional data.
+	 * \param allow_dupes If \c true, ignores duplicate types.
+	 * \return \c true on success.
+	 */
 	bool append(nethax::MessageID type, nethax::Protocol protocol, sws::Packet const* packet, bool allow_dupes = false);
 
-	/// <summary>
-	/// Finalizes this frame, sending queued packets.
-	/// </summary>
+	/**
+	 * \brief Finalizes this frame, sending queued packets.
+	 */
 	void finalize();
 
-	/// <summary>
-	/// Sends the data stored in <c>packet</c>
-	/// </summary>
-	/// <param name="packet">The data to be sent.</param>
+	/**
+	 * \brief Sends the data stored in \c packet
+	 * \param packet The data to be sent.
+	 */
 	void send(PacketEx& packet);
 
 	void send_system();
