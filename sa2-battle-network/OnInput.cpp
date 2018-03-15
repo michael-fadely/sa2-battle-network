@@ -88,7 +88,7 @@ extern "C"
 
 				if (pad->PressedButtons || pad->ReleasedButtons)
 				{
-					send(MessageID::I_Buttons, Protocol::tcp, i);
+					send(MessageID::I_Buttons, Protocol::tcp, static_cast<pnum_t>(i));
 					sent_buttons = true;
 				}
 
@@ -101,12 +101,12 @@ extern "C"
 						|| !analog_timer)
 					{
 						analog_timer = 0;
-						send(MessageID::I_Analog, Protocol::udp, i);
+						send(MessageID::I_Analog, Protocol::udp, static_cast<pnum_t>(i));
 						send_angle = true;
 					}
 					else if (!pad->LeftStickX && !pad->LeftStickY)
 					{
-						send(MessageID::I_Analog, Protocol::tcp, i);
+						send(MessageID::I_Analog, Protocol::tcp, static_cast<pnum_t>(i));
 						send_angle = true;
 					}
 				}
@@ -168,7 +168,7 @@ extern "C"
 #ifdef _DEBUG
 					PrintDebug("[%04d]\t\tDIR: %d MAG: %d TIMER: %d", FrameCount, dir_delta, mag_delta, (!dir_delta && !mag_delta));
 #endif
-					send(MessageID::I_AnalogAngle, Protocol::udp, i);
+					send(MessageID::I_AnalogAngle, Protocol::udp, static_cast<pnum_t>(i));
 					send_angle = false;
 				}
 
