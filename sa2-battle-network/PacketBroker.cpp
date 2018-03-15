@@ -143,7 +143,7 @@ void PacketBroker::receive_loop()
 				continue;
 			}
 
-			receive(packet, connection.node, Protocol::tcp);
+			read(packet, connection.node, Protocol::tcp);
 
 			if (multi_connection)
 			{
@@ -169,7 +169,7 @@ void PacketBroker::receive_loop()
 
 		if (udp_node >= 0 && result == sws::SocketState::done)
 		{
-			receive(packet, udp_node, Protocol::udp);
+			read(packet, udp_node, Protocol::udp);
 
 			if (multi_connection)
 			{
@@ -204,7 +204,7 @@ void PacketBroker::receive_loop()
 	timed_out = timeouts >= connections;
 }
 
-void PacketBroker::receive(sws::Packet& packet, node_t node, Protocol protocol)
+void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 {
 	node_t real_node = node;
 	bool is_server = globals::networking->is_server();

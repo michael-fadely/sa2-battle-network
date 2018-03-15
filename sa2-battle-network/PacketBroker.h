@@ -116,7 +116,7 @@ private:
 	// Adds the packet template for packetType to packet
 	bool add_packet(nethax::MessageID packet_type, PacketEx& packet);
 
-	void receive(sws::Packet& packet, node_t node, nethax::Protocol protocol);
+	void read(sws::Packet& packet, node_t node, nethax::Protocol protocol);
 
 	// Read and send System variables
 	void send_system(PacketEx& tcp, PacketEx& udp);
