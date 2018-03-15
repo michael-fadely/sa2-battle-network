@@ -82,7 +82,7 @@ extern "C"
 			ControllerData* net_pad = &net_input[i];
 
 #pragma region Send
-			if (i == pnum)
+			if (static_cast<pnum_t>(i) == pnum)
 			{
 				bool sent_buttons = false;
 
