@@ -69,8 +69,8 @@ static bool rotation_threshold(const Rotation& last, const Rotation& current)
 static bool speed_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	const auto m = static_cast<float>(njScalor(&current));
-	return system_clock::now() - speed_timer >= SPEED_INTERVAL || abs(CheckDistance(&last, &current)) >= max(
-			   (SPEED_THRESHOLD * m), SPEED_THRESHOLD);
+	return system_clock::now() - speed_timer >= SPEED_INTERVAL
+		|| abs(CheckDistance(&last, &current)) >= max((SPEED_THRESHOLD * m), SPEED_THRESHOLD);
 }
 
 bool round_started()
