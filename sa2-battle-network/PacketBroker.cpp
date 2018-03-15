@@ -696,8 +696,8 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 			request(MessageID::S_TimeStop, tcp, udp);
 		}
 
-		if (memcmp(local.game.SpecialAttacks[player_num], player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks,
-				   sizeof(char) * 3) != 0)
+		if (memcmp(local.game.SpecialAttacks[player_num],
+				   player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
 		{
 			request(MessageID::S_2PSpecials, tcp, udp);
 		}
@@ -1031,8 +1031,13 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 		case MessageID::S_2PSpecials:
 		{
 			auto& specials = player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks;
-			packet.write_data(&specials, sizeof(char) * 3, true);
-			memcpy(local.game.SpecialAttacks[player_num], specials, sizeof(char) * 3);
+
+			packet << specials[0] << specials[1] << specials[2];
+
+			auto& local_specials = local.game.SpecialAttacks[player_num];
+			local_specials[0] = specials[0];
+			local_specials[1] = specials[1];
+			local_specials[2] = specials[2];
 			break;
 		}
 
@@ -1054,7 +1059,10 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 
 		case MessageID::S_Time:
 			packet << TimerMinutes << TimerSeconds << TimerFrames;
-			memcpy(&local.game.TimerMinutes, &TimerMinutes, sizeof(char) * 3);
+
+			local.game.TimerMinutes = TimerMinutes;
+			local.game.TimerSeconds = TimerSeconds;
+			local.game.TimerFrames  = TimerFrames;
 			break;
 
 		case MessageID::S_TimeStop:
@@ -1116,13 +1124,13 @@ bool PacketBroker::receive_system(MessageID type, pnum_t pnum, sws::Packet& pack
 				break;
 
 			RECEIVED(MessageID::S_2PSpecials);
-				for (int i = 0; i < 3; i++)
+				for (size_t i = 0; i < 3; i++)
 				{
 					packet >> local.game.SpecialAttacks[pnum][i];
 				}
 
 				SpecialActivateTimer[pnum] = 60;
-				memcpy(pnum == 0 ? P1SpecialAttacks : P2SpecialAttacks, &local.game.SpecialAttacks[pnum], sizeof(char) * 3);
+				memcpy(pnum == 0 ? P1SpecialAttacks : P2SpecialAttacks, local.game.SpecialAttacks[pnum], sizeof(char) * 3);
 				break;
 		}
 
