@@ -134,7 +134,7 @@ void PacketBroker::receive_loop()
 	{
 		result = sws::SocketState::done;
 
-		for (auto i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
+		for (size_t i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
 		{
 			result = handler->receive_tcp(packet, connection);
 
@@ -158,7 +158,7 @@ void PacketBroker::receive_loop()
 	sws::Address udp_address;
 	node_t udp_node = -1;
 
-	for (auto i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
+	for (size_t i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
 	{
 		result = handler->receive_udp(packet, udp_node, udp_address);
 

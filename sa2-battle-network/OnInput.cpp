@@ -76,7 +76,7 @@ extern "C"
 
 		auto pnum = broker->get_player_number();
 
-		for (auto i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			ControllerData* pad = ControllerPointers[i];
 			ControllerData* net_pad = &net_input[i];
@@ -150,12 +150,12 @@ extern "C"
 
 		auto pnum = broker->get_player_number();
 
-		for (auto i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			const PolarCoord& current = AnalogThings[i];
 			const PolarCoord& net = net_analog[i];
 
-			if (i == pnum)
+			if (static_cast<pnum_t>(i) == pnum)
 			{
 				RumblePort_A[i] = 0;
 
@@ -229,7 +229,7 @@ void InitOnInput()
 	broker->register_message_handler(MessageID::I_Analog, MessageHandler);
 	broker->register_message_handler(MessageID::I_AnalogAngle, MessageHandler);
 	
-	for (auto i = 0; i < 4; i++)
+	for (size_t i = 0; i < 4; i++)
 	{
 		net_input[i] = {};
 		net_analog[i] = {};
