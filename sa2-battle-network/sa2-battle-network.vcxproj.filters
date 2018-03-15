@@ -72,9 +72,6 @@
     <ClInclude Include="Program.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PacketBroker.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
@@ -166,9 +163,6 @@
     </ClCompile>
     <ClCompile Include="nop.cpp">
       <Filter>Source Files\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Common.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>

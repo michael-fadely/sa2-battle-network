@@ -9,6 +9,7 @@
 #include "Networking.h"
 #include <unordered_map>
 #include <functional>
+#include <chrono>
 
 // TODO: not this
 bool round_started();
@@ -83,12 +84,17 @@ public:
 	void set_player_number(pnum_t number);
 	auto get_player_number() const { return player_num; }
 
-	const uint connection_timeout;
+	const std::chrono::system_clock::duration connection_timeout;
 
 private:
-	std::unordered_map<node_t, uint> keep_alive;
+	struct WaitRequest
+	{
+		pnum_t count = 0;
+	};
+
+	std::unordered_map<node_t, std::chrono::system_clock::time_point> keep_alive;
 	std::unordered_map<node_t, ushort> sequences;
-	std::unordered_map<nethax::MessageID, pnum_t> wait_requests;
+	std::unordered_map<nethax::MessageID, WaitRequest> wait_requests;
 	std::unordered_map<nethax::MessageID, MessageHandler> message_handlers;
 
 	bool netstat;
@@ -139,6 +145,6 @@ private:
 	bool write_player = false;
 
 	bool timed_out = false;
-	uint sent_keep_alive = 0;
+	std::chrono::system_clock::time_point sent_keep_alive;
 	pnum_t player_num = 0;
 };

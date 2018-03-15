@@ -35,7 +35,6 @@
 #include "AddressList.h"
 #include "AdventurePacketOverloads.h"
 #include "CharacterSync.h"
-#include "Common.h"
 #include "CommonEnums.h"
 #include "EmeraldSync.h"
 #include "Events.h"

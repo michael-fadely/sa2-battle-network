@@ -13,7 +13,6 @@
 #include <thread>
 
 #include "globals.h"
-#include "Common.h"
 #include "CommonEnums.h"
 
 #include "Networking.h"
@@ -31,6 +30,7 @@
 
 // Namespaces
 using namespace std;
+using namespace std::chrono;
 using namespace nethax;
 
 #pragma region science
@@ -42,30 +42,35 @@ static const float POSITION_THRESHOLD = 16.0f;
 static const int   ROTATE_THRESHOLD   = NJM_DEG_ANG(11.25);
 static const float SPEED_THRESHOLD    = 0.1f;
 
-static uint position_timer = 0;
-static uint rotate_timer   = 0;
-static uint speed_timer    = 0;
+static system_clock::time_point position_timer;
+static system_clock::time_point rotate_timer;
+static system_clock::time_point speed_timer;
+
+static const auto POSITION_INTERVAL  = milliseconds(10000);
+static const auto ROTATION_INTERVAL  = milliseconds(125);
+static const auto SPEED_INTERVAL     = milliseconds(10000);
+static const auto KEEPALIVE_INTERVAL = milliseconds(1000);
 
 static bool position_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	// HACK: Right now this basically means it only sends on a timer.
-	return (abs(CheckDistance(&last, &current)) >= POSITION_THRESHOLD ||
-			/*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ Duration(position_timer) >= 10000);
+	return abs(CheckDistance(&last, &current)) >= POSITION_THRESHOLD ||
+		   /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ system_clock::now() - position_timer >= POSITION_INTERVAL;
 }
 
 static bool rotation_threshold(const Rotation& last, const Rotation& current)
 {
-	return (abs(last.x - current.x) >= ROTATE_THRESHOLD
-			|| abs(last.y - current.y) >= ROTATE_THRESHOLD
-			|| abs(last.z - current.z) >= ROTATE_THRESHOLD
-			|| (Duration(rotate_timer) >= 125 && memcmp(&last, &current, sizeof(Rotation)) != 0));
+	return abs(last.x - current.x) >= ROTATE_THRESHOLD
+		|| abs(last.y - current.y) >= ROTATE_THRESHOLD
+		|| abs(last.z - current.z) >= ROTATE_THRESHOLD
+		|| (system_clock::now() - rotate_timer >= ROTATION_INTERVAL && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
 static bool speed_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
-	auto m = static_cast<float>(njScalor(&current));
-	return (Duration(speed_timer) >= 10000 || abs(CheckDistance(&last, &current)) >= max(
-				(SPEED_THRESHOLD * m), SPEED_THRESHOLD));
+	const auto m = static_cast<float>(njScalor(&current));
+	return system_clock::now() - speed_timer >= SPEED_INTERVAL || abs(CheckDistance(&last, &current)) >= max(
+			   (SPEED_THRESHOLD * m), SPEED_THRESHOLD);
 }
 
 bool round_started()
@@ -80,7 +85,7 @@ static const uint STATUS_MASK = ~(Status_HoldObject | Status_Unknown1 | Status_U
 #pragma endregion
 
 PacketBroker::PacketBroker(uint timeout)
-	: connection_timeout(timeout),
+	: connection_timeout(milliseconds(timeout)),
 	  netstat(false),
 	  tcp_packet(Protocol::tcp),
 	  udp_packet(Protocol::udp)
@@ -96,7 +101,7 @@ void PacketBroker::initialize()
 	write_player     = false;
 	timed_out        = false;
 
-	sent_keep_alive = 0;
+	sent_keep_alive = system_clock::now();
 	player_num      = -1;
 	sequences.clear();
 	keep_alive.clear();
@@ -184,7 +189,7 @@ void PacketBroker::receive_loop()
 #ifndef _DEBUG
 	for (auto it = keep_alive.begin(); it != keep_alive.end();)
 	{
-		if (Duration(it->second) >= connection_timeout)
+		if ((system_clock::now() - it->second) >= connection_timeout)
 		{
 			PrintDebug("<> Player %d timed out.", it->first);
 			sequences.erase(it->first);
@@ -303,11 +308,11 @@ void PacketBroker::receive(sws::Packet& packet, node_t node, Protocol protocol)
 
 					if (it != wait_requests.end())
 					{
-						++it->second;
+						++it->second.count;
 					}
 					else if (is_server)
 					{
-						++wait_requests[wait_id];
+						++wait_requests[wait_id].count;
 					}
 				}
 
@@ -332,7 +337,7 @@ void PacketBroker::receive(sws::Packet& packet, node_t node, Protocol protocol)
 			}
 
 			case MessageID::S_KeepAlive:
-				keep_alive[node] = Millisecs();
+				keep_alive[node] = system_clock::now();
 				packet.seek(sws::SeekCursor::read, sws::SeekType::relative, sizeof(ushort));
 				break;
 
@@ -410,12 +415,13 @@ bool PacketBroker::wait_for_players(MessageID id)
 
 	if (it == wait_requests.end())
 	{
-		it = wait_requests.insert(it, make_pair(id, 0));
+		WaitRequest a {};
+		it = wait_requests.insert(it, std::make_pair(id, a));
 	}
 
-	while (it->second < static_cast<pnum_t>(globals::networking->connection_count()))
+	while (it->second.count < static_cast<pnum_t>(globals::networking->connection_count()))
 	{
-		// This handles incrementing of it->second
+		// This handles incrementing of it->second.count
 		receive_loop();
 
 		if (connection_timed_out())
@@ -466,7 +472,8 @@ void PacketBroker::add_ready(MessageID id, sws::Packet& packet)
 
 void PacketBroker::set_connect_time()
 {
-	sent_keep_alive = Millisecs();
+	sent_keep_alive = system_clock::now();
+
 	for (auto& i : globals::networking->connections())
 	{
 		keep_alive[i.node] = sent_keep_alive;
@@ -656,7 +663,7 @@ void PacketBroker::send_menu()
 
 void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 {
-	if (Duration(sent_keep_alive) >= 1000)
+	if ((system_clock::now() - sent_keep_alive) >= KEEPALIVE_INTERVAL)
 	{
 		request(MessageID::S_KeepAlive, udp);
 	}
@@ -970,14 +977,14 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 			break;
 
 		case MessageID::P_Rotation:
-			speed_timer = rotate_timer = Millisecs();
+			speed_timer = rotate_timer = system_clock::now();
 			packet << MainCharacter[player_num]->Data1->Rotation;
 			break;
 
 		case MessageID::P_Position:
 			// Informs other conditions that it shouldn't request
 			// another position out so soon
-			position_timer = Millisecs();
+			position_timer = system_clock::now();
 			packet << MainCharacter[player_num]->Data1->Position;
 			break;
 
@@ -996,7 +1003,7 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 			break;
 
 		case MessageID::P_Speed:
-			rotate_timer = speed_timer = Millisecs();
+			rotate_timer = speed_timer = system_clock::now();
 			packet << MainCharacter[player_num]->Data2->Speed << MainCharacter[player_num]->Data2->PhysData.BaseSpeed;
 			break;
 
@@ -1013,7 +1020,7 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 #pragma region System
 
 		case MessageID::S_KeepAlive:
-			sent_keep_alive = Millisecs();
+			sent_keep_alive = system_clock::now();
 			break;
 
 		case MessageID::S_2PReady:
@@ -1024,7 +1031,6 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 		case MessageID::S_2PSpecials:
 		{
 			auto& specials = player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks;
-			//packet.write_data(specials, sizeof(char) * 3);
 			packet.write_data(&specials, sizeof(char) * 3, true);
 			memcpy(local.game.SpecialAttacks[player_num], specials, sizeof(char) * 3);
 			break;

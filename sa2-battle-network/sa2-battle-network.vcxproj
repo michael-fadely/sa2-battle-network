@@ -113,7 +113,6 @@
     <ClInclude Include="PacketOverloads.h" />
     <ClInclude Include="PoseEffect2PStartMan.h" />
     <ClInclude Include="Program.h" />
-    <ClInclude Include="Common.h" />
     <ClInclude Include="CommonEnums.h" />
     <ClInclude Include="LazyMemory.h" />
     <ClInclude Include="PacketBroker.h" />
@@ -149,7 +148,6 @@
     <ClCompile Include="OnStageChange.cpp" />
     <ClCompile Include="PoseEffect2PStartMan.cpp" />
     <ClCompile Include="Program.cpp" />
-    <ClCompile Include="Common.cpp" />
     <ClCompile Include="mod.cpp" />
     <ClCompile Include="PacketBroker.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
