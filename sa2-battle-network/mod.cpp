@@ -130,7 +130,6 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 		else if (!wcscmp(argv[i], L"--no-specials"))
 		{
 			settings.no_specials = true;
-			valid_args = true;
 		}
 		else if (!wcscmp(argv[i], L"--cheats"))
 		{
