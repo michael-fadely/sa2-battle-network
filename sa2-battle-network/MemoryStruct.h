@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "AddressList.h"
+#include "check_size.h"
 
 struct MemStruct
 {
@@ -21,14 +21,20 @@ struct MemStruct
 		uint32_t CharacterSelection[2];
 		int8_t   CharacterSelected[2];
 
+		CHECK_SIZE(BattleSelection);
+
 		CharSelectThing CharSelectThings[CharSelectThings_Length];
 
 		// Battle Options button selected on stage select
-		int8_t BattleOptionsButton;
+		int32_t BattleOptionsButton;
 		int8_t BattleOptions[4];
 		int8_t BattleOptionsSelection;
 		// Battle Options back button is selected
 		int8_t BattleOptionsBack;
+
+		CHECK_SIZE(BattleOptionsButton);
+		CHECK_SIZE(BattleOptionsSelection);
+		CHECK_SIZE(BattleOptionsBack);
 	} menu;
 
 	// Gameplay variables for things only seen within the stage
@@ -39,5 +45,10 @@ struct MemStruct
 		int8_t TimerFrames;
 		int8_t SpecialAttacks[2][3];
 		int8_t TimeStopped;
+
+		CHECK_SIZE(TimerMinutes);
+		CHECK_SIZE(TimerSeconds);
+		CHECK_SIZE(TimerFrames);
+		CHECK_SIZE(TimeStopped);
 	} game;
 };
