@@ -506,11 +506,11 @@ void PacketBroker::register_message_handler(MessageID type, const MessageHandler
 
 void PacketBroker::set_player_number(pnum_t number)
 {
-	auto from = player_num < 0 ? 0 : player_num;
+	const pnum_t from = player_num < 0 ? 0 : player_num;
 
 	if (from != number)
 	{
-		SwapInput(from, number);
+		swap_input(from, number);
 	}
 
 	player_num = number;
@@ -521,9 +521,9 @@ void PacketBroker::set_player_number(pnum_t number)
 bool PacketBroker::request(MessageID type, Protocol protocol, bool allow_dupes)
 {
 	return request(type,
-				   protocol == Protocol::tcp ? tcp_packet : udp_packet,
-				   protocol != Protocol::tcp ? tcp_packet : udp_packet,
-				   allow_dupes);
+	               protocol == Protocol::tcp ? tcp_packet : udp_packet,
+	               protocol != Protocol::tcp ? tcp_packet : udp_packet,
+	               allow_dupes);
 }
 
 bool PacketBroker::append(MessageID type, Protocol protocol, sws::Packet const* packet, bool allow_dupes)

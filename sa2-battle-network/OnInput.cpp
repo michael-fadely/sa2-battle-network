@@ -255,7 +255,7 @@ template<typename T> void swap(T& a, int from, int to)
 	a[from] = last;
 }
 
-void SwapInput(pnum_t from, pnum_t to)
+void swap_input(pnum_t from, pnum_t to)
 {
 	swap(ControllerPointers, from, to);
 	swap(net_input, from, to);
