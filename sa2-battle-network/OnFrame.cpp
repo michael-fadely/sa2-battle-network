@@ -13,7 +13,7 @@ extern "C" __declspec(dllexport) void OnFrame()
 		return;
 	}
 
-	auto this_thing = globals::networking->is_server() && CurrentMenu[0] == Menu::battle && CurrentMenu[1] > SubMenu2P::i_start;
+	auto this_thing = globals::networking->is_server() && CurrentMenu == Menu::battle && CurrentSubMenu > SubMenu2P::i_start;
 
 	if (!globals::is_connected() || this_thing)
 	{

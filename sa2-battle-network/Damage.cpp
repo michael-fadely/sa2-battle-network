@@ -16,9 +16,9 @@ static bool called_damage = false;
 
 #pragma region Originals
 
-Sint32 events::DamagePlayer_original(CharObj1* data1, CharObj2Base* data2)
+Sint32 events::DamagePlayer_original(EntityData1* data1, CharObj2Base* data2)
 {
-	_FunctionPointer(Sint32, target, (CharObj1*, CharObj2Base*), DamagePlayer_trampoline->Target());
+	_FunctionPointer(Sint32, target, (EntityData1*, CharObj2Base*), DamagePlayer_trampoline->Target());
 	return target(data1, data2);
 }
 
@@ -38,7 +38,7 @@ void events::KillPlayer_original(int playerNum)
 
 #pragma region Hooks
 
-static Sint32 __cdecl DamagePlayer_cpp(CharObj1* data1, CharObj2Base* data2)
+static Sint32 __cdecl DamagePlayer_cpp(EntityData1* data1, CharObj2Base* data2)
 {
 	if (!globals::is_connected())
 	{

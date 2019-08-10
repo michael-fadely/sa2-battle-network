@@ -9,7 +9,7 @@ public:
 	PlayerObject();
 
 	/**
-	 * \brief Copies CharObj1 and CharObj2 data from an ObjectMaster to this instance.
+	 * \brief Copies EntityData1 and EntityData2 data from an ObjectMaster to this instance.
 	 * \param source The ObjectMaster containing the information to copy to this instance.
 	 */
 	void copy(const ObjectMaster* source);
@@ -21,8 +21,8 @@ public:
 	 */
 	static void write_player(ObjectMaster* destination, const PlayerObject* source);
 
-	CharObj1 data1 {};
-	CharObj2 data2 {};
+	EntityData1 data1 {};
+	CharObj2Base data2 {};
 
 	// Sonic's Obj2Base
 	// Shared with: Shadow, Amy, MetalSonic

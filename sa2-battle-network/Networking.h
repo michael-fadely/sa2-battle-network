@@ -62,14 +62,14 @@ namespace nethax
 		P_START,			// Marker: Start of player messages
 
 		P_Character,
-		// CharObj1
+		// EntityData1
 		P_Action,
 		P_NextAction,
 		P_Status,
 		P_Rotation,
 		P_Position,
 		P_Scale,
-		// CharObj2
+		// EntityData2
 		P_Powerups,
 		P_Upgrades,
 		P_HP,

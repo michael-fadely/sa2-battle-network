@@ -7,7 +7,7 @@
 struct SonicObj2Base
 {
 	char field_1B8[432];
-	short SpindashTimer;
+	short SpindashCounter;
 	char filler[42];
 	NJS_TEXLIST* TextureList;
 	ModelIndex* ModelList;
@@ -70,13 +70,3 @@ struct SuperSonicObj2Base
 
 DataPointer(ObjectMaster*, Player1, &MainCharacter[0]);
 DataPointer(ObjectMaster*, Player2, &MainCharacter[1]);
-
-static inline void PlayJingle(const char* song)
-{
-	PlayJingle(0, song);
-}
-
-static inline void PlayMusicOnce(const char* song)
-{
-	PlayMusicOnce(nullptr, song);
-}

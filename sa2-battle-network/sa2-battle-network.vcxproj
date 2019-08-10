@@ -98,6 +98,7 @@
     <ClInclude Include="AddressList.h" />
     <ClInclude Include="AddRings.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
+    <ClInclude Include="ChangeMusic.h" />
     <ClInclude Include="CharacterSync.h" />
     <ClInclude Include="EmeraldSync.h" />
     <ClInclude Include="Events.h" />

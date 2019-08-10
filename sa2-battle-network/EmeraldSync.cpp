@@ -69,25 +69,25 @@ static void __declspec(naked) EmeraldLocations_2PGroup2_hook_asm()
 	}
 }
 
-static Trampoline* EmeraldLocations_2PGroup1;
-static Trampoline* EmeraldLocations_2PGroup2;
-static Trampoline* EmeraldLocations_1POr2PGroup3;
+static Trampoline* EmeraldLocations_2PGroup1_t;
+static Trampoline* EmeraldLocations_2PGroup2_t;
+static Trampoline* EmeraldLocations_1POr2PGroup3_t;
 
 static void __stdcall EmeraldLocations_2PGroup1_hook_c(void* a1)
 {
-	x_original(a1, EmeraldLocations_2PGroup1);
+	x_original(a1, EmeraldLocations_2PGroup1_t);
 }
 
 static void __stdcall EmeraldLocations_2PGroup2_hook_c(void* a1)
 {
-	x_original(a1, EmeraldLocations_2PGroup2);
+	x_original(a1, EmeraldLocations_2PGroup2_t);
 }
 
 static void __cdecl EmeraldLocations_1POr2PGroup3_hook(void* a1)
 {
 	SetSeed();
 
-	_FunctionPointer(void, EmeraldLocations_1POr2PGroup3_original, (void*), EmeraldLocations_1POr2PGroup3->Target());
+	_FunctionPointer(void, EmeraldLocations_1POr2PGroup3_original, (void*), EmeraldLocations_1POr2PGroup3_t->Target());
 	EmeraldLocations_1POr2PGroup3_original(a1);
 
 	RestoreSeed();
@@ -99,9 +99,9 @@ void events::InitEmeraldSync()
 	WriteData((Uint8*)0x007387E5, (Uint8)0xEBu);
 	WriteData((Uint8*)0x007380BD, (Uint8)0xEBu);
 
-	EmeraldLocations_2PGroup1 = new Trampoline(0x00739340, 0x0073934A, EmeraldLocations_2PGroup1_hook_asm);
-	EmeraldLocations_2PGroup2 = new Trampoline(0x007387D0, 0x007387D6, EmeraldLocations_2PGroup2_hook_asm);
-	EmeraldLocations_1POr2PGroup3 = new Trampoline(0x007380A0, 0x007380A6, EmeraldLocations_1POr2PGroup3_hook);
+	EmeraldLocations_2PGroup1_t = new Trampoline(0x00739340, 0x0073934A, EmeraldLocations_2PGroup1_hook_asm);
+	EmeraldLocations_2PGroup2_t = new Trampoline(0x007387D0, 0x007387D6, EmeraldLocations_2PGroup2_hook_asm);
+	EmeraldLocations_1POr2PGroup3_t = new Trampoline(0x007380A0, 0x007380A6, EmeraldLocations_1POr2PGroup3_hook);
 }
 
 void events::DeinitEmeraldSync()
@@ -110,7 +110,7 @@ void events::DeinitEmeraldSync()
 	WriteData((Uint8*)0x007387E5, (Uint8)0x75u);
 	WriteData((Uint8*)0x007380BD, (Uint8)0x75u);
 
-	delete EmeraldLocations_2PGroup1;
-	delete EmeraldLocations_2PGroup2;
-	delete EmeraldLocations_1POr2PGroup3;
+	delete EmeraldLocations_2PGroup1_t;
+	delete EmeraldLocations_2PGroup2_t;
+	delete EmeraldLocations_1POr2PGroup3_t;
 }

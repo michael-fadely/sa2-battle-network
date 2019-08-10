@@ -16,9 +16,9 @@ void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
 	}
 }
 
-ObjectMaster* __stdcall LoadObject_r(ObjectFuncPtr mainSub, int list, char* name)
+ObjectMaster* __stdcall AllocateObjectMaster_r(ObjectFuncPtr mainSub, int list, char* name)
 {
-	ObjectMaster* obj = LoadObject(mainSub, list, name);
+	ObjectMaster* obj = AllocateObjectMaster(mainSub, list, name);
 
 	if (obj != nullptr)
 	{
@@ -28,24 +28,24 @@ ObjectMaster* __stdcall LoadObject_r(ObjectFuncPtr mainSub, int list, char* name
 	return obj;
 }
 
-void __declspec(naked) LoadObjectBypass_asm()
+void __declspec(naked) AllocateObjectMasterBypass_asm()
 {
 	__asm
 	{
 		push [esp + 4]
 		push esi
 		push edi
-		call LoadObject_r
+		call AllocateObjectMaster_r
 		retn
 	}
 }
 
 void nethax::events::InitPoseEffect2PStartMan()
 {
-	WriteCall(reinterpret_cast<void*>(0x00477AAA), LoadObjectBypass_asm);
+	WriteCall(reinterpret_cast<void*>(0x00477AAA), AllocateObjectMasterBypass_asm);
 }
 
 void nethax::events::DeinitPoseEffect2PStartMan()
 {
-	WriteCall(reinterpret_cast<void*>(0x00477AAA), const_cast<void*>(LoadObjectPtr));
+	WriteCall(reinterpret_cast<void*>(0x00477AAA), const_cast<void*>(AllocateObjectMasterPtr));
 }

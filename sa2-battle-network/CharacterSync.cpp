@@ -5,9 +5,6 @@
 #include "Networking.h"
 #include "OnStageChange.h"
 
-FunctionPointer(int, Menu_Battle, (void), 0x0066A1A0);
-VoidFunc(RandomBattle_SetCharacters, 0x0066B730);
-
 using namespace nethax;
 using namespace globals;
 

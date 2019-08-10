@@ -4,15 +4,16 @@
 
 #include <sws/SocketError.h>
 
-#include "globals.h"			// for Globals :specialed:
+#include "globals.h"          // for Globals :specialed:
 #include "Networking.h"
-#include "MemoryManagement.h"	// for MemManage
-#include "CommonEnums.h"		// for Menu, SubMenu2P
-#include "AddressList.h"		// for CurrentMenu
+#include "MemoryManagement.h" // for MemManage
+#include "CommonEnums.h"      // for Menu, SubMenu2P
+#include "AddressList.h"      // for CurrentMenu
 #include "PacketOverloads.h"
 #include "Events.h"
 
 #include "Program.h"
+#include "ChangeMusic.h"
 
 using namespace std;
 using namespace nethax;
@@ -69,8 +70,8 @@ Program::Program(const Settings& settings, const bool host, const sws::Address& 
 
 bool Program::can_connect()
 {
-	return CurrentMenu[0] >= Menu::battle &&
-		(CurrentMenu[1] > SubMenu2P::i_start || globals::is_connected());
+	return CurrentMenu >= Menu::battle &&
+		(CurrentSubMenu > SubMenu2P::i_start || globals::is_connected());
 }
 
 bool Program::connect()
@@ -158,7 +159,7 @@ void Program::apply_settings(const Settings& settings)
 	{
 		Cheats_GiveMaxRings    = 0;
 		Cheats_GiveAllUpgrades = 0;
-		Cheats_GiveMaxLives    = 0;
+		Cheats_GiveAllEmblems  = 0;
 		Cheats_ExitStage       = 0;
 	}
 }

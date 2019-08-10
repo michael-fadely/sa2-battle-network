@@ -707,27 +707,27 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		return;
 	}
 
-	if (round_started() && CurrentMenu[0] >= Menu::battle)
+	if (round_started() && CurrentMenu >= Menu::battle)
 	{
 		if (globals::program->settings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
 		{
-			if (ControllerPointers[player_num]->HeldButtons & Buttons_Y && ControllerPointers[player_num]->PressedButtons & Buttons_Up)
+			if (ControllerPointers[player_num]->on & Buttons_Y && ControllerPointers[player_num]->press & Buttons_Up)
 			{
 				// Teleport to recvPlayer
 				PrintDebug("<> Teleporting to other player...");
 
 				auto n = static_cast<int>(player_num != 1);
 
-				MainCharacter[player_num]->Data1->Position = net_player[n].data1.Position;
-				MainCharacter[player_num]->Data1->Rotation = net_player[n].data1.Rotation;
-				MainCharacter[player_num]->Data2->Speed    = {};
+				MainCharacter[player_num]->Data1.Entity->Position = net_player[n].data1.Position;
+				MainCharacter[player_num]->Data1.Entity->Rotation = net_player[n].data1.Rotation;
+				MainCharacter[player_num]->Data2.Character->Speed    = {};
 
 				request(MessageID::P_Position, tcp, udp);
 				request(MessageID::P_Speed, tcp, udp);
 			}
 		}
 
-		char charid = MainCharacter[player_num]->Data2->CharID2;
+		char charid = MainCharacter[player_num]->Data2.Character->CharID2;
 
 		bool sendSpinTimer =
 			charid == Characters_Sonic ||
@@ -735,26 +735,26 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			charid == Characters_Amy ||
 			charid == Characters_MetalSonic;
 
-		if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1->Position))
+		if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1.Entity->Position))
 		{
 			request(MessageID::P_Position, udp, tcp);
 		}
 
 		// TODO: Make less spammy
-		if (sendSpinTimer && net_player[player_num].sonic.SpindashTimer
-			!= reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2)->SpindashTimer)
+		if (sendSpinTimer && net_player[player_num].sonic.SpindashCounter
+			!= reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
 		{
 			request(MessageID::P_SpinTimer, tcp, udp);
 		}
 
-		if (MainCharacter[player_num]->Data1->Status & Status_DoNextAction && MainCharacter[player_num]->Data1->NextAction
+		if (MainCharacter[player_num]->Data1.Entity->Status & Status_DoNextAction && MainCharacter[player_num]->Data1.Entity->NextAction
 			!= net_player[player_num].data1.NextAction)
 		{
 			request(MessageID::P_NextAction, tcp, udp);
 		}
 
-		if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1->Action ||
-			(net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1->Status & STATUS_MASK))
+		if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1.Entity->Action ||
+			(net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
 		{
 			request(MessageID::P_Action, tcp, udp);
 			request(MessageID::P_Status, tcp, udp);
@@ -768,11 +768,11 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		if (MainCharacter[player_num]->Data1->Action != Action_ObjectControl)
+		if (MainCharacter[player_num]->Data1.Entity->Action != Action_ObjectControl)
 		{
-			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1->Rotation)
-				|| (speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2->Speed))
-				|| net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2->PhysData.BaseSpeed)
+			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation)
+				|| (speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed))
+				|| net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
 			{
 				request(MessageID::P_Rotation, udp, tcp);
 				request(MessageID::P_Position, udp, tcp);
@@ -780,17 +780,17 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		if (memcmp(&net_player[player_num].data1.Scale, &MainCharacter[player_num]->Data1->Scale, sizeof(NJS_VECTOR)) != 0)
+		if (memcmp(&net_player[player_num].data1.Scale, &MainCharacter[player_num]->Data1.Entity->Scale, sizeof(NJS_VECTOR)) != 0)
 		{
 			request(MessageID::P_Scale, tcp, udp);
 		}
 
-		if (net_player[player_num].data2.Powerups != MainCharacter[player_num]->Data2->Powerups)
+		if (net_player[player_num].data2.Powerups != MainCharacter[player_num]->Data2.Character->Powerups)
 		{
 			request(MessageID::P_Powerups, tcp, udp);
 		}
 
-		if (net_player[player_num].data2.Upgrades != MainCharacter[player_num]->Data2->Upgrades)
+		if (net_player[player_num].data2.Upgrades != MainCharacter[player_num]->Data2.Character->Upgrades)
 		{
 			request(MessageID::P_Upgrades, tcp, udp);
 		}
@@ -807,7 +807,7 @@ void PacketBroker::send_menu(PacketEx& packet)
 		return;
 	}
 
-	if (GameState == GameState::Inactive && CurrentMenu[0] == Menu::battle)
+	if (GameState == GameState::Inactive && CurrentMenu == Menu::battle)
 	{
 		// Send battle options
 		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
@@ -817,12 +817,12 @@ void PacketBroker::send_menu(PacketEx& packet)
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
-		if ((first_menu_entry = (local.menu.SubMenu != CurrentMenu[1] && globals::networking->is_server())))
+		if ((first_menu_entry = (local.menu.SubMenu != CurrentSubMenu && globals::networking->is_server())))
 		{
-			local.menu.SubMenu = CurrentMenu[1];
+			local.menu.SubMenu = CurrentSubMenu;
 		}
 
-		switch (CurrentMenu[1])
+		switch (CurrentSubMenu)
 		{
 			default:
 				break;
@@ -849,11 +849,11 @@ void PacketBroker::send_menu(PacketEx& packet)
 				// HACK: Character select bug work-around. Details below.
 				// When a button press is missed but the character selected state is synchronized,
 				// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
-				if (CharacterSelected[0] && CharacterSelected[1] && CurrentMenu[1] == SubMenu2P::s_charsel)
+				if (CharacterSelected[0] && CharacterSelected[1] && CurrentSubMenu == SubMenu2P::s_charsel)
 				{
 					PrintDebug("<> Resetting character selections");
 					CharacterSelectTimer = 0;
-					CurrentMenu[1] = SubMenu2P::o_charsel;
+					CurrentSubMenu = SubMenu2P::o_charsel;
 				}
 
 				if (first_menu_entry || local.menu.CharacterSelection[player_num] != CharacterSelection[player_num])
@@ -960,54 +960,54 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 			// Don't freak out!
 
 		case MessageID::P_Action:
-			packet << MainCharacter[player_num]->Data1->Action;
+			packet << MainCharacter[player_num]->Data1.Entity->Action;
 			break;
 
 		case MessageID::P_NextAction:
-			packet << MainCharacter[player_num]->Data1->NextAction;
+			packet << MainCharacter[player_num]->Data1.Entity->NextAction;
 			break;
 
 		case MessageID::P_Status:
-			packet << MainCharacter[player_num]->Data1->Status;
+			packet << MainCharacter[player_num]->Data1.Entity->Status;
 			break;
 
 		case MessageID::P_Rotation:
 			speed_timer = rotate_timer = system_clock::now();
-			packet << MainCharacter[player_num]->Data1->Rotation;
+			packet << MainCharacter[player_num]->Data1.Entity->Rotation;
 			break;
 
 		case MessageID::P_Position:
 			// Informs other conditions that it shouldn't request
 			// another position out so soon
 			position_timer = system_clock::now();
-			packet << MainCharacter[player_num]->Data1->Position;
+			packet << MainCharacter[player_num]->Data1.Entity->Position;
 			break;
 
 		case MessageID::P_Scale:
-			packet << MainCharacter[player_num]->Data1->Scale;
+			packet << MainCharacter[player_num]->Data1.Entity->Scale;
 			break;
 
 		case MessageID::P_Powerups:
 			PrintDebug("<< Sending powerups");
-			packet << MainCharacter[player_num]->Data2->Powerups;
+			packet << MainCharacter[player_num]->Data2.Character->Powerups;
 			break;
 
 		case MessageID::P_Upgrades:
 			PrintDebug("<< Sending upgrades");
-			packet << MainCharacter[player_num]->Data2->Upgrades;
+			packet << MainCharacter[player_num]->Data2.Character->Upgrades;
 			break;
 
 		case MessageID::P_Speed:
 			rotate_timer = speed_timer = system_clock::now();
-			packet << MainCharacter[player_num]->Data2->Speed << MainCharacter[player_num]->Data2->PhysData.BaseSpeed;
+			packet << MainCharacter[player_num]->Data2.Character->Speed << MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed;
 			break;
 
 		case MessageID::P_Animation:
-			packet << MainCharacter[player_num]->Data2->AnimInfo.Next;
+			packet << MainCharacter[player_num]->Data2.Character->AnimInfo.Next;
 			break;
 
 		case MessageID::P_SpinTimer:
-			packet << reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2)->SpindashTimer;
+			packet << reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Character)->SpindashCounter;
 			break;
 
 #pragma endregion
@@ -1183,9 +1183,9 @@ bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& pack
 				packet >> hp >> diff;
 				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
 
-				MainCharacter[pnum]->Data2->MechHP = hp;
+				MainCharacter[pnum]->Data2.Character->MechHP = hp;
 				events::AddHP_original(pnum, diff);
-				net_player[pnum].data2.MechHP = MainCharacter[pnum]->Data2->MechHP;
+				net_player[pnum].data2.MechHP = MainCharacter[pnum]->Data2.Character->MechHP;
 				break;
 
 			RECEIVED(MessageID::P_Speed);
@@ -1198,7 +1198,7 @@ bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& pack
 				break;
 
 			RECEIVED(MessageID::P_SpinTimer);
-				packet >> net_player[pnum].sonic.SpindashTimer;
+				packet >> net_player[pnum].sonic.SpindashCounter;
 				break;
 		}
 

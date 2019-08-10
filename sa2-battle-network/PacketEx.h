@@ -41,7 +41,7 @@ private:
 	// Array of message types in the packet (true/false)
 	std::vector<bool> types;
 	// The number of messages currently in the packet
-	uint message_count = 0;
+	uint message_count_ = 0;
 	// UDP packet sequence number
 	static ushort sequence;
 };

@@ -14,30 +14,6 @@ static Trampoline* win_trampoline    = nullptr;
 static Trampoline* result_trampoline = nullptr;
 static Trampoline* disp_trampoline   = nullptr;
 
-enum DispAction : __int8
-{
-	DispAction_Initialize = 0x0,
-	DispAction_Transition = 0x1,
-	DispAction_YesNo      = 0x2,
-	DispAction_Exit       = 0x3,
-	DispAction_Continue   = 0x4,
-	DispAction_Restart    = 0x5,
-};
-
-#pragma pack(push, 1)
-struct DispWinnerAndContinue_Data
-{
-	int8_t Action;
-	int8_t Player;
-	int8_t Selection;
-	int8_t field_3;
-	int Timer;
-	int field_8;
-	int field_C;
-	int field_10;
-};
-#pragma pack(pop)
-
 static void __cdecl OnResult_orig(Sint32 player)
 {
 	_FunctionPointer(void, original, (Sint32), result_trampoline->Target());
@@ -125,7 +101,7 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 		_this->DeleteSub = DispWinnerAndContinue_Delete_wrapper;
 	}
 
-	auto data = reinterpret_cast<DispWinnerAndContinue_Data*>(_this->Data2);
+	auto data = reinterpret_cast<DispWinnerAndContinue_Data*>(_this->Data2.Undefined);
 
 	if (data == nullptr)
 	{
@@ -167,6 +143,11 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 		if (data->Action != DispAction_Continue && data->Action != DispAction_Restart)
 			data->Timer = 0;
 	}
+}
+
+sws::Packet& operator>>(sws::Packet& lhs, DispAction& rhs)
+{
+	return lhs >> *reinterpret_cast<int8_t*>(&rhs);
 }
 
 static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
