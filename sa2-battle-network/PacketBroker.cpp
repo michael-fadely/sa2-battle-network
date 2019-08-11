@@ -21,7 +21,6 @@
 
 #include <SA2ModLoader.h>
 #include "ModLoaderExtensions.h"
-#include "AddressList.h"
 
 #include "AddHP.h"
 #include "OnInput.h"
@@ -52,22 +51,22 @@ static bool position_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	// HACK: Right now this basically means it only sends on a timer.
 	return abs(CheckDistance(&last, &current)) >= POSITION_THRESHOLD ||
-		   /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ system_clock::now() - position_timer >= POSITION_INTERVAL;
+	       /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ system_clock::now() - position_timer >= POSITION_INTERVAL;
 }
 
 static bool rotation_threshold(const Rotation& last, const Rotation& current)
 {
-	return abs(last.x - current.x) >= ROTATE_THRESHOLD
-		|| abs(last.y - current.y) >= ROTATE_THRESHOLD
-		|| abs(last.z - current.z) >= ROTATE_THRESHOLD
-		|| (system_clock::now() - rotate_timer >= ROTATION_INTERVAL && memcmp(&last, &current, sizeof(Rotation)) != 0);
+	return abs(last.x - current.x) >= ROTATE_THRESHOLD ||
+	       abs(last.y - current.y) >= ROTATE_THRESHOLD ||
+	       abs(last.z - current.z) >= ROTATE_THRESHOLD ||
+	       (system_clock::now() - rotate_timer >= ROTATION_INTERVAL && memcmp(&last, &current, sizeof(Rotation)) != 0);
 }
 
 static bool speed_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	const auto m = static_cast<float>(njScalor(&current));
-	return system_clock::now() - speed_timer >= SPEED_INTERVAL
-		|| abs(CheckDistance(&last, &current)) >= max((SPEED_THRESHOLD * m), SPEED_THRESHOLD);
+	return system_clock::now() - speed_timer >= SPEED_INTERVAL ||
+	       abs(CheckDistance(&last, &current)) >= max((SPEED_THRESHOLD * m), SPEED_THRESHOLD);
 }
 
 bool round_started()
@@ -77,7 +76,7 @@ bool round_started()
 
 // TODO: Exclude potentially problematic status bits (i.e DoNextAction, OnPath)
 static const uint STATUS_MASK = ~(Status_HoldObject | Status_Unknown1 | Status_Unknown2 | Status_Unknown3 |
-								  Status_Unknown4 | Status_Unknown5 | Status_Unknown6);
+                                  Status_Unknown4 | Status_Unknown5 | Status_Unknown6);
 
 #pragma endregion
 
@@ -692,7 +691,7 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 		}
 
 		if (memcmp(local.game.SpecialAttacks[player_num],
-				   player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
+		           player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
 		{
 			request(MessageID::S_2PSpecials, tcp, udp);
 		}
@@ -720,7 +719,7 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 
 				MainCharacter[player_num]->Data1.Entity->Position = net_player[n].data1.Position;
 				MainCharacter[player_num]->Data1.Entity->Rotation = net_player[n].data1.Rotation;
-				MainCharacter[player_num]->Data2.Character->Speed    = {};
+				MainCharacter[player_num]->Data2.Character->Speed = {};
 
 				request(MessageID::P_Position, tcp, udp);
 				request(MessageID::P_Speed, tcp, udp);
@@ -742,19 +741,19 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 
 		// TODO: Make less spammy
 		if (sendSpinTimer && net_player[player_num].sonic.SpindashCounter
-			!= reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
+		    != reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
 		{
 			request(MessageID::P_SpinTimer, tcp, udp);
 		}
 
 		if (MainCharacter[player_num]->Data1.Entity->Status & Status_DoNextAction && MainCharacter[player_num]->Data1.Entity->NextAction
-			!= net_player[player_num].data1.NextAction)
+		    != net_player[player_num].data1.NextAction)
 		{
 			request(MessageID::P_NextAction, tcp, udp);
 		}
 
 		if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1.Entity->Action ||
-			(net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
+		    (net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
 		{
 			request(MessageID::P_Action, tcp, udp);
 			request(MessageID::P_Status, tcp, udp);
@@ -771,8 +770,8 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		if (MainCharacter[player_num]->Data1.Entity->Action != Action_ObjectControl)
 		{
 			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation)
-				|| (speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed))
-				|| net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
+			    || (speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed))
+			    || net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
 			{
 				request(MessageID::P_Rotation, udp, tcp);
 				request(MessageID::P_Position, udp, tcp);
@@ -868,12 +867,12 @@ void PacketBroker::send_menu(PacketEx& packet)
 
 				// I hate this so much
 				if (first_menu_entry
-					|| local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
-					|| local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume
-					|| local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume
-					|| local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume
-					|| local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume
-					|| local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
+				    || local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
+				    || local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume
+				    || local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume
+				    || local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume
+				    || local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume
+				    || local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
 				{
 					request(MessageID::M_CostumeSelection, packet);
 				}
@@ -882,8 +881,8 @@ void PacketBroker::send_menu(PacketEx& packet)
 
 			case SubMenu2P::s_stagesel:
 				if (first_menu_entry
-					|| local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
-					|| local.menu.BattleOptionsButton != BattleOptionsButton)
+				    || local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
+				    || local.menu.BattleOptionsButton != BattleOptionsButton)
 				{
 					request(MessageID::M_StageSelection, packet);
 				}
@@ -891,7 +890,7 @@ void PacketBroker::send_menu(PacketEx& packet)
 
 			case SubMenu2P::s_battleopt:
 				if (first_menu_entry || local.menu.BattleOptionsSelection != BattleOptionsSelection
-					|| local.menu.BattleOptionsBack != BattleOptionsBack)
+				    || local.menu.BattleOptionsBack != BattleOptionsBack)
 				{
 					request(MessageID::M_BattleConfigSelection, packet);
 				}
@@ -1030,9 +1029,11 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 			packet << specials[0] << specials[1] << specials[2];
 
 			auto& local_specials = local.game.SpecialAttacks[player_num];
+
 			local_specials[0] = specials[0];
 			local_specials[1] = specials[1];
 			local_specials[2] = specials[2];
+
 			break;
 		}
 
@@ -1096,17 +1097,17 @@ bool PacketBroker::receive_system(MessageID type, pnum_t pnum, sws::Packet& pack
 				break;
 
 			RECEIVED(MessageID::S_GameState);
-			{
-				short recv_game_state;
-				packet >> recv_game_state;
-
-				if (GameState >= GameState::NormalRestart && recv_game_state > GameState::LoadFinished)
 				{
-					GameState = local.system.GameState = recv_game_state;
-				}
+					short recv_game_state;
+					packet >> recv_game_state;
 
-				break;
-			}
+					if (GameState >= GameState::NormalRestart && recv_game_state > GameState::LoadFinished)
+					{
+						GameState = local.system.GameState = recv_game_state;
+					}
+
+					break;
+				}
 
 			RECEIVED(MessageID::S_PauseSelection);
 				packet >> local.system.PauseSelection;

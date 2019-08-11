@@ -13,12 +13,12 @@ struct MemStruct
 
 	struct MenuVars
 	{
-		uint32_t SubMenu;
+		int32_t SubMenu;
 		int32_t  PlayerReady[2];
 
 		int32_t  StageSelection2P[2];
 		uint8_t  BattleSelection;
-		uint32_t CharacterSelection[2];
+		int32_t CharacterSelection[2];
 		int8_t   CharacterSelected[2];
 
 		CHECK_SIZE(BattleSelection);
