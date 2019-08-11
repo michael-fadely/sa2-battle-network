@@ -99,6 +99,7 @@
     <ClInclude Include="AddRings.h" />
     <ClInclude Include="AdventurePacketOverloads.h" />
     <ClInclude Include="ChangeMusic.h" />
+    <ClInclude Include="chao.h" />
     <ClInclude Include="CharacterSync.h" />
     <ClInclude Include="check_size.h" />
     <ClInclude Include="EmeraldSync.h" />

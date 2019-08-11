@@ -59,5 +59,6 @@
 #include "Random.h"
 #include "nop.h"
 #include "typedefs.h"
+#include "chao.h"
 
 #endif

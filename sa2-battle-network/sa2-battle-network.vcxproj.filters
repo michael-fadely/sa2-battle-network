@@ -147,6 +147,9 @@
     <ClInclude Include="check_size.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="chao.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
