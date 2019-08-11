@@ -12,7 +12,6 @@ static constexpr auto chao_slot_count = 24;
 
 static bool received_chao[chao_slot_count] {};
 
-
 bool all_initialized()
 {
 	return std::all_of(std::begin(received_chao), std::end(received_chao), [](auto a) -> auto
@@ -31,7 +30,7 @@ void mark_chao()
 
 static void __cdecl SpawnAllChaoInGarden_r()
 {
-	if (!nethax::globals::is_connected())
+	if (!globals::is_connected())
 	{
 		return;
 	}
@@ -51,12 +50,7 @@ static void __cdecl SpawnAllChaoInGarden_r()
 
 		globals::broker->finalize();
 
-		//if (!globals::broker->wait_for_players(MessageID::C_ChaoSpawned))
-		//{
-		//	throw; // SHIT SHIT ABORT
-		//}
-
-		PrintDebug("shfjkasdhflkjsahfkjashdf");
+		// TODO: wait
 	}
 	else
 	{
@@ -66,7 +60,7 @@ static void __cdecl SpawnAllChaoInGarden_r()
 		}
 
 		mark_chao();
-		//globals::broker->send_ready_and_wait(MessageID::C_ChaoSpawned);
+		// TODO: wait
 	}
 
 	auto original = reinterpret_cast<decltype(SpawnAllChaoInGarden_r)*>(SpawnAllChaoInGarden_t->Target());
