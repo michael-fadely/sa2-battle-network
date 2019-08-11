@@ -6,6 +6,8 @@
 
 #pragma pack(push, 1)
 
+using ChaoBehaviourFuncPtr = int(__cdecl*)(ObjectMaster*);
+
 /*
  * NJS_CNK_OBJECT
  */
@@ -336,38 +338,6 @@ struct ChaoData_ // keeper
 	char Padding2[609];
 };
 
-/* 38 */
-struct KarateOpponent
-{
-	ChaoType ChaoType;
-	uint8_t EyeType;
-	uint8_t MouthType;
-	uint8_t BallType;
-	uint8_t Headgear;
-	uint8_t HideFeet;
-	uint8_t Medal;
-	uint8_t Color;
-	uint8_t Monotone;
-	uint8_t Texture;
-	uint8_t Shiny;
-	SA2BAnimal SA2BArmType;
-	SA2BAnimal SA2BEarType;
-	SA2BAnimal SA2BForeheadType;
-	SA2BAnimal SA2BHornType;
-	SA2BAnimal SA2BLegType;
-	SA2BAnimal SA2BTailType;
-	SA2BAnimal SA2BWingType;
-	SA2BAnimal SA2BFaceType;
-	uint8_t f13[1];
-	int16_t PowerRun;
-	int16_t FlySwim;
-	int16_t Alignment;
-	int16_t Magnitude;
-	char Name_unused[7];
-	char unused;
-	int16_t StatPoints[8];
-};
-
 /* 281 */
 struct ChaoUnknownB
 {
@@ -447,10 +417,11 @@ struct ChaoBehaviourInfo_ // keeper
 	int field_268;
 	int field_430;
 	float someFloat;
-	NJS_VECTOR someKindaPosition;
+	NJS_POINT2 someKindaPosition;
+	ChaoBehaviourFuncPtr lastBehaviour;
 	int behaviourCount;
 	int behaviourIndex;
-	int behaviourQueue[16];
+	ChaoBehaviourFuncPtr behaviourQueue[16];
 	int behaviourTimer[16];
 };
 
@@ -874,27 +845,6 @@ struct KarateMainExecData
 	ObjectMaster* field_3C;
 };
 
-/* 573 */
-struct ALFSave
-{
-	int ChaoSaveStart;
-	int field_4;
-	int field_8;
-	int ChaoGardensUnlocked;
-	int ChaoToysUnlocked;
-	int field_14;
-	int field_18;
-	int field_1C[43];
-	char ChaoFruitSlots[480];
-	char field_2A8[320];
-	char ChaoSeedSlots[240];
-	char ChaoHatSlots[480];
-	char ChaoAnimalSlots[200];
-	char field_780[624];
-	char field_9F0[116];
-	ChaoData ChaoSlots[25];
-};
-
 /* 580 */
 struct GBAManagerThing
 {
@@ -1011,6 +961,115 @@ struct GBABuffer
 	int field_30;
 	int field_34;
 	int field_38;
+};
+
+struct BlackMarketData
+{
+	int8_t unused1[28];
+	int32_t SomeKindOfFrameCounter;
+	int32_t ItemCount;
+	int32_t PlayerInventoryCounter;
+	BlackMarketItem Items[20];
+	int unused2[6];
+	BlackMarketItem PlayerInventory[6];
+};
+
+
+/* 38 */
+struct KarateOpponent
+{
+	ChaoType ChaoType;
+	uint8_t EyeType;
+	uint8_t MouthType;
+	uint8_t BallType;
+	uint8_t Headgear;
+	uint8_t HideFeet;
+	uint8_t Medal;
+	uint8_t Color;
+	uint8_t Monotone;
+	uint8_t Texture;
+	uint8_t Shiny;
+	SA2BAnimal SA2BArmType;
+	SA2BAnimal SA2BEarType;
+	SA2BAnimal SA2BForeheadType;
+	SA2BAnimal SA2BHornType;
+	SA2BAnimal SA2BLegType;
+	SA2BAnimal SA2BTailType;
+	SA2BAnimal SA2BWingType;
+	SA2BAnimal SA2BFaceType;
+	uint8_t f13[1];
+	int16_t PowerRun;
+	int16_t FlySwim;
+	int16_t Alignment;
+	int16_t Magnitude;
+	char Name_unused[7];
+	char unused;
+	int16_t StatPoints[8];
+};
+
+struct RaceTimeData
+{
+	int set;
+	KarateOpponent Data;
+};
+
+struct RaceData
+{
+	char UnlockedRaces[6];
+	int field_6;
+	int field_A;
+	int field_E;
+	char field_12;
+	int field_13;
+	int field_17;
+	int field_1B;
+	char field_1F;
+	RaceTimeData RaceTimeData[10];
+};
+
+struct ChaoObjectData
+{
+	__int16 Type;
+	__int16 Garden;
+	__int16 Size;
+	__int16 Age;
+	NJS_VECTOR position;
+};
+
+
+struct TreeData
+{
+	int8_t treeType;
+	unsigned __int8 lifeTimeStatus;
+	unsigned __int8 growth;
+	unsigned __int8 lifeSpanMaybe;
+	char fruitSize1;
+	char FruitSize2;
+	char fruitSize3;
+	int8_t rotation;
+};
+
+struct ALFSave
+{
+	int ChaoSaveStart;
+	int alwaysZero;
+	int Seed;
+	int ChaoGardensUnlocked;
+	int ChaoToysUnlocked;
+	int unused1;
+	int unused2;
+	int TotalResetTriggered;
+	TreeData ChaoTreeSlots[21];
+	ChaoObjectData ChaoFruitSlots[24];
+	ChaoObjectData ChaoUnknownSlots[16];
+	ChaoObjectData ChaoSeedSlots[12];
+	ChaoObjectData ChaoHatSlots[24];
+	ChaoObjectData ChaoAnimalSlots[10];
+	RaceData RaceData;
+	char unknown[32];
+	BlackMarketData BlackMarketData;
+	ChaoData_ ChaoSlots[24];
+	int Checksum[2];
 };
 
 #pragma pack(pop)

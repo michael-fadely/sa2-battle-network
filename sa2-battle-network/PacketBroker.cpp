@@ -1068,6 +1068,11 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 			break;
 
 #pragma endregion
+
+	#pragma region "Chao"
+		case MessageID::C_ChaoData:
+			break;
+	#pragma endregion
 	}
 
 	packet.finalize();

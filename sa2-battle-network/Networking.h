@@ -108,6 +108,12 @@ namespace nethax
 		S_ItemBoxItem,
 
 		S_END,				// Marker: End of system messages
+
+		C_START,     // why the fuck
+		C_ChaoData,  // did I use tabs
+		C_ChaoSpawned,  // did I use tabs
+		C_END,       // to align shit
+		
 		Count
 	};
 

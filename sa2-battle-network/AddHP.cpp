@@ -45,7 +45,6 @@ static void __declspec(naked) AddHP_asm()
 static Trampoline* AddHP_t = nullptr;
 
 void events::AddHP_original(int player_num, float amount)
-
 {
 	void* target = AddHP_t->Target();
 	__asm

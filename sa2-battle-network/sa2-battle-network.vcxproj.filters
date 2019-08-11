@@ -150,6 +150,9 @@
     <ClInclude Include="chao.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ChaoMaybe.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -235,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="globals.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChaoMaybe.cpp">
+      <Filter>Source Files\Events</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

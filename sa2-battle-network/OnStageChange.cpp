@@ -3,7 +3,6 @@
 #include <SA2ModLoader.h>
 #include <Trampoline.h>
 #include "Networking.h"
-#include "PacketOverloads.h"
 #include "globals.h"
 #include "FunctionPointers.h"
 #include "OnStageChange.h"
@@ -45,6 +44,8 @@ void __stdcall events::SetCurrentLevel(short stage)
 		SetCurrentLevel_Original(stage);
 		return;
 	}
+
+	stage = LevelIDs_ChaoWorld;
 
 	if (networking->is_server())
 	{

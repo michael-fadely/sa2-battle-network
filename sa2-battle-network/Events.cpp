@@ -13,6 +13,7 @@
 #include "OnResult.h"
 #include "Random.h"
 #include "OnInput.h"
+#include "ChaoMaybe.h"
 
 void nethax::events::Initialize()
 {
@@ -22,6 +23,7 @@ void nethax::events::Initialize()
 	InitPoseEffect2PStartMan();
 	InitAddHP();
 	InitAddRings();
+	::events::InitChao();
 	InitDamage();
 	InitOnStageChange();
 	InitOnResult();
