@@ -2,7 +2,7 @@
 
 #include <SA2ModLoader.h>	// for everything
 #include "Networking.h"		// for MessageID
-#include "globals.h"		// for Globals :specialed:
+#include "globals.h"
 
 #include "OnGameState.h"
 
@@ -28,7 +28,7 @@ static void __stdcall OnGameState()
 	broker->send_ready_and_wait(MessageID::S_GameState);
 }
 
-// TODO: Make revertable
+// TODO: Make revertible
 void nethax::events::InitOnGameState()
 {
 	WriteCall((void*)0x0043AAEE, OnGameState);

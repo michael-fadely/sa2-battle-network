@@ -120,7 +120,7 @@ private:
 
 	// Read and send System variables
 	void send_system(PacketEx& tcp, PacketEx& udp);
-	// Read and send Player varaibles
+	// Read and send Player variables
 	void send_player(PacketEx& tcp, PacketEx& udp);
 	// Read and send Menu variables
 	void send_menu(PacketEx& packet);

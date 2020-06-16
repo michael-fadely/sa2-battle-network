@@ -4,7 +4,7 @@
 
 #include <sws/SocketError.h>
 
-#include "globals.h"          // for Globals :specialed:
+#include "globals.h"
 #include "Networking.h"
 #include "MemoryManagement.h" // for MemManage
 #include "CommonEnums.h"      // for Menu, SubMenu2P
@@ -249,7 +249,7 @@ Program::ConnectStatus Program::start_server()
 
 				if (password.size() != local_settings.password.size())
 				{
-					PrintDebug(">> Hash length discrepency.");
+					PrintDebug(">> Hash length discrepancy.");
 				}
 				else
 				{

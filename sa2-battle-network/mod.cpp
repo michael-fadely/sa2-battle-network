@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 #include <Windows.h>		// for GetCommandLineW(), GetCurrentProcess()
-#include <ShellAPI.h>		// for CommandLinetoArgvW
+#include <ShellAPI.h>		// for CommandLineToArgvW
 #include <direct.h>			// for _getcwd
 #include <SA2ModLoader.h>
 
