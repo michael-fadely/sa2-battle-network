@@ -104,7 +104,6 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 	// TODO: fix cases where valid_args would invalidate configuration read from disk.
 	for (int i = 1; i < argc; i++)
 	{
-		// Connection
 		if ((!wcscmp(argv[i], L"--host") || !wcscmp(argv[i], L"-h")) && i + 1 < argc)
 		{
 			address.port = std::stoi(argv[++i]);
@@ -121,9 +120,9 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 				continue;
 			}
 
-			const auto npos  = std::string::npos;
-			auto colon       = ip.find_first_of(':');
-			sws::port_t port = colon == npos ? 21790 : static_cast<sws::port_t>(std::stoi(ip.substr(colon + 1)));
+			// TODO: parse IPv6
+			const auto colon = ip.find_first_of(':');
+			const sws::port_t port = colon == std::string::npos ? 21790 : static_cast<sws::port_t>(std::stoi(ip.substr(colon + 1)));
 
 			address.address = ip.substr(0, colon);
 			address.port    = port;
@@ -135,7 +134,6 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 			timeout    = std::max(2500, std::stoi(argv[++i]));
 			valid_args = true;
 		}
-			// Configuration
 		else if (!wcscmp(argv[i], L"--no-specials"))
 		{
 			settings.no_specials = true;
@@ -183,7 +181,7 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 	using namespace nethax;
 
 	auto addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
-	address        = addresses[0];
+	address = addresses[0];
 
 	globals::networking = new PacketHandler();
 	globals::program    = new Program(settings, is_server, address);
