@@ -27,6 +27,8 @@ You will need to run the game with command-line arguments. You can do this via c
 * Get the *port* of the server you are connecting to. We will use `27015`.
 * Run the game with the following parameters:
   * `--connect 127.0.0.1:27015`
+* Enter the 2P BATTLE menu. The music should change to reflect joining status. DO NOT press start for player 2.
+* When connection is successful, a success jingle will play, and the game will wait for both players to press the Accept button (A).
 
 ### All command-line parameters
 | Parameter | Offline | Client | Server | Description |
