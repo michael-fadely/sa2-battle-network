@@ -1,6 +1,6 @@
 #pragma once
 
-// TODO: Single-protocol modes (TCP/UDP)
+// TODO: Swap from TCP/UDP to UDP-exclusive
 
 #include <deque>
 #include <memory>
