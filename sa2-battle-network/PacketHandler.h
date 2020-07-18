@@ -3,6 +3,7 @@
 // TODO: Single-protocol modes (TCP/UDP)
 
 #include <deque>
+#include <memory>
 
 #include <sws/SocketError.h>
 #include <sws/Address.h>
@@ -22,8 +23,15 @@ public:
 
 	struct Connection
 	{
+		Connection();
+		Connection(const Connection& rhs);
+		Connection(Connection&& rhs) noexcept;
+
+		Connection& operator=(const Connection& rhs);
+		Connection& operator=(Connection&& rhs) noexcept;
+
 		node_t node;
-		sws::TcpSocket* tcp_socket;
+		std::shared_ptr<sws::TcpSocket> tcp_socket;
 		sws::Address udp_address;
 	};
 
@@ -47,15 +55,15 @@ public:
 	bool is_connected(const sws::Address& remote_address) const;
 
 private:
-	bool bound;
-	bool host;
+	bool is_bound_;
+	bool is_server_;
 	sws::TcpSocket listener;
 	std::deque<Connection> connections_;
 	sws::UdpSocket udp_socket;
 	Connection what;
 
 	sws::SocketState bind(const sws::Address& address);
-	Connection get_connection(node_t node);
+	PacketHandler::Connection get_connection(node_t node);
 	void init_communication();
 	node_t add_connection();
 };

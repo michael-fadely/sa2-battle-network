@@ -37,31 +37,31 @@ public:
 	};
 #pragma endregion
 
-	Program(const Settings& settings, bool host, const sws::Address& address);
+	Program(const Settings& settings, bool is_server, const sws::Address& address);
 
 	static bool can_connect();
 	bool connect();
 	void disconnect();
 	static void apply_settings(const Settings& settings);
-	Version remote_version;
+	Version remote_version_;
 
 	static const Version version_num;
-	static const std::string version;
+	static const std::string version_string;
 
-	const Settings& settings() const { return is_server ? local_settings : remote_settings; }
+	const Settings& settings() const { return is_server_ ? local_settings_ : remote_settings_; }
 
 private:
-	Settings local_settings, remote_settings;
-	sws::Address address;
+	Settings local_settings_, remote_settings_;
+	sws::Address server_address_;
 
-	bool is_server;
-	bool set_music;
-	bool rejected;	// Prevents connection spam upon rejection (client only)
+	bool is_server_;
+	bool set_music_;
+	bool rejected_;	// Prevents connection spam upon rejection (client only)
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.
 	void apply_settings() const;
 	ConnectStatus start_server();
 	ConnectStatus start_client();
-	pnum_t player_num;
+	pnum_t player_num_;
 };

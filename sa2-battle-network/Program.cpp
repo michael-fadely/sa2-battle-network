@@ -15,32 +15,33 @@
 #include "Program.h"
 #include "ChangeMusic.h"
 
-using namespace std;
 using namespace nethax;
 
 #pragma region Embedded Types
 
-sws::Packet& operator <<(sws::Packet& packet, const Program::Version& data)
+static sws::Packet& operator<<(sws::Packet& packet, const Program::Version& data)
 {
 	return packet << data.major << data.minor;
 }
-sws::Packet& operator >>(sws::Packet& packet, Program::Version& data)
+
+static sws::Packet& operator>>(sws::Packet& packet, Program::Version& data)
 {
 	return packet >> data.major >> data.minor;
 }
 
-sws::Packet& operator<<(sws::Packet& packet, const Program::Settings& data)
+static sws::Packet& operator<<(sws::Packet& packet, const Program::Settings& data)
 {
 	return packet << data.no_specials << data.cheats;
 }
-sws::Packet& operator >>(sws::Packet& packet, Program::Settings& data)
+
+static sws::Packet& operator>>(sws::Packet& packet, Program::Settings& data)
 {
 	return packet >> data.no_specials >> data.cheats;
 }
 
-string Program::Version::str() const
+std::string Program::Version::str() const
 {
-	return to_string(major) + "." + to_string(minor);
+	return std::to_string(major) + "." + std::to_string(minor);
 }
 
 bool Program::Version::operator==(const Version& value) const
@@ -55,46 +56,53 @@ bool Program::Version::operator!=(const Version& value) const
 
 #pragma endregion
 
-const char* music_connecting   = "chao_k_m2.adx";
-const char* music_connected    = "chao_k_net_fine.adx";
-const char* music_disconnected = "chao_k_net_fault.adx";
-const char* music_default      = "btl_sel.adx";
+static const char* music_connecting   = "chao_k_m2.adx";
+static const char* music_connected    = "chao_k_net_fine.adx";
+static const char* music_disconnected = "chao_k_net_fault.adx";
+static const char* music_default      = "btl_sel.adx";
 
 const Program::Version Program::version_num = { 3, 2 };
-const string Program::version = "SA2:BN Version: " + version_num.str();
+const std::string Program::version_string = "SA2:BN Version: " + version_num.str();
 
-Program::Program(const Settings& settings, const bool host, const sws::Address& address) :
-	remote_version(version_num), local_settings(settings), remote_settings({}), address(address), is_server(host), set_music(false), rejected(false), player_num(-1)
+Program::Program(const Settings& settings, const bool is_server, const sws::Address& address)
+	: remote_version_(version_num),
+	  local_settings_(settings),
+	  remote_settings_({}),
+	  server_address_(address),
+	  is_server_(is_server),
+	  set_music_(false),
+	  rejected_(false),
+	  player_num_(-1)
 {
 }
 
 bool Program::can_connect()
 {
 	return CurrentMenu >= Menu::battle &&
-		(CurrentSubMenu > SubMenu2P::i_start || globals::is_connected());
+	       (CurrentSubMenu > SubMenu2P::i_start || globals::is_connected());
 }
 
 bool Program::connect()
 {
 	if (!can_connect())
 	{
-		set_music = false;
-		rejected = false;
+		set_music_ = false;
+		rejected_ = false;
 		return false;
 	}
 
-	if (!is_server && rejected)
+	if (!is_server_ && rejected_)
 	{
 		return false;
 	}
 
-	if (!set_music)
+	if (!set_music_)
 	{
 		ChangeMusic(music_connecting);
-		set_music = true;
+		set_music_ = true;
 	}
 
-	ConnectStatus result = (is_server) ? start_server() : start_client();
+	const ConnectStatus result = is_server_ ? start_server() : start_client();
 
 	if (result != ConnectStatus::success)
 	{
@@ -108,12 +116,12 @@ bool Program::connect()
 		PlayMusic(music_default);
 		PlayJingle(music_connected);
 
-		globals::broker->toggle_netstat(local_settings.netstat);
+		globals::broker->toggle_netstat(local_settings_.netstat);
 		globals::broker->set_connect_time();
 
-		if (player_num >= 0)
+		if (player_num_ >= 0)
 		{
-			globals::broker->set_player_number(player_num);
+			globals::broker->set_player_number(player_num_);
 		}
 
 		apply_settings();
@@ -130,7 +138,7 @@ bool Program::connect()
 
 void Program::disconnect()
 {
-	set_music = false;
+	set_music_ = false;
 
 	PrintDebug("<> Disconnecting...");
 	globals::networking->disconnect();
@@ -138,14 +146,14 @@ void Program::disconnect()
 	apply_settings();
 	events::Deinitialize();
 
-	if (!is_server)
+	if (!is_server_)
 	{
-		apply_settings(local_settings);
+		apply_settings(local_settings_);
 	}
 
 	globals::broker->save_netstat();
 	globals::broker->initialize();
-	player_num = -1;
+	player_num_ = -1;
 	PlayJingle(music_disconnected);
 }
 
@@ -166,9 +174,9 @@ void Program::apply_settings(const Settings& settings)
 
 void Program::apply_settings() const
 {
-	if (!is_server)
+	if (!is_server_)
 	{
-		apply_settings(remote_settings);
+		apply_settings(remote_settings_);
 	}
 }
 
@@ -181,22 +189,22 @@ Program::ConnectStatus Program::start_server()
 
 	if (!globals::networking->is_bound())
 	{
-		PrintDebug("Hosting server on port %d...", address.port);
+		PrintDebug("Hosting server on port %d...", server_address_.port);
 	}
 
 	node_t node;
 
-	if ((status = globals::networking->listen(address, node, false)) != sws::SocketState::done)
+	if ((status = globals::networking->listen(server_address_, node, false)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
-			PrintDebug("<> An error occurred while trying to listen for connections on port %d", address.port);
+			PrintDebug("<> An error occurred while trying to listen for connections on port %d", server_address_.port);
 		}
 
 		return ConnectStatus::listening;
 	}
 
-	const auto connection = globals::networking->connections().back();
+	const PacketHandler::Connection connection = globals::networking->connections().back();
 
 	if ((status = globals::networking->receive_tcp(packet, connection, true)) != sws::SocketState::done)
 	{
@@ -204,7 +212,7 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::error;
 	}
 
-	bool has_password = !local_settings.password.empty();
+	const bool has_password = !local_settings_.password.empty();
 	bool match = false;
 	ushort remote_port = 0;
 
@@ -221,12 +229,12 @@ Program::ConnectStatus Program::start_server()
 
 			case MessageID::N_VersionCheck:
 			{
-				packet >> remote_version;
+				packet >> remote_version_;
 
-				if (version_num != remote_version)
+				if (version_num != remote_version_)
 				{
 					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version.str().c_str());
+					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
 
 					packet << MessageID::N_VersionMismatch << version_num;
 					globals::networking->send_tcp(packet, node);
@@ -239,7 +247,7 @@ Program::ConnectStatus Program::start_server()
 
 			case MessageID::N_Password:
 			{
-				vector<uint8_t> password;
+				std::vector<uint8_t> password;
 				packet >> password;
 
 				if (!has_password)
@@ -247,13 +255,13 @@ Program::ConnectStatus Program::start_server()
 					break;
 				}
 
-				if (password.size() != local_settings.password.size())
+				if (password.size() != local_settings_.password.size())
 				{
 					PrintDebug(">> Hash length discrepancy.");
 				}
 				else
 				{
-					match = !memcmp(local_settings.password.data(), password.data(), password.size());
+					match = !memcmp(local_settings_.password.data(), password.data(), password.size());
 
 					if (!match)
 					{
@@ -297,7 +305,7 @@ Program::ConnectStatus Program::start_server()
 	}
 
 	packet.clear();
-	packet << MessageID::N_Settings << local_settings
+	packet << MessageID::N_Settings << local_settings_
 		<< MessageID::N_SetPlayer << static_cast<pnum_t>(globals::networking->connection_count())
 		<< MessageID::N_Connected;
 
@@ -320,10 +328,10 @@ Program::ConnectStatus Program::start_client()
 
 	if (!globals::networking->is_bound())
 	{
-		PrintDebug("<< Connecting to server at %s on port %d...", address.address.c_str(), address.port);
+		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
 	}
 
-	if ((status = globals::networking->connect(address, false)) != sws::SocketState::done)
+	if ((status = globals::networking->connect(server_address_, false)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -335,9 +343,9 @@ Program::ConnectStatus Program::start_client()
 
 	packet << MessageID::N_VersionCheck << version_num.major << version_num.minor;
 
-	if (!local_settings.password.empty())
+	if (!local_settings_.password.empty())
 	{
-		packet << MessageID::N_Password << local_settings.password;
+		packet << MessageID::N_Password << local_settings_.password;
 	}
 
 	packet << MessageID::N_Bind << globals::networking->get_local_port();
@@ -352,7 +360,7 @@ Program::ConnectStatus Program::start_client()
 
 	// TODO: Timeout on both of these loops.
 	MessageID id = MessageID::None;
-	const auto& connection = globals::networking->connections().back();
+	const PacketHandler::Connection connection = globals::networking->connections().back();
 	do
 	{
 		if ((status = globals::networking->receive_tcp(packet, connection, true)) != sws::SocketState::done)
@@ -369,14 +377,14 @@ Program::ConnectStatus Program::start_client()
 			{
 				default:
 					PrintDebug(">> Received malformed packet from server; aborting!");
-					rejected = true;
+					rejected_ = true;
 					return ConnectStatus::error;
 
 				case MessageID::N_VersionMismatch:
-					packet >> remote_version;
+					packet >> remote_version_;
 					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version.str().c_str());
-					rejected = true;
+					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
+					rejected_ = true;
 					return ConnectStatus::error;
 
 				case MessageID::N_VersionOK:
@@ -385,23 +393,23 @@ Program::ConnectStatus Program::start_client()
 
 					// This is only used for specials right now.
 				case MessageID::N_Settings:
-					packet >> remote_settings;
-					PrintDebug(">> Specials %s by server.", remote_settings.no_specials ? "disabled" : "enabled");
+					packet >> remote_settings_;
+					PrintDebug(">> Specials %s by server.", remote_settings_.no_specials ? "disabled" : "enabled");
 
-					if (remote_settings.cheats)
+					if (remote_settings_.cheats)
 					{
 						PrintDebug(">> Cheats have been enabled by the server!");
 					}
 					break;
 
 				case MessageID::N_PasswordMismatch:
-					PrintDebug(!local_settings.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
-					rejected = true;
+					PrintDebug(!local_settings_.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
+					rejected_ = true;
 					return ConnectStatus::error;
 
 				case MessageID::N_SetPlayer:
-					packet >> player_num;
-					PrintDebug("Received player number: %d", player_num);
+					packet >> player_num_;
+					PrintDebug("Received player number: %d", player_num_);
 					break;
 
 				case MessageID::N_Connected:

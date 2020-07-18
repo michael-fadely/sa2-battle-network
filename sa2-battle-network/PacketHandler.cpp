@@ -6,21 +6,65 @@
 // TODO: Handle disconnects
 // TODO: Handle Connections that have invalid nodes on send
 
-PacketHandler::PacketHandler() : bound(false), host(false), what({})
+PacketHandler::PacketHandler()
+	: is_bound_(false),
+	  is_server_(false),
+	  what({})
 {
 	listener.blocking(false);
 	udp_socket.blocking(false);
 }
+
 PacketHandler::~PacketHandler()
 {
 	disconnect();
+}
+
+PacketHandler::Connection::Connection()
+	: node(0),
+	  tcp_socket(nullptr),
+	  udp_address()
+{
+}
+
+PacketHandler::Connection::Connection(const Connection& rhs)
+	: node(rhs.node),
+	  tcp_socket(rhs.tcp_socket),
+	  udp_address(rhs.udp_address)
+{
+}
+
+PacketHandler::Connection::Connection(Connection&& rhs) noexcept
+	: node(rhs.node),
+	  tcp_socket(std::move(rhs.tcp_socket)),
+	  udp_address(std::move(rhs.udp_address))
+{
+	// FIXME: this is expected behavior, but 0 is not necessarily invalid.
+	rhs.node = 0;
+}
+
+PacketHandler::Connection& PacketHandler::Connection::operator=(const Connection& rhs) = default;
+
+PacketHandler::Connection& PacketHandler::Connection::operator=(Connection&& rhs) noexcept
+{
+	if (this != &rhs)
+	{
+		node        = rhs.node;
+		tcp_socket  = std::move(rhs.tcp_socket);
+		udp_address = std::move(rhs.udp_address);
+
+		// FIXME: this is expected behavior, but 0 is not necessarily invalid.
+		rhs.node = 0;
+	}
+
+	return *this;
 }
 
 sws::SocketState PacketHandler::listen(const sws::Address& address, node_t& node, bool block)
 {
 	sws::SocketState result;
 
-	if (!bound)
+	if (!is_bound_)
 	{
 		bind(address);
 
@@ -39,15 +83,19 @@ sws::SocketState PacketHandler::listen(const sws::Address& address, node_t& node
 			return result;
 		}
 
-		bound = true;
+		is_bound_ = true;
 	}
 
 	init_communication();
 
+	sws::TcpSocket socket;
+
 	do
 	{
-		result = listener.accept(*what.tcp_socket);
+		result = listener.accept(socket);
 	} while (block && result == sws::SocketState::in_progress);
+
+	what.tcp_socket = std::make_unique<sws::TcpSocket>(std::move(socket));
 
 	if (result == sws::SocketState::error)
 	{
@@ -59,7 +107,7 @@ sws::SocketState PacketHandler::listen(const sws::Address& address, node_t& node
 		return result;
 	}
 
-	host = true;
+	is_server_ = true;
 
 	// Pull the remote address out of the socket
 	// and store it for later use with UDP.
@@ -68,6 +116,7 @@ sws::SocketState PacketHandler::listen(const sws::Address& address, node_t& node
 
 	return result;
 }
+
 sws::SocketState PacketHandler::connect(const sws::Address& address, bool block)
 {
 	sws::SocketState result = sws::SocketState::done;
@@ -77,13 +126,13 @@ sws::SocketState PacketHandler::connect(const sws::Address& address, bool block)
 		return result;
 	}
 
-	if (!bound)
+	if (!is_bound_)
 	{
 		const sws::Address local_address
 			= sws::Address::get_addresses("localhost", sws::Socket::any_port, sws::AddressFamily::inet)[0];
 
 		bind(local_address);
-		bound = true;
+		is_bound_ = true;
 	}
 
 	what.udp_address = address;
@@ -105,23 +154,18 @@ sws::SocketState PacketHandler::connect(const sws::Address& address, bool block)
 		return result;
 	}
 
-	host = false;
+	is_server_ = false;
 	add_connection();
 	return result;
 }
+
 void PacketHandler::disconnect()
 {
-	for (auto& i : connections_)
-	{
-		i.tcp_socket->close();
-		delete i.tcp_socket;
-	}
-
 	connections_.clear();
 	udp_socket.close();
 	listener.close();
 
-	bound = false;
+	is_bound_ = false;
 }
 
 void PacketHandler::disconnect(node_t node)
@@ -131,23 +175,23 @@ void PacketHandler::disconnect(node_t node)
 		disconnect();
 	}
 
-	auto c = find_if(connections_.begin(), connections_.end(), [node](Connection& c)
+	auto it = find_if(connections_.begin(), connections_.end(),
+	[node](const Connection& c)
 	{
 		return c.node == node;
 	});
 
-	if (c == connections_.end())
+	if (it == connections_.end())
 	{
 		return;
 	}
 
-	c->tcp_socket->close();
-	connections_.erase(c);
+	connections_.erase(it);
 }
 
 bool PacketHandler::is_bound() const
 {
-	return bound;
+	return is_bound_;
 }
 
 bool PacketHandler::is_connected() const
@@ -162,7 +206,7 @@ size_t PacketHandler::connection_count() const
 
 bool PacketHandler::is_server() const
 {
-	return host;
+	return is_server_;
 }
 
 sws::SocketState PacketHandler::bind(const sws::Address& address)
@@ -190,17 +234,18 @@ sws::SocketState PacketHandler::bind(const sws::Address& address)
 
 PacketHandler::Connection PacketHandler::get_connection(node_t node)
 {
-	const auto c = find_if(connections_.begin(), connections_.end(), [node](Connection& c)
+	const auto it = find_if(connections_.begin(), connections_.end(),
+	[node](const Connection& c)
 	{
 		return c.node == node;
 	});
 
-	if (c == connections_.end())
+	if (it == connections_.end())
 	{
 		return {};
 	}
 
-	return *c;
+	return *it;
 }
 
 void PacketHandler::init_communication()
@@ -210,17 +255,16 @@ void PacketHandler::init_communication()
 		return;
 	}
 
-	auto socket = new sws::TcpSocket();
-	what.tcp_socket = socket;
+	auto socket = std::make_unique<sws::TcpSocket>();
 	socket->blocking(false);
+	what.tcp_socket = std::move(socket);
 }
 
 node_t PacketHandler::add_connection()
 {
-	auto node = host ? static_cast<node_t>(connections_.size()) + 1 : 0;
+	const node_t node = is_server_ ? static_cast<node_t>(connections_.size()) + 1 : 0;
 	what.node = node;
-	connections_.push_back(what);
-	what = {};
+	connections_.emplace_back(std::move(what));
 	return node;
 }
 
@@ -236,17 +280,18 @@ const std::deque<PacketHandler::Connection>& PacketHandler::connections() const
 
 void PacketHandler::set_remote_port(node_t node, ushort port)
 {
-	auto connection = find_if(connections_.begin(), connections_.end(), [node](Connection& c)
+	auto it = find_if(connections_.begin(), connections_.end(),
+	[node](const Connection& c)
 	{
 		return c.node == node;
 	});
 
-	if (connection == connections_.end())
+	if (it == connections_.end())
 	{
 		throw std::exception("No connections exist with the specified node.");
 	}
 
-	connection->udp_address.port = port;
+	it->udp_address.port = port;
 }
 
 sws::SocketState PacketHandler::send(PacketEx& packet, node_t node, node_t node_exclude)
@@ -258,11 +303,17 @@ sws::SocketState PacketHandler::send(PacketEx& packet, node_t node, node_t node_
 
 	return sws::SocketState::in_progress;
 }
+
 sws::SocketState PacketHandler::send_tcp(sws::Packet& packet, node_t node, node_t node_exclude)
 {
 	sws::SocketState result = sws::SocketState::in_progress;
 
-	if (node < 0)
+	if (node < 0 && node != broadcast_node)
+	{
+		throw std::exception("Invalid node number");
+	}
+
+	if (node == broadcast_node)
 	{
 		for (auto& i : connections_)
 		{
@@ -298,11 +349,17 @@ sws::SocketState PacketHandler::send_tcp(sws::Packet& packet, node_t node, node_
 
 	return result;
 }
+
 sws::SocketState PacketHandler::send_udp(sws::Packet& packet, node_t node, node_t node_exclude)
 {
 	sws::SocketState result = sws::SocketState::in_progress;
 
-	if (node < 0)
+	if (node < 0 && node != broadcast_node)
+	{
+		throw std::exception("Invalid node number");
+	}
+
+	if (node == broadcast_node)
 	{
 		for (auto& i : connections_)
 		{
@@ -337,7 +394,6 @@ sws::SocketState PacketHandler::send_udp(sws::Packet& packet, node_t node, node_
 	}
 
 	return result;
-
 }
 
 sws::SocketState PacketHandler::receive_tcp(sws::Packet& packet, const Connection& connection, bool block) const
@@ -359,6 +415,7 @@ sws::SocketState PacketHandler::receive_tcp(sws::Packet& packet, const Connectio
 
 	return result;
 }
+
 sws::SocketState PacketHandler::receive_udp(sws::Packet& packet, node_t& node, sws::Address& remote_address, bool block)
 {
 	sws::SocketState result = sws::SocketState::in_progress;
@@ -375,7 +432,8 @@ sws::SocketState PacketHandler::receive_udp(sws::Packet& packet, node_t& node, s
 			throw sws::SocketException("receive_from failed", udp_socket.native_error());
 		}
 
-		const auto connection = std::find_if(connections_.begin(), connections_.end(), [remote_address](auto c)
+		const auto connection = std::find_if(connections_.begin(), connections_.end(),
+		[remote_address](const Connection& c)
 		{
 			return c.udp_address.port == remote_address.port && c.udp_address.address == remote_address.address;
 		});
@@ -388,7 +446,8 @@ sws::SocketState PacketHandler::receive_udp(sws::Packet& packet, node_t& node, s
 
 bool PacketHandler::is_connected(const sws::Address& remote_address) const
 {
-	return std::any_of(connections_.begin(), connections_.end(), [remote_address](auto c)
+	return std::any_of(connections_.begin(), connections_.end(),
+	[remote_address](const Connection& c)
 	{
 		return c.udp_address.port == remote_address.port && c.udp_address.address == remote_address.address;
 	});
