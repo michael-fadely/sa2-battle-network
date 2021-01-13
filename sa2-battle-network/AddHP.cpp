@@ -16,10 +16,10 @@ static void __stdcall AddHP_cpp(int player_num, float amount)
 			return;
 		}
 
-		auto data2 = MainCharObj2[player_num];
-		char charid = data2->CharID;
+		auto* const data2 = MainCharObj2[player_num];
+		const char char_id = data2->CharID;
 
-		if (charid == Characters_MechTails || charid == Characters_MechEggman)
+		if (char_id == Characters_MechTails || char_id == Characters_MechEggman)
 		{
 			PrintDebug("<< HP SEND: %f, %f", data2->MechHP, amount);
 			sws::Packet packet;
@@ -45,7 +45,6 @@ static void __declspec(naked) AddHP_asm()
 static Trampoline* AddHP_t = nullptr;
 
 void events::AddHP_original(int player_num, float amount)
-
 {
 	void* target = AddHP_t->Target();
 	__asm

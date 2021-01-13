@@ -33,8 +33,8 @@ void PacketEx::initialize()
 		*this << MessageID::N_Sequence << sequence;
 	}
 
-	empty_         = true;
-	building       = false;
+	empty_ = true;
+	building = false;
 	message_count_ = 0;
 
 	types.clear();
@@ -84,7 +84,7 @@ bool PacketEx::add_type(MessageID type, bool allow_dupes)
 		throw;
 	}
 
-	empty_   = false;
+	empty_ = false;
 	building = true;
 
 	*this << type;
@@ -103,8 +103,8 @@ void PacketEx::finalize()
 		throw;
 	}
 
-	auto position = tell(sws::SeekCursor::write);
-	auto size     = position - data_start;
+	const ptrdiff_t position = tell(sws::SeekCursor::write);
+	const size_t size = position - data_start;
 
 	seek(sws::SeekCursor::write, sws::SeekType::from_start, size_offset);
 
@@ -113,6 +113,6 @@ void PacketEx::finalize()
 	seek(sws::SeekCursor::write, sws::SeekType::from_start, position);
 
 	size_offset = 0;
-	data_start  = 0;
-	building    = false;
+	data_start = 0;
+	building = false;
 }

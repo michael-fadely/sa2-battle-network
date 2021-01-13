@@ -118,7 +118,7 @@ namespace nethax
 		ushort size;
 	};
 
-	const extern std::map<MessageID, const char*> MESSAGE_ID_STRING;
+	const extern std::unordered_map<MessageID, const char*> MESSAGE_ID_STRING;
 
 	void write_netstat_csv(std::ofstream& file, std::map<MessageID, MessageStat> map);
 }

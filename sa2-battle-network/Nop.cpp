@@ -1,17 +1,15 @@
 #include "stdafx.h"
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 #include "LazyMemory.h"
 
-#include "nop.h"
+#include "Nop.h"
 
-using namespace std;
+std::unordered_map<intptr_t, std::vector<uint8_t>> Nop::backup_data;
 
-map<intptr_t, vector<uint8_t>> nop::backup_data;
-
-bool nop::apply(intptr_t address, size_t length, bool skip_backup)
+bool Nop::apply(intptr_t address, size_t length, bool skip_backup)
 {
 	// If there's already backup data for this address, return false
 	// unless the skip_backup override is enabled.
@@ -21,12 +19,12 @@ bool nop::apply(intptr_t address, size_t length, bool skip_backup)
 	}
 
 	// Populate an array with "length" NOP instructions
-	vector<uint8_t> nop(length, 0x90);
+	std::vector<uint8_t> nop(length, 0x90);
 
 	// If skip_backup isn't enabled, backup the original data.
 	if (!skip_backup)
 	{
-		vector<uint8_t> code(length);
+		std::vector<uint8_t> code(length);
 		ReadMemory(address, code.data(), length);
 		backup_data[address] = code;
 	}
@@ -37,7 +35,7 @@ bool nop::apply(intptr_t address, size_t length, bool skip_backup)
 	return true;
 }
 
-bool nop::restore(intptr_t address, bool skip_erase)
+bool Nop::restore(intptr_t address, bool skip_erase)
 {
 	auto it = backup_data.find(address);
 

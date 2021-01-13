@@ -46,16 +46,16 @@ static void __declspec(naked) AddRings_asm()
 	}
 }
 
-static Trampoline* AddRings_t;
+static Trampoline* AddRings_trampoline;
 
-void events::AddRings_SyncToggle(bool value)
+void events::AddRings_sync_toggle(bool value)
 {
 	toggle_hack = value;
 }
 
 void events::AddRings_original(int8_t player_num, int32_t num_rings)
 {
-	void* target = AddRings_t->Target();
+	void* target = AddRings_trampoline->Target();
 	__asm
 	{
 		mov edx, [num_rings]
@@ -64,7 +64,7 @@ void events::AddRings_original(int8_t player_num, int32_t num_rings)
 	}
 }
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
@@ -81,12 +81,12 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 void events::InitAddRings()
 {
-	AddRings_t = new Trampoline(reinterpret_cast<intptr_t>(AddRingsPtr), static_cast<intptr_t>(0x0044CE16), AddRings_asm);
-	globals::broker->register_message_handler(MessageID::S_Rings, MessageHandler);
-	AddRings_SyncToggle(true);
+	AddRings_trampoline = new Trampoline(reinterpret_cast<intptr_t>(AddRingsPtr), static_cast<intptr_t>(0x0044CE16), &AddRings_asm);
+	globals::broker->register_message_handler(MessageID::S_Rings, message_handler);
+	AddRings_sync_toggle(true);
 }
 
 void events::DeinitAddRings()
 {
-	delete AddRings_t;
+	delete AddRings_trampoline;
 }

@@ -34,11 +34,10 @@ void nethax::write_netstat_csv(std::ofstream& file, std::map<MessageID, MessageS
 	}
 }
 
+// Regex magic: ^(.+),(?:(\s*//.+)?)$
+// to:          { MessageID::$1, "$1" },
 
-// Regex magic:	^(.+),(?:(\s*//.+)?)$
-// to:			{ MessageID::$1, "$1" },
-
-const std::map<MessageID, const char*> nethax::MESSAGE_ID_STRING = {
+const std::unordered_map<MessageID, const char*> nethax::MESSAGE_ID_STRING = {
 	{ MessageID::None, "None" },
 
 	{ MessageID::N_START, "N_START" },

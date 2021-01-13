@@ -49,8 +49,8 @@ PacketHandler::Connection& PacketHandler::Connection::operator=(Connection&& rhs
 {
 	if (this != &rhs)
 	{
-		node        = rhs.node;
-		tcp_socket  = std::move(rhs.tcp_socket);
+		node = rhs.node;
+		tcp_socket = std::move(rhs.tcp_socket);
 		udp_address = std::move(rhs.udp_address);
 
 		// FIXME: this is expected behavior, but 0 is not necessarily invalid.
@@ -175,11 +175,12 @@ void PacketHandler::disconnect(node_t node)
 		disconnect();
 	}
 
-	auto it = find_if(connections_.begin(), connections_.end(),
-	[node](const Connection& c)
+	auto predicate = [node](const Connection& c)
 	{
 		return c.node == node;
-	});
+	};
+
+	const auto it = find_if(connections_.begin(), connections_.end(), predicate);
 
 	if (it == connections_.end())
 	{
@@ -234,11 +235,12 @@ sws::SocketState PacketHandler::bind(const sws::Address& address)
 
 PacketHandler::Connection PacketHandler::get_connection(node_t node)
 {
-	const auto it = find_if(connections_.begin(), connections_.end(),
-	[node](const Connection& c)
+	auto predicate = [node](const Connection& c)
 	{
 		return c.node == node;
-	});
+	};
+
+	const auto it = find_if(connections_.begin(), connections_.end(), predicate);
 
 	if (it == connections_.end())
 	{
@@ -280,11 +282,12 @@ const std::deque<PacketHandler::Connection>& PacketHandler::connections() const
 
 void PacketHandler::set_remote_port(node_t node, ushort port)
 {
-	auto it = find_if(connections_.begin(), connections_.end(),
-	[node](const Connection& c)
+	auto predicate = [node](const Connection& c)
 	{
 		return c.node == node;
-	});
+	};
+
+	const auto it = find_if(connections_.begin(), connections_.end(), predicate);
 
 	if (it == connections_.end())
 	{
@@ -432,11 +435,13 @@ sws::SocketState PacketHandler::receive_udp(sws::Packet& packet, node_t& node, s
 			throw sws::SocketException("receive_from failed", udp_socket.native_error());
 		}
 
-		const auto connection = std::find_if(connections_.begin(), connections_.end(),
-		[remote_address](const Connection& c)
+		auto predicate = [remote_address](const Connection& c)
 		{
-			return c.udp_address.port == remote_address.port && c.udp_address.address == remote_address.address;
-		});
+			return c.udp_address.port == remote_address.port &&
+			       c.udp_address.address == remote_address.address;
+		};
+
+		const auto connection = std::find_if(connections_.begin(), connections_.end(), predicate);
 
 		node = connection == connections_.end() ? broadcast_node : connection->node;
 	}
@@ -446,9 +451,11 @@ sws::SocketState PacketHandler::receive_udp(sws::Packet& packet, node_t& node, s
 
 bool PacketHandler::is_connected(const sws::Address& remote_address) const
 {
-	return std::any_of(connections_.begin(), connections_.end(),
-	[remote_address](const Connection& c)
+	auto predicate = [remote_address](const Connection& c)
 	{
-		return c.udp_address.port == remote_address.port && c.udp_address.address == remote_address.address;
-	});
+		return c.udp_address.port == remote_address.port &&
+		       c.udp_address.address == remote_address.address;
+	};
+
+	return std::any_of(connections_.begin(), connections_.end(), predicate);
 }

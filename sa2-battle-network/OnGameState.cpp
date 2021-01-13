@@ -31,5 +31,5 @@ static void __stdcall OnGameState()
 // TODO: Make revertible
 void nethax::events::InitOnGameState()
 {
-	WriteCall((void*)0x0043AAEE, OnGameState);
+	WriteCall(reinterpret_cast<void*>(0x0043AAEE), OnGameState);
 }

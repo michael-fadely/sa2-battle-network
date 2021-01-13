@@ -3,7 +3,7 @@
 #include "PoseEffect2PStartMan.h"
 #include "globals.h"
 
-void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
+static void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
 {
 	using namespace nethax;
 	using namespace globals;
@@ -16,7 +16,7 @@ void __cdecl PoseEffect2PStartMan_Delete(ObjectMaster* obj)
 	}
 }
 
-ObjectMaster* __stdcall AllocateObjectMaster_r(ObjectFuncPtr mainSub, int list, char* name)
+static ObjectMaster* __stdcall AllocateObjectMaster_r(ObjectFuncPtr mainSub, int list, char* name)
 {
 	ObjectMaster* obj = AllocateObjectMaster(mainSub, list, name);
 
@@ -28,7 +28,7 @@ ObjectMaster* __stdcall AllocateObjectMaster_r(ObjectFuncPtr mainSub, int list, 
 	return obj;
 }
 
-void __declspec(naked) AllocateObjectMasterBypass_asm()
+static void __declspec(naked) AllocateObjectMasterBypass_asm()
 {
 	__asm
 	{
@@ -42,7 +42,7 @@ void __declspec(naked) AllocateObjectMasterBypass_asm()
 
 void nethax::events::InitPoseEffect2PStartMan()
 {
-	WriteCall(reinterpret_cast<void*>(0x00477AAA), AllocateObjectMasterBypass_asm);
+	WriteCall(reinterpret_cast<void*>(0x00477AAA), &AllocateObjectMasterBypass_asm);
 }
 
 void nethax::events::DeinitPoseEffect2PStartMan()

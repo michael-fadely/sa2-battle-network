@@ -54,7 +54,7 @@ void __cdecl random::srand_hook(unsigned int seed)
 	}
 }
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	switch (type)
 	{
@@ -71,7 +71,7 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 void random::init()
 {
-	globals::broker->register_message_handler(MessageID::S_Seed, MessageHandler);
+	globals::broker->register_message_handler(MessageID::S_Seed, message_handler);
 	srand_trampoline = new Trampoline(0x007A89C6, 0x007A89CB, srand_hook);
 }
 

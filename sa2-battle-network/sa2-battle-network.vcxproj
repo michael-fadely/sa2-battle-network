@@ -56,6 +56,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)sa2-mod-loader\SA2ModLoader\include;$(SolutionDir)sa2-mod-loader\libmodutils;$(SolutionDir)simple-winsock-wrapper\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>NOMINMAX;RECEIVED=RECV_VERBOSE;WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -79,6 +80,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)sa2-mod-loader\SA2ModLoader\include;$(SolutionDir)sa2-mod-loader\libmodutils;$(SolutionDir)simple-winsock-wrapper\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>NOMINMAX;RECEIVED=RECV_CONCISE;WIN32_LEAN_AND_MEAN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -122,7 +124,7 @@
     <ClInclude Include="MemoryStruct.h" />
     <ClInclude Include="ModLoaderExtensions.h" />
     <ClInclude Include="Networking.h" />
-    <ClInclude Include="nop.h" />
+    <ClInclude Include="Nop.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="PacketEx.h" />
     <ClInclude Include="PacketHandler.h" />
@@ -153,7 +155,7 @@
     <ClCompile Include="mod.cpp" />
     <ClCompile Include="PacketBroker.cpp" />
     <ClCompile Include="MemoryManagement.cpp" />
-    <ClCompile Include="nop.cpp" />
+    <ClCompile Include="Nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketEx.cpp" />
     <ClCompile Include="PacketHandler.cpp" />

@@ -66,9 +66,6 @@
     <ClInclude Include="ModLoaderExtensions.h">
       <Filter>Header Files\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="nop.h">
-      <Filter>Header Files\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="Program.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -147,6 +144,9 @@
     <ClInclude Include="check_size.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Nop.h">
+      <Filter>Header Files\Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PacketHandler.cpp">
@@ -166,9 +166,6 @@
     </ClCompile>
     <ClCompile Include="mod.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="nop.cpp">
-      <Filter>Source Files\Memory</Filter>
     </ClCompile>
     <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>
@@ -232,6 +229,9 @@
     </ClCompile>
     <ClCompile Include="globals.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Nop.cpp">
+      <Filter>Source Files\Memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

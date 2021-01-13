@@ -53,7 +53,7 @@ static Sint32 __cdecl DamagePlayer_cpp(EntityData1* data1, CharObj2Base* data2)
 	}
 
 	// HACK:
-	events::AddRings_SyncToggle(false);
+	events::AddRings_sync_toggle(false);
 	called_damage = true;
 
 	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
@@ -62,7 +62,7 @@ static Sint32 __cdecl DamagePlayer_cpp(EntityData1* data1, CharObj2Base* data2)
 	}
 
 	// HACK:
-	events::AddRings_SyncToggle(true);
+	events::AddRings_sync_toggle(true);
 	called_damage = false;
 
 	return result;
@@ -76,7 +76,7 @@ static void __stdcall KillPlayer_cpp(int playerNum)
 		{
 			return;
 		}
-		
+
 		globals::broker->append(MessageID::P_Kill, Protocol::tcp, nullptr, true);
 	}
 
@@ -86,16 +86,16 @@ static void __stdcall KillPlayer_cpp(int playerNum)
 static void __declspec(naked) KillPlayer_asm()
 {
 	__asm
-	{
+		{
 		push ebx
 		call KillPlayer_cpp
 		ret
-	}
+		}
 }
 
 #pragma endregion
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
@@ -109,7 +109,7 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 		case MessageID::P_Damage:
 			// HACK:
-			events::AddRings_SyncToggle(false);
+			events::AddRings_sync_toggle(false);
 			called_damage = true;
 
 			MainCharObj1[pnum]->Status |= Status_Hurt;
@@ -117,9 +117,9 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 			{
 				MainCharObj1[pnum]->Status &= ~Status_Unknown6;
 			}
-			
+
 			// HACK:
-			events::AddRings_SyncToggle(true);
+			events::AddRings_sync_toggle(true);
 			called_damage = false;
 
 			break;
@@ -137,8 +137,8 @@ void events::InitDamage()
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
-	globals::broker->register_message_handler(MessageID::P_Damage, &MessageHandler);
-	globals::broker->register_message_handler(MessageID::P_Kill, &MessageHandler);
+	globals::broker->register_message_handler(MessageID::P_Damage, &message_handler);
+	globals::broker->register_message_handler(MessageID::P_Kill, &message_handler);
 }
 
 void events::DeinitDamage()

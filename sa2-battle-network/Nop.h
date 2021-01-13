@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
-class nop
+class Nop
 {
-	static std::map<intptr_t, std::vector<uint8_t>> backup_data;
+	static std::unordered_map<intptr_t, std::vector<uint8_t>> backup_data;
 
 public:
 	// Applies NOP to address and creates a backup of the original data.

@@ -10,9 +10,9 @@
 using namespace nethax;
 using namespace globals;
 
-static Trampoline* win_trampoline    = nullptr;
+static Trampoline* win_trampoline = nullptr;
 static Trampoline* result_trampoline = nullptr;
-static Trampoline* disp_trampoline   = nullptr;
+static Trampoline* disp_trampoline = nullptr;
 
 static void __cdecl OnResult_orig(Sint32 player)
 {
@@ -38,7 +38,7 @@ static void __cdecl OnResult(Sint32 player)
 
 static void OnWin_orig(Sint32 player)
 {
-	auto target = win_trampoline->Target();
+	auto* target = win_trampoline->Target();
 	__asm
 	{
 		mov esi, [player]
@@ -101,7 +101,7 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 		_this->DeleteSub = DispWinnerAndContinue_Delete_wrapper;
 	}
 
-	auto data = reinterpret_cast<DispWinnerAndContinue_Data*>(_this->Data2.Undefined);
+	auto* data = reinterpret_cast<DispWinnerAndContinue_Data*>(_this->Data2.Undefined);
 
 	if (data == nullptr)
 	{
@@ -141,7 +141,9 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 		data->Selection = remote_data.Selection;
 
 		if (data->Action != DispAction_Continue && data->Action != DispAction_Restart)
+		{
 			data->Timer = 0;
+		}
 	}
 }
 
@@ -150,7 +152,7 @@ sws::Packet& operator>>(sws::Packet& lhs, DispAction& rhs)
 	return lhs >> *reinterpret_cast<int8_t*>(&rhs);
 }
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	switch (type)
 	{
@@ -179,8 +181,8 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 #ifdef _DEBUG
 			PrintDebug("WIN DATA A/S: %d/%d",
-					   static_cast<int>(remote_data.Action),
-					   static_cast<int>(remote_data.Selection));
+			           static_cast<int>(remote_data.Action),
+			           static_cast<int>(remote_data.Selection));
 #endif
 			return true;
 		}
@@ -189,13 +191,13 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 void InitOnResult()
 {
-	broker->register_message_handler(MessageID::S_Win, MessageHandler);
-	broker->register_message_handler(MessageID::S_Result, MessageHandler);
-	broker->register_message_handler(MessageID::S_WinData, MessageHandler);
+	broker->register_message_handler(MessageID::S_Win, message_handler);
+	broker->register_message_handler(MessageID::S_Result, message_handler);
+	broker->register_message_handler(MessageID::S_WinData, message_handler);
 
-	win_trampoline    = new Trampoline(0x0043E6D0, 0x0043E6D5, OnWin_asm);
+	win_trampoline = new Trampoline(0x0043E6D0, 0x0043E6D5, OnWin_asm);
 	result_trampoline = new Trampoline(0x00451450, 0x00451455, OnResult);
-	disp_trampoline   = new Trampoline(0x00451050, 0x00451056, DispWinnerAndContinue_wrapper);
+	disp_trampoline = new Trampoline(0x00451050, 0x00451056, DispWinnerAndContinue_wrapper);
 }
 
 void DeinitOnResult()

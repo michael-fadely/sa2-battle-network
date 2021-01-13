@@ -27,6 +27,7 @@
 #include <string>
 #include <sstream>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 #include <fstream>
 #include <deque>
@@ -57,7 +58,7 @@
 #include "PlayerObject.h"
 #include "Program.h"
 #include "Random.h"
-#include "nop.h"
+#include "Nop.h"
 #include "typedefs.h"
 
 #endif

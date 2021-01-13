@@ -10,7 +10,7 @@ using namespace globals;
 
 static int __cdecl Menu_Battle_hook()
 {
-	int result = Menu_Battle();
+	const int result = Menu_Battle();
 
 	if (result && is_connected())
 	{
@@ -44,7 +44,7 @@ static void __cdecl RandomBattle_SetCharacters_hook()
 	events::SetCurrentLevel(CurrentLevel);
 }
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	packet >> CurrentCharacter
 		>> AltCostume[0]
@@ -60,7 +60,7 @@ void events::InitCharacterSync()
 {
 	WriteCall(reinterpret_cast<void*>(0x00666325), Menu_Battle_hook);
 	WriteCall(reinterpret_cast<void*>(0x0066AA76), RandomBattle_SetCharacters_hook);
-	broker->register_message_handler(MessageID::P_Character, MessageHandler);
+	broker->register_message_handler(MessageID::P_Character, message_handler);
 }
 
 void events::DeinitCharacterSync()

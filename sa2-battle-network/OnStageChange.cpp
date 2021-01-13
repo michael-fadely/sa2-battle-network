@@ -23,14 +23,14 @@ static void __declspec(naked) SetCurrentLevel_asm()
 	}
 }
 
-static void __cdecl SetNextLevel_Hook();
+static void __cdecl SetNextLevel_hook();
 
-Trampoline* SetCurrentLevelHax;
-Trampoline* SetNextLevelHax;
+static Trampoline* SetCurrentLevel_trampoline = nullptr;
+static Trampoline* SetNextLevel_trampoline = nullptr;
 
-inline void SetCurrentLevel_Original(short stage)
+inline void SetCurrentLevel_original(short stage)
 {
-	void* target = SetCurrentLevelHax->Target();
+	void* target = SetCurrentLevel_trampoline->Target();
 	__asm
 	{
 		movzx eax, stage
@@ -42,13 +42,13 @@ void __stdcall events::SetCurrentLevel(short stage)
 {
 	if (!is_connected())
 	{
-		SetCurrentLevel_Original(stage);
+		SetCurrentLevel_original(stage);
 		return;
 	}
 
 	if (networking->is_server())
 	{
-		SetCurrentLevel_Original(stage);
+		SetCurrentLevel_original(stage);
 
 		if (broker->wait_for_players(MessageID::S_Stage))
 		{
@@ -69,7 +69,7 @@ void __stdcall events::SetCurrentLevel(short stage)
 		PrintDebug("<> Waiting for stage number...");
 		if (!broker->send_ready_and_wait(MessageID::S_Stage))
 		{
-			SetCurrentLevel_Original(stage);
+			SetCurrentLevel_original(stage);
 			return;
 		}
 
@@ -79,14 +79,16 @@ void __stdcall events::SetCurrentLevel(short stage)
 	PrintDebug(">> Stage received. Resuming game.");
 }
 
-static void __cdecl SetNextLevel_Hook()
+static void __cdecl SetNextLevel_hook()
 {
 	// Immediately calling in case it does any other magic I'm not aware of.
-	_VoidFunc(original, SetNextLevelHax->Target());
+	_VoidFunc(original, SetNextLevel_trampoline->Target());
 	original();
 
 	if (!is_connected())
+	{
 		return;
+	}
 
 	if (networking->is_server())
 	{
@@ -119,7 +121,7 @@ static void __cdecl SetNextLevel_Hook()
 	}
 }
 
-static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	switch (type)
 	{
@@ -140,14 +142,14 @@ static bool MessageHandler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 void events::InitOnStageChange()
 {
-	SetCurrentLevelHax = new Trampoline(0x0043D8A0, 0x0043D8A7, SetCurrentLevel_asm);
-	SetNextLevelHax = new Trampoline(0x0043C4D0, 0x0043C4D5, SetNextLevel_Hook);
-	broker->register_message_handler(MessageID::S_Stage, MessageHandler);
-	broker->register_message_handler(MessageID::S_NextStage, MessageHandler);
+	SetCurrentLevel_trampoline = new Trampoline(0x0043D8A0, 0x0043D8A7, SetCurrentLevel_asm);
+	SetNextLevel_trampoline = new Trampoline(0x0043C4D0, 0x0043C4D5, SetNextLevel_hook);
+	broker->register_message_handler(MessageID::S_Stage, message_handler);
+	broker->register_message_handler(MessageID::S_NextStage, message_handler);
 }
 
 void events::DeinitOnStageChange()
 {
-	delete SetCurrentLevelHax;
-	delete SetNextLevelHax;
+	delete SetCurrentLevel_trampoline;
+	delete SetNextLevel_trampoline;
 }

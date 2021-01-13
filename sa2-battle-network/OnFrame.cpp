@@ -13,7 +13,10 @@ extern "C" __declspec(dllexport) void OnFrame()
 		return;
 	}
 
-	auto this_thing = globals::networking->is_server() && CurrentMenu == Menu::battle && CurrentSubMenu > SubMenu2P::i_start;
+	// FIXME: Bad variable name
+	const bool this_thing = globals::networking->is_server() &&
+	                        CurrentMenu == Menu::battle &&
+	                        CurrentSubMenu > SubMenu2P::i_start;
 
 	if (!globals::is_connected() || this_thing)
 	{

@@ -28,7 +28,6 @@
 #include "PacketBroker.h"
 
 // Namespaces
-using namespace std;
 using namespace std::chrono;
 using namespace nethax;
 
@@ -66,7 +65,7 @@ static bool speed_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	const auto m = static_cast<float>(njScalor(&current));
 	return system_clock::now() - speed_timer >= SPEED_INTERVAL ||
-	       abs(CheckDistance(&last, &current)) >= max((SPEED_THRESHOLD * m), SPEED_THRESHOLD);
+	       abs(CheckDistance(&last, &current)) >= std::max((SPEED_THRESHOLD * m), SPEED_THRESHOLD);
 }
 
 bool round_started()
@@ -124,12 +123,12 @@ void PacketBroker::receive_loop()
 {
 	sws::Packet packet;
 
-	auto handler = globals::networking;
+	auto* handler = globals::networking;
 	bool multi_connection = handler->is_server() && handler->connection_count() > 1;
 
 	sws::SocketState result;
 
-	for (auto& connection : handler->connections())
+	for (const auto& connection : handler->connections())
 	{
 		result = sws::SocketState::done;
 
@@ -237,7 +236,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 
 		if (it == sequences.end())
 		{
-			it = sequences.insert(it, make_pair(real_node, 0));
+			it = sequences.insert(it, std::make_pair(real_node, 0));
 		}
 
 		ushort sequence = 0;
@@ -425,7 +424,7 @@ bool PacketBroker::wait_for_players(MessageID id)
 			return false;
 		}
 
-		this_thread::yield();
+		std::this_thread::yield();
 	}
 
 	PrintDebug(">> All players ready. Resuming game.");
@@ -468,7 +467,7 @@ void PacketBroker::set_connect_time()
 {
 	sent_keep_alive = system_clock::now();
 
-	for (auto& i : globals::networking->connections())
+	for (const auto& i : globals::networking->connections())
 	{
 		keep_alive[i.node] = sent_keep_alive;
 		sequences[i.node] = 0;
@@ -487,15 +486,15 @@ void PacketBroker::save_netstat() const
 		return;
 	}
 
-	ofstream netstat_sent("netstat.sent.csv");
+	std::ofstream netstat_sent("netstat.sent.csv");
 	write_netstat_csv(netstat_sent, send_stats);
 	netstat_sent << "Total packets/bytes (including overhead): "
-		<< sent_packets << '/' << sent_bytes + 4 * sent_packets << endl;
+		<< sent_packets << '/' << sent_bytes + 4 * sent_packets << std::endl;
 
-	ofstream netstat_recv("netstat.recv.csv");
+	std::ofstream netstat_recv("netstat.recv.csv");
 	write_netstat_csv(netstat_recv, recv_stats);
 	netstat_recv << "Total packets/bytes (including overhead): "
-		<< received_packets << '/' << received_bytes + 4 * received_packets << endl;
+		<< received_packets << '/' << received_bytes + 4 * received_packets << std::endl;
 }
 
 void PacketBroker::register_message_handler(MessageID type, const MessageHandler& func)
@@ -1024,7 +1023,7 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 
 		case MessageID::S_2PSpecials:
 		{
-			auto& specials = player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks;
+			const auto& specials = player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks;
 
 			packet << specials[0] << specials[1] << specials[2];
 
