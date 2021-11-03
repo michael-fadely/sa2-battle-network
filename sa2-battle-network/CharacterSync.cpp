@@ -14,7 +14,7 @@ static int __cdecl Menu_Battle_hook()
 
 	if (result && is_connected())
 	{
-		if (!networking->is_server())
+		if (!broker->is_server())
 		{
 			broker->send_ready_and_wait(MessageID::P_Character);
 		}
@@ -44,7 +44,7 @@ static void __cdecl RandomBattle_SetCharacters_hook()
 	events::SetCurrentLevel(CurrentLevel);
 }
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	packet >> CurrentCharacter
 		>> AltCostume[0]
@@ -60,7 +60,7 @@ void events::InitCharacterSync()
 {
 	WriteCall(reinterpret_cast<void*>(0x00666325), Menu_Battle_hook);
 	WriteCall(reinterpret_cast<void*>(0x0066AA76), RandomBattle_SetCharacters_hook);
-	broker->register_message_handler(MessageID::P_Character, message_handler);
+	broker->register_reader(MessageID::P_Character, message_reader);
 }
 
 void events::DeinitCharacterSync()

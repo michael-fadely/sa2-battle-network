@@ -46,7 +46,7 @@ void __stdcall events::SetCurrentLevel(short stage)
 		return;
 	}
 
-	if (networking->is_server())
+	if (broker->is_server())
 	{
 		SetCurrentLevel_original(stage);
 
@@ -90,7 +90,7 @@ static void __cdecl SetNextLevel_hook()
 		return;
 	}
 
-	if (networking->is_server())
+	if (broker->is_server())
 	{
 		// Note that forcing the server to wait for the clients
 		// ensures the data arrives at the right time. Otherwise,
@@ -121,7 +121,7 @@ static void __cdecl SetNextLevel_hook()
 	}
 }
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	switch (type)
 	{
@@ -144,8 +144,8 @@ void events::InitOnStageChange()
 {
 	SetCurrentLevel_trampoline = new Trampoline(0x0043D8A0, 0x0043D8A7, SetCurrentLevel_asm);
 	SetNextLevel_trampoline = new Trampoline(0x0043C4D0, 0x0043C4D5, SetNextLevel_hook);
-	broker->register_message_handler(MessageID::S_Stage, message_handler);
-	broker->register_message_handler(MessageID::S_NextStage, message_handler);
+	broker->register_reader(MessageID::S_Stage, message_reader);
+	broker->register_reader(MessageID::S_NextStage, message_reader);
 }
 
 void events::DeinitOnStageChange()

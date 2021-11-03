@@ -10,7 +10,6 @@
 
 #include "typedefs.h"
 #include "globals.h"		// PacketHandler, Program, PacketBroker
-#include "PacketHandler.h"	// for sws::Address
 #include "OnGameState.h"
 #include "Hash.h"
 #include <locale>
@@ -187,9 +186,8 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 	auto addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
 	address = addresses[0];
 
-	globals::networking = new PacketHandler();
-	globals::program    = new Program(settings, is_server, address);
-	globals::broker     = new PacketBroker(timeout);
+	globals::program = new Program(settings, is_server, address);
+	globals::broker  = new PacketBroker(timeout);
 
 	events::InitOnGameState();
 }

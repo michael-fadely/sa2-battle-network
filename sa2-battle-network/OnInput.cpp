@@ -235,9 +235,9 @@ void InitOnInput()
 	Nop::apply(0x00441DAC, 11);
 	Nop::apply(0x00441DCC, 10);
 
-	broker->register_message_handler(MessageID::I_Buttons, message_handler);
-	broker->register_message_handler(MessageID::I_Analog, message_handler);
-	broker->register_message_handler(MessageID::I_AnalogAngle, message_handler);
+	broker->register_reader(MessageID::I_Buttons, message_handler);
+	broker->register_reader(MessageID::I_Analog, message_handler);
+	broker->register_reader(MessageID::I_AnalogAngle, message_handler);
 
 	for (size_t i = 0; i < 4; i++)
 	{

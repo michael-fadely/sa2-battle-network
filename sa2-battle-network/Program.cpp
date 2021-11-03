@@ -108,7 +108,7 @@ bool Program::connect()
 	{
 		if (result == ConnectStatus::error)
 		{
-			globals::networking->disconnect();
+			globals::broker->disconnect();
 		}
 	}
 	else
@@ -127,7 +127,7 @@ bool Program::connect()
 		apply_settings();
 		P2Start = 2;
 
-		if (globals::networking->connection_count() == 1)
+		if (globals::broker->connection_count() == 1)
 		{
 			events::Initialize();
 		}
@@ -141,7 +141,7 @@ void Program::disconnect()
 	set_music_ = false;
 
 	PrintDebug("<> Disconnecting...");
-	globals::networking->disconnect();
+	globals::broker->disconnect();
 
 	apply_settings();
 	events::Deinitialize();
@@ -187,14 +187,14 @@ Program::ConnectStatus Program::start_server()
 	sws::Packet packet;
 	sws::SocketState status;
 
-	if (!globals::networking->is_bound())
+	if (!globals::broker->is_bound())
 	{
 		PrintDebug("Hosting server on port %d...", server_address_.port);
 	}
 
 	node_t node;
 
-	if ((status = globals::networking->listen(server_address_, node, false)) != sws::SocketState::done)
+	if ((status = globals::broker->listen(server_address_/*, node, false*/)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -204,9 +204,11 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::listening;
 	}
 
-	const PacketHandler::Connection connection = globals::networking->connections().back();
+	const std::shared_ptr<Connection> connection = globals::broker->connections().back();
 
-	if ((status = globals::networking->receive_tcp(packet, connection, true)) != sws::SocketState::done)
+	connection->update();
+
+	if ((status = globals::broker->receive_tcp(packet, connection, true)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while waiting for version number.");
 		return ConnectStatus::error;
@@ -237,7 +239,7 @@ Program::ConnectStatus Program::start_server()
 					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
 
 					packet << MessageID::N_VersionMismatch << version_num;
-					globals::networking->send_tcp(packet, node);
+					globals::broker->send_tcp(packet, node);
 
 					return ConnectStatus::error;
 				}
@@ -275,7 +277,7 @@ Program::ConnectStatus Program::start_server()
 			case MessageID::N_Bind:
 			{
 				packet >> remote_port;
-				globals::networking->set_remote_port(node, remote_port);
+				globals::broker->set_remote_port(node, remote_port);
 				break;
 			}
 		}
@@ -285,7 +287,7 @@ Program::ConnectStatus Program::start_server()
 	{
 		packet.clear();
 		packet << MessageID::N_PasswordMismatch;
-		globals::networking->send_tcp(packet, node);
+		globals::broker->send_tcp(packet, node);
 		return ConnectStatus::error;
 	}
 
@@ -298,7 +300,7 @@ Program::ConnectStatus Program::start_server()
 	packet.clear();
 	packet << MessageID::N_VersionOK;
 
-	if ((status = globals::networking->send_tcp(packet, node)) != sws::SocketState::done)
+	if ((status = globals::broker->send_tcp(packet, node)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
 		return ConnectStatus::error;
@@ -306,10 +308,10 @@ Program::ConnectStatus Program::start_server()
 
 	packet.clear();
 	packet << MessageID::N_Settings << local_settings_
-		<< MessageID::N_SetPlayer << static_cast<pnum_t>(globals::networking->connection_count())
+		<< MessageID::N_SetPlayerNumber << static_cast<pnum_t>(globals::broker->connection_count())
 		<< MessageID::N_Connected;
 
-	if ((status = globals::networking->send_tcp(packet, node)) != sws::SocketState::done)
+	if ((status = globals::broker->send_tcp(packet, node)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
 		return ConnectStatus::error;
@@ -323,15 +325,14 @@ Program::ConnectStatus Program::start_server()
 
 Program::ConnectStatus Program::start_client()
 {
-	sws::Packet packet;
 	sws::SocketState status;
 
-	if (!globals::networking->is_bound())
+	if (!globals::broker->is_bound())
 	{
 		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
 	}
 
-	if ((status = globals::networking->connect(server_address_, false)) != sws::SocketState::done)
+	if ((status = globals::broker->connect(server_address_)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -341,6 +342,7 @@ Program::ConnectStatus Program::start_client()
 		return ConnectStatus::listening;
 	}
 
+	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack);
 	packet << MessageID::N_VersionCheck << version_num.major << version_num.minor;
 
 	if (!local_settings_.password.empty())
@@ -348,22 +350,20 @@ Program::ConnectStatus Program::start_client()
 		packet << MessageID::N_Password << local_settings_.password;
 	}
 
-	packet << MessageID::N_Bind << globals::networking->get_local_port();
-
-	if ((status = globals::networking->send_tcp(packet)) != sws::SocketState::done)
-	{
-		PrintDebug("<< An error occurred while sending the version number!");
-		return ConnectStatus::error;
-	}
+	packet << MessageID::N_Bind << globals::broker->get_local_port();
+	globals::broker->send(packet, true);
 
 	packet.clear();
 
 	// TODO: Timeout on both of these loops.
 	MessageID id = MessageID::None;
-	const PacketHandler::Connection connection = globals::networking->connections().back();
+	const auto connection = globals::broker->connections().back();
+
 	do
 	{
-		if ((status = globals::networking->receive_tcp(packet, connection, true)) != sws::SocketState::done)
+		connection->update();
+
+		if ((status = globals::broker->receive_tcp(packet, connection, true)) != sws::SocketState::done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
 			return ConnectStatus::error;
@@ -407,7 +407,7 @@ Program::ConnectStatus Program::start_client()
 					rejected_ = true;
 					return ConnectStatus::error;
 
-				case MessageID::N_SetPlayer:
+				case MessageID::N_SetPlayerNumber:
 					packet >> player_num_;
 					PrintDebug("Received player number: %d", player_num_);
 					break;

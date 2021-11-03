@@ -64,7 +64,7 @@ void events::AddRings_original(int8_t player_num, int32_t num_rings)
 	}
 }
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
@@ -82,7 +82,7 @@ static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 void events::InitAddRings()
 {
 	AddRings_trampoline = new Trampoline(reinterpret_cast<intptr_t>(AddRingsPtr), static_cast<intptr_t>(0x0044CE16), &AddRings_asm);
-	globals::broker->register_message_handler(MessageID::S_Rings, message_handler);
+	globals::broker->register_reader(MessageID::S_Rings, message_reader);
 	AddRings_sync_toggle(true);
 }
 

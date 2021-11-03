@@ -164,7 +164,7 @@ static void __cdecl DisplayItemBoxItem_cpp(int pnum, int tnum)
 	events::DisplayItemBoxItem_original(pnum, tnum);
 }
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
@@ -212,11 +212,11 @@ void events::InitItemBoxItems()
 	Invincibility_trampoline = new Trampoline(0x006C98F0, 0x006C98F5, Invincibility_cpp);
 	DisplayItemBoxItem_trampoline = new Trampoline(0x006DF440, 0x006DF445, DisplayItemBoxItem_cpp);
 
-	globals::broker->register_message_handler(MessageID::S_NBarrier, message_handler);
-	globals::broker->register_message_handler(MessageID::S_TBarrier, message_handler);
-	globals::broker->register_message_handler(MessageID::S_Speedup, message_handler);
-	globals::broker->register_message_handler(MessageID::S_Invincibility, message_handler);
-	globals::broker->register_message_handler(MessageID::S_ItemBoxItem, message_handler);
+	globals::broker->register_reader(MessageID::S_NBarrier, message_reader);
+	globals::broker->register_reader(MessageID::S_TBarrier, message_reader);
+	globals::broker->register_reader(MessageID::S_Speedup, message_reader);
+	globals::broker->register_reader(MessageID::S_Invincibility, message_reader);
+	globals::broker->register_reader(MessageID::S_ItemBoxItem, message_reader);
 }
 
 void events::DeinitItemBoxItems()

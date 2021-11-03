@@ -103,6 +103,7 @@
     <ClInclude Include="ChangeMusic.h" />
     <ClInclude Include="CharacterSync.h" />
     <ClInclude Include="check_size.h" />
+    <ClInclude Include="Connection.h" />
     <ClInclude Include="EmeraldSync.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="FunctionPointers.h" />
@@ -110,6 +111,7 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="Damage.h" />
     <ClInclude Include="ItemBoxItems.h" />
+    <ClInclude Include="ConnectionManager.h" />
     <ClInclude Include="OnGameState.h" />
     <ClInclude Include="OnInput.h" />
     <ClInclude Include="OnResult.h" />
@@ -127,8 +129,9 @@
     <ClInclude Include="Nop.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="PacketEx.h" />
-    <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Random.h" />
+    <ClInclude Include="reliable.h" />
+    <ClInclude Include="sequence_t.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
@@ -138,12 +141,14 @@
     <ClCompile Include="AddRings.cpp" />
     <ClCompile Include="AdventurePacketOverloads.cpp" />
     <ClCompile Include="CharacterSync.cpp" />
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="Damage.cpp" />
     <ClCompile Include="ItemBoxItems.cpp" />
+    <ClCompile Include="ConnectionManager.cpp" />
     <ClCompile Include="Networking.cpp" />
     <ClCompile Include="OnFrame.cpp" />
     <ClCompile Include="OnGameState.cpp" />
@@ -158,8 +163,9 @@
     <ClCompile Include="Nop.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="PacketEx.cpp" />
-    <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Random.cpp" />
+    <ClCompile Include="reliable.cpp" />
+    <ClCompile Include="sequence_t.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

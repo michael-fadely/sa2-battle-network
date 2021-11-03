@@ -14,7 +14,7 @@ extern "C" __declspec(dllexport) void OnFrame()
 	}
 
 	// FIXME: Bad variable name
-	const bool this_thing = globals::networking->is_server() &&
+	const bool this_thing = globals::broker->is_server() &&
 	                        CurrentMenu == Menu::battle &&
 	                        CurrentSubMenu > SubMenu2P::i_start;
 

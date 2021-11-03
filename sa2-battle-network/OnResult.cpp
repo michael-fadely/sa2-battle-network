@@ -27,7 +27,7 @@ static void __cdecl OnResult(Sint32 player)
 		return;
 	}
 
-	if (networking->is_server())
+	if (broker->is_server())
 	{
 		sws::Packet packet;
 		packet << static_cast<pnum_t>(player);
@@ -53,7 +53,7 @@ static void __cdecl OnWin(Sint32 player)
 		return;
 	}
 
-	if (networking->is_server())
+	if (broker->is_server())
 	{
 		sws::Packet packet;
 		packet << static_cast<pnum_t>(player);
@@ -118,7 +118,7 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 
 	mainsub(_this);
 
-	if (networking->is_server())
+	if (broker->is_server())
 	{
 		if (disp_deleted)
 		{
@@ -152,7 +152,7 @@ sws::Packet& operator>>(sws::Packet& lhs, DispAction& rhs)
 	return lhs >> *reinterpret_cast<int8_t*>(&rhs);
 }
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	switch (type)
 	{
@@ -191,9 +191,9 @@ static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
 
 void InitOnResult()
 {
-	broker->register_message_handler(MessageID::S_Win, message_handler);
-	broker->register_message_handler(MessageID::S_Result, message_handler);
-	broker->register_message_handler(MessageID::S_WinData, message_handler);
+	broker->register_reader(MessageID::S_Win, message_reader);
+	broker->register_reader(MessageID::S_Result, message_reader);
+	broker->register_reader(MessageID::S_WinData, message_reader);
 
 	win_trampoline = new Trampoline(0x0043E6D0, 0x0043E6D5, OnWin_asm);
 	result_trampoline = new Trampoline(0x00451450, 0x00451455, OnResult);

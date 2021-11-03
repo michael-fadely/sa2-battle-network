@@ -27,6 +27,10 @@
 
 #include "PacketBroker.h"
 
+
+#include "ConnectionManager.h"
+#include "reliable.h"
+
 // Namespaces
 using namespace std::chrono;
 using namespace nethax;
@@ -98,7 +102,6 @@ void PacketBroker::initialize()
 
 	sent_keep_alive = system_clock::now();
 	player_num      = -1;
-	sequences.clear();
 	keep_alive.clear();
 	wait_requests.clear();
 
@@ -117,68 +120,89 @@ void PacketBroker::initialize()
 		sent_packets     = 0;
 		sent_bytes       = 0;
 	}
+
+	connection_manager_ = std::make_shared<ConnectionManager>();
+}
+
+sws::SocketState PacketBroker::listen(const sws::Address& address)
+{
+	set_player_number(0);
+
+	std::shared_ptr<Connection> connection;
+	is_server_ = true;
+
+	if (connection_manager_->host(address) != sws::SocketState::done)
+	{
+		throw std::runtime_error("host failed");
+	}
+
+	sws::SocketState result;
+
+	if ((result = connection_manager_->listen(connection)) == sws::SocketState::done)
+	{
+		connections_.emplace_back(std::move(connection));
+	}
+
+	return result;
+}
+
+sws::SocketState PacketBroker::connect(const sws::Address& address)
+{
+	if (is_connected())
+	{
+		return sws::SocketState::done;
+	}
+
+	std::shared_ptr<Connection> connection;
+	const sws::SocketState result = connection_manager_->connect(address, connection);
+
+	if (result == sws::SocketState::done)
+	{
+		connections_.emplace_back(std::move(connection));
+	}
+
+	return result;
 }
 
 void PacketBroker::receive_loop()
 {
-	sws::Packet packet;
+	const bool should_broadcast = is_server_ && connections_.size() > 1;
 
-	auto* handler = globals::networking;
-	bool multi_connection = handler->is_server() && handler->connection_count() > 1;
+	connection_manager_->receive(false);
 
-	sws::SocketState result;
-
-	for (const auto& connection : handler->connections())
+	for (size_t i = 0; i < connections_.size(); ++i)
 	{
-		result = sws::SocketState::done;
+		auto& connection = connections_[i];
 
-		for (size_t i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
+		connection->update();
+
+		sws::Packet received;
+
+		while (connection->pop(received))
 		{
-			result = handler->receive_tcp(packet, connection);
+			read(received, /* FIXME: node */ 0);
 
-			if (result != sws::SocketState::done)
+			if (!should_broadcast)
 			{
 				continue;
 			}
-
-			read(packet, connection.node, Protocol::tcp);
-
-			if (multi_connection)
+			
+			for (size_t j = 0; j < connections_.size(); ++j)
 			{
-				sws::Packet out;
-				out << MessageID::N_Node << connection.node << packet;
-				handler->send_tcp(out, PacketHandler::broadcast_node, connection.node);
+				if (j == i)
+				{
+					continue;
+				}
+
+				auto& connection_out = connections_[j];
+
+				// TODO: check result for connection failure
+				connection_out->send(received);
 			}
 		}
 	}
 
-	result = sws::SocketState::done;
-	sws::Address udp_address;
-	node_t udp_node = -1;
-
-	for (size_t i = 0; i < 2 && result != sws::SocketState::in_progress; i++)
-	{
-		result = handler->receive_udp(packet, udp_node, udp_address);
-
-		if (result != sws::SocketState::done)
-		{
-			continue;
-		}
-
-		if (udp_node >= 0 && result == sws::SocketState::done)
-		{
-			read(packet, udp_node, Protocol::udp);
-
-			if (multi_connection)
-			{
-				sws::Packet out;
-				out << MessageID::N_Node << udp_node << packet;
-				handler->send_udp(out, PacketHandler::broadcast_node, udp_node);
-			}
-		}
-	}
-
-	size_t connections = globals::networking->connection_count();
+	const size_t connection_count = connections_.size();
 	size_t timeouts = 0;
 
 #ifndef _DEBUG
@@ -188,7 +212,7 @@ void PacketBroker::receive_loop()
 		{
 			PrintDebug("<> Player %d timed out.", it->first);
 			sequences.erase(it->first);
-			globals::networking->disconnect(it->first);
+			globals::broker->disconnect(it->first);
 			it = keep_alive.erase(it);
 			++timeouts;
 		}
@@ -199,15 +223,14 @@ void PacketBroker::receive_loop()
 	}
 #endif
 
-	timed_out = timeouts >= connections;
+	timed_out = timeouts >= connection_count;
 }
 
-void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
+void PacketBroker::read(sws::Packet& packet, node_t node)
 {
 	node_t real_node = node;
-	bool is_server = globals::networking->is_server();
 
-	if (!is_server && packet.work_size() >= sizeof(MessageID) + sizeof(node_t))
+	if (!is_server_ && packet.work_size() >= sizeof(MessageID) + sizeof(node_t))
 	{
 		MessageID type;
 		packet >> type;
@@ -220,37 +243,6 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 		{
 			packet >> real_node;
 		}
-	}
-
-	if (protocol == Protocol::udp)
-	{
-		MessageID type = MessageID::None;
-		packet >> type;
-
-		if (type != MessageID::N_Sequence)
-		{
-			throw;
-		}
-
-		auto it = sequences.find(real_node);
-
-		if (it == sequences.end())
-		{
-			it = sequences.insert(it, std::make_pair(real_node, 0));
-		}
-
-		ushort sequence = 0;
-		packet >> sequence;
-
-		// TODO: Rejection threshold
-		if (sequence == 0 || sequence <= it->second)
-		{
-			PrintDebug(">> Received out of order packet. Rejecting.");
-			it->second = sequence % USHRT_MAX;
-			return;
-		}
-
-		it->second = sequence % USHRT_MAX;
 	}
 
 	pnum_t pnum = -1;
@@ -279,12 +271,11 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 
 			case MessageID::N_Disconnect:
 				PrintDebug(">> Player %d disconnected.", real_node);
-				sequences.erase(real_node);
 				keep_alive.erase(real_node);
 
-				if (is_server || real_node == 0)
+				if (is_server_ || real_node == 0)
 				{
-					globals::networking->disconnect(node);
+					globals::broker->disconnect(node);
 					packet.clear();
 				}
 				break;
@@ -295,7 +286,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 				MessageID wait_id;
 				packet >> wait_id;
 
-				if (is_server || real_node == 0)
+				if (is_server_ || real_node == 0)
 				{
 					auto it = wait_requests.find(wait_id);
 
@@ -303,7 +294,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 					{
 						++it->second.count;
 					}
-					else if (is_server)
+					else if (is_server_)
 					{
 						++wait_requests[wait_id].count;
 					}
@@ -316,7 +307,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 				packet >> pnum;
 				break;
 
-			case MessageID::N_SetPlayer:
+			case MessageID::N_SetPlayerNumber:
 			{
 				if (real_node != 0)
 				{
@@ -345,7 +336,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 				ushort length = 0;
 				packet >> length;
 
-				add_type_received(new_type, length, protocol == Protocol::tcp);
+				add_type_received(new_type, length, /* FIXME: protocol */ false);
 
 				if (pnum >= 0 && pnum < 2)
 				{
@@ -379,7 +370,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node, Protocol protocol)
 					}
 				}
 
-				if (run_message_handler(new_type, pnum, packet))
+				if (run_message_reader(new_type, pnum, packet))
 				{
 					break;
 				}
@@ -412,7 +403,7 @@ bool PacketBroker::wait_for_players(MessageID id)
 		it = wait_requests.insert(it, std::make_pair(id, a));
 	}
 
-	while (it->second.count < static_cast<pnum_t>(globals::networking->connection_count()))
+	while (it->second.count < static_cast<pnum_t>(connections_.size()))
 	{
 		// This handles incrementing of it->second.count
 		receive_loop();
@@ -434,16 +425,20 @@ bool PacketBroker::wait_for_players(MessageID id)
 
 void PacketBroker::send_ready(MessageID id)
 {
-	sws::Packet packet;
+	sws::Packet packet = reliable::reserve(reliable::reliable_t::ordered);
 	add_ready(id, packet);
-	globals::networking->send_tcp(packet);
+
+	for (auto& connection : connections_)
+	{
+		connection->send(packet);
+	}
 }
 
 bool PacketBroker::send_ready_and_wait(MessageID id)
 {
-	if (globals::networking->is_server())
+	if (is_server_)
 	{
-		bool result = wait_for_players(id);
+		const bool result = wait_for_players(id);
 
 		if (result)
 		{
@@ -461,17 +456,6 @@ void PacketBroker::add_ready(MessageID id, sws::Packet& packet)
 {
 	add_type_sent(id, sizeof(MessageID), Protocol::tcp);
 	packet << MessageID::N_Ready << id;
-}
-
-void PacketBroker::set_connect_time()
-{
-	sent_keep_alive = system_clock::now();
-
-	for (const auto& i : globals::networking->connections())
-	{
-		keep_alive[i.node] = sent_keep_alive;
-		sequences[i.node] = 0;
-	}
 }
 
 void PacketBroker::toggle_netstat(bool value)
@@ -497,14 +481,19 @@ void PacketBroker::save_netstat() const
 		<< received_packets << '/' << received_bytes + 4 * received_packets << std::endl;
 }
 
-void PacketBroker::register_message_handler(MessageID type, const MessageHandler& func)
+void PacketBroker::register_reader(nethax::MessageID message_id, const MessageReader& reader)
 {
-	message_handlers[type] = func;
+	message_readers[message_id] = reader;
+}
+
+void PacketBroker::register_writer(nethax::MessageID message_id, const MessageWriter& writer)
+{
+	message_writers[message_id] = writer;
 }
 
 void PacketBroker::set_player_number(pnum_t number)
 {
-	const pnum_t from = player_num < 0 ? 0 : player_num;
+	const pnum_t from = player_num < 0 ? (pnum_t)0 : player_num;
 
 	if (from != number)
 	{
@@ -514,6 +503,21 @@ void PacketBroker::set_player_number(pnum_t number)
 	player_num = number;
 
 	finalize();
+}
+
+bool PacketBroker::is_connected() const
+{
+	return !connections_.empty();
+}
+
+bool PacketBroker::is_server() const
+{
+	return is_server_;
+}
+
+std::deque<std::shared_ptr<Connection>>& PacketBroker::connections()
+{
+	return connections_;
 }
 
 bool PacketBroker::request(MessageID type, Protocol protocol, bool allow_dupes)
@@ -597,7 +601,7 @@ void PacketBroker::add_bytes_sent(size_t size)
 	}
 }
 
-inline bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes)
+bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes)
 {
 	if (allow_dupes || !exclude.contains(type))
 	{
@@ -627,14 +631,17 @@ void PacketBroker::finalize()
 	udp_packet << MessageID::N_PlayerNumber << player_num;
 }
 
-void PacketBroker::send(PacketEx& packet)
+void PacketBroker::send(sws::Packet& packet, bool block)
 {
 	if (netstat)
 	{
 		add_bytes_sent(packet.real_size());
 	}
 
-	globals::networking->send(packet);
+	for (auto& connection : connections_)
+	{
+		connection->send(packet, block);
+	}
 }
 
 void PacketBroker::send_system()
@@ -679,7 +686,7 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 			request(MessageID::S_PauseSelection, tcp, udp);
 		}
 
-		if (local.game.TimerSeconds != TimerSeconds && globals::networking->is_server())
+		if (local.game.TimerSeconds != TimerSeconds && is_server_)
 		{
 			request(MessageID::S_Time, udp, tcp);
 		}
@@ -725,13 +732,13 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		char charid = MainCharacter[player_num]->Data2.Character->CharID2;
+		char character_id = MainCharacter[player_num]->Data2.Character->CharID2;
 
-		bool sendSpinTimer =
-			charid == Characters_Sonic ||
-			charid == Characters_Shadow ||
-			charid == Characters_Amy ||
-			charid == Characters_MetalSonic;
+		bool send_spin_timer =
+			character_id == Characters_Sonic ||
+			character_id == Characters_Shadow ||
+			character_id == Characters_Amy ||
+			character_id == Characters_MetalSonic;
 
 		if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1.Entity->Position))
 		{
@@ -739,7 +746,7 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		}
 
 		// TODO: Make less spammy
-		if (sendSpinTimer && net_player[player_num].sonic.SpindashCounter
+		if (send_spin_timer && net_player[player_num].sonic.SpindashCounter
 		    != reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
 		{
 			request(MessageID::P_SpinTimer, tcp, udp);
@@ -760,7 +767,7 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			request(MessageID::P_Animation, tcp, udp);
 			request(MessageID::P_Position, tcp, udp);
 
-			if (sendSpinTimer)
+			if (send_spin_timer)
 			{
 				request(MessageID::P_SpinTimer, tcp, udp);
 			}
@@ -768,9 +775,9 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 
 		if (MainCharacter[player_num]->Data1.Entity->Action != Action_ObjectControl)
 		{
-			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation)
-			    || (speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed))
-			    || net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
+			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation) ||
+			    speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed) ||
+			    net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
 			{
 				request(MessageID::P_Rotation, udp, tcp);
 				request(MessageID::P_Position, udp, tcp);
@@ -815,7 +822,7 @@ void PacketBroker::send_menu(PacketEx& packet)
 
 		// Always send information about the menu you enter,
 		// regardless of detected change.
-		if ((first_menu_entry = (local.menu.SubMenu != CurrentSubMenu && globals::networking->is_server())))
+		if ((first_menu_entry = (local.menu.SubMenu != CurrentSubMenu && is_server_)))
 		{
 			local.menu.SubMenu = CurrentSubMenu;
 		}
@@ -1293,11 +1300,11 @@ bool PacketBroker::receive_menu(MessageID type, pnum_t pnum, sws::Packet& packet
 	return false;
 }
 
-bool PacketBroker::run_message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+bool PacketBroker::run_message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
-	const auto it = message_handlers.find(type);
+	const auto it = message_readers.find(type);
 
-	if (it == message_handlers.end())
+	if (it == message_readers.end())
 	{
 		return false;
 	}

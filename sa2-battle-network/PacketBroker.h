@@ -11,17 +11,24 @@
 #include <functional>
 #include <chrono>
 
+#include "Connection.h"
+
 // TODO: not this
 bool round_started();
 
 class PacketBroker
 {
-	using MessageHandler = std::function<bool(nethax::MessageID, pnum_t, sws::Packet&)>;
+	using MessageReader = std::function<bool(nethax::MessageID message_id, pnum_t player_number, sws::Packet& packet)>;
+	using MessageWriter = std::function<void(nethax::MessageID message_id, pnum_t player_number, sws::Packet& packet)>;
 
 public:
 	explicit PacketBroker(uint timeout);
 
 	void initialize();
+
+	sws::SocketState listen(const sws::Address& address);
+	sws::SocketState connect(const sws::Address& address);
+
 	void receive_loop();
 
 	/**
@@ -62,7 +69,7 @@ public:
 	 * \brief Sends the data stored in \c packet
 	 * \param packet The data to be sent.
 	 */
-	void send(PacketEx& packet);
+	void send(sws::Packet& packet, bool block = false);
 
 	void send_system();
 	void send_player();
@@ -73,16 +80,22 @@ public:
 	void send_ready(nethax::MessageID id);
 	bool send_ready_and_wait(nethax::MessageID id);
 	void add_ready(nethax::MessageID id, sws::Packet& packet);
-	void set_connect_time();
 	void toggle_netstat(bool value);
 	void save_netstat() const;
 	void add_type_received(nethax::MessageID id, size_t size, bool is_safe);
 	void add_type_sent(nethax::MessageID id, size_t size, nethax::Protocol protocol);
 
-	void register_message_handler(nethax::MessageID type, const MessageHandler& func);
+	void register_reader(nethax::MessageID message_id, const MessageReader& reader);
+	void register_writer(nethax::MessageID message_id, const MessageWriter& writer);
 
 	void set_player_number(pnum_t number);
 	auto get_player_number() const { return player_num; }
+	bool is_connected() const;
+
+	// FIXME: networking holdover
+	bool is_server() const;
+	// FIXME: networking holdover
+	std::deque<std::shared_ptr<Connection>>& connections();
 
 	const std::chrono::system_clock::duration connection_timeout;
 
@@ -92,10 +105,14 @@ private:
 		pnum_t count = 0;
 	};
 
+	std::shared_ptr<ConnectionManager> connection_manager_;
+	std::deque<std::shared_ptr<Connection>> connections_;
+
 	std::unordered_map<node_t, std::chrono::system_clock::time_point> keep_alive;
-	std::unordered_map<node_t, ushort> sequences;
 	std::unordered_map<nethax::MessageID, WaitRequest> wait_requests;
-	std::unordered_map<nethax::MessageID, MessageHandler> message_handlers;
+
+	std::unordered_map<nethax::MessageID, MessageReader> message_readers;
+	std::unordered_map<nethax::MessageID, MessageWriter> message_writers;
 
 	bool netstat;
 	std::map<nethax::MessageID, nethax::MessageStat> send_stats;
@@ -116,7 +133,7 @@ private:
 	// Adds the packet template for packetType to packet
 	bool add_packet(nethax::MessageID packet_type, PacketEx& packet);
 
-	void read(sws::Packet& packet, node_t node, nethax::Protocol protocol);
+	void read(sws::Packet& packet, node_t node);
 
 	// Read and send System variables
 	void send_system(PacketEx& tcp, PacketEx& udp);
@@ -129,7 +146,9 @@ private:
 	bool receive_player(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
 	bool receive_menu(nethax::MessageID   type, pnum_t pnum, sws::Packet& packet);
 
-	bool run_message_handler(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
+	bool run_message_reader(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
+
+	bool is_server_ = false;
 
 	PacketEx tcp_packet;
 	PacketEx udp_packet;

@@ -95,7 +95,7 @@ static void __declspec(naked) KillPlayer_asm()
 
 #pragma endregion
 
-static bool message_handler(MessageID type, pnum_t pnum, sws::Packet& packet)
+static bool message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
@@ -137,8 +137,8 @@ void events::InitDamage()
 	DamagePlayer_trampoline = new Trampoline((size_t)DamagePlayer, 0x0047380A, DamagePlayer_cpp);
 	KillPlayer_trampoline = new Trampoline((size_t)KillPlayerPtr, 0x0046B116, KillPlayer_asm);
 
-	globals::broker->register_message_handler(MessageID::P_Damage, &message_handler);
-	globals::broker->register_message_handler(MessageID::P_Kill, &message_handler);
+	globals::broker->register_reader(MessageID::P_Damage, &message_reader);
+	globals::broker->register_reader(MessageID::P_Kill, &message_reader);
 }
 
 void events::DeinitDamage()
