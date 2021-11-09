@@ -86,8 +86,8 @@ static const uint STATUS_MASK = ~(Status_HoldObject | Status_Unknown1 | Status_U
 PacketBroker::PacketBroker(uint timeout)
 	: connection_timeout(milliseconds(timeout)),
 	  netstat(false),
-	  tcp_packet(Protocol::tcp),
-	  udp_packet(Protocol::udp)
+	  tcp_packet(PacketChannel::reliable),
+	  udp_packet(PacketChannel::fire_and_forget)
 {
 	initialize();
 }
@@ -128,7 +128,7 @@ void PacketBroker::initialize()
 
 sws::SocketState PacketBroker::listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
 {
-	if (!is_bound())
+	if (!connection_manager_->is_bound())
 	{
 		PrintDebug("Hosting server on port %d...", address.port);
 		set_player_number(0);
@@ -252,22 +252,6 @@ void PacketBroker::receive_loop()
 void PacketBroker::read(sws::Packet& packet, node_t node)
 {
 	node_t real_node = node;
-
-	if (!is_server_ && packet.work_size() >= sizeof(MessageID) + sizeof(node_t))
-	{
-		MessageID type;
-		packet >> type;
-
-		if (type != MessageID::N_Node)
-		{
-			packet.seek(sws::SeekCursor::read, sws::SeekType::from_start, 0);
-		}
-		else
-		{
-			packet >> real_node;
-		}
-	}
-
 	pnum_t pnum = -1;
 
 	if (netstat)
@@ -277,10 +261,18 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 	while (!packet.end())
 	{
-		MessageID new_type = MessageID::None;
-		packet >> new_type;
+		MessageID type = MessageID::None;
+		packet >> type;
 
-		switch (new_type)
+		// FIXME: calling function should know about this and disconnect...
+		if (type == MessageID::N_Node && is_server_)
+		{
+			PrintDebug("\a>> Received node as server!");
+			packet.clear();
+			continue;
+		}
+
+		switch (type)
 		{
 			case MessageID::None:
 				PrintDebug("\a>> Reached end of packet.");
@@ -343,6 +335,10 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 				break;
 			}
 
+			case MessageID::N_Node:
+				packet >> real_node;
+				break;
+
 			case MessageID::S_KeepAlive:
 				keep_alive[node] = system_clock::now();
 				packet.seek(sws::SeekCursor::read, sws::SeekType::relative, sizeof(ushort));
@@ -350,7 +346,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 			default:
 			{
-				if (new_type < MessageID::N_END)
+				if (type < MessageID::N_END)
 				{
 					packet.clear();
 					break;
@@ -359,11 +355,11 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 				ushort length = 0;
 				packet >> length;
 
-				add_type_received(new_type, length, /* FIXME: protocol */ false);
+				add_type_received(type, length, /* FIXME: channel */ false);
 
 				if (pnum >= 0 && pnum < 2)
 				{
-					if (receive_system(new_type, pnum, packet))
+					if (receive_system(type, pnum, packet))
 					{
 						break;
 					}
@@ -375,7 +371,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 							net_player[pnum].copy(MainCharacter[pnum]);
 						}
 
-						if (receive_player(new_type, pnum, packet))
+						if (receive_player(type, pnum, packet))
 						{
 							if (GameState >= GameState::Ingame)
 							{
@@ -387,18 +383,18 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 						}
 					}
 
-					if (receive_menu(new_type, pnum, packet))
+					if (receive_menu(type, pnum, packet))
 					{
 						break;
 					}
 				}
 
-				if (run_message_reader(new_type, pnum, packet))
+				if (run_message_reader(type, pnum, packet))
 				{
 					break;
 				}
 
-				PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d", pnum, length, new_type);
+				PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d", pnum, length, type);
 				packet.seek(sws::SeekCursor::read, sws::SeekType::relative, length);
 				break;
 			}
@@ -477,7 +473,7 @@ bool PacketBroker::send_ready_and_wait(MessageID id)
 
 void PacketBroker::add_ready(MessageID id, sws::Packet& packet)
 {
-	add_type_sent(id, sizeof(MessageID), Protocol::tcp);
+	add_type_sent(id, sizeof(MessageID), PacketChannel::reliable);
 	packet << MessageID::N_Ready << id;
 }
 
@@ -558,17 +554,17 @@ std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const
 	return connection_manager_;
 }
 
-bool PacketBroker::request(MessageID type, Protocol protocol, bool allow_dupes)
+bool PacketBroker::request(MessageID type, PacketChannel protocol, bool allow_dupes)
 {
 	return request(type,
-	               protocol == Protocol::tcp ? tcp_packet : udp_packet,
-	               protocol != Protocol::tcp ? tcp_packet : udp_packet,
+	               protocol == PacketChannel::reliable ? tcp_packet : udp_packet,
+	               protocol != PacketChannel::reliable ? tcp_packet : udp_packet,
 	               allow_dupes);
 }
 
-bool PacketBroker::append(MessageID type, Protocol protocol, sws::Packet const* packet, bool allow_dupes)
+bool PacketBroker::append(MessageID type, PacketChannel protocol, sws::Packet const* packet, bool allow_dupes)
 {
-	auto& dest = protocol == Protocol::tcp ? tcp_packet : udp_packet;
+	auto& dest = protocol == PacketChannel::reliable ? tcp_packet : udp_packet;
 	const auto size = packet == nullptr ? 0 : packet->real_size();
 
 	if (!allow_dupes && dest.contains(type))
@@ -587,7 +583,7 @@ bool PacketBroker::append(MessageID type, Protocol protocol, sws::Packet const* 
 	}
 
 	dest.finalize();
-	add_type_sent(type, size, dest.protocol);
+	add_type_sent(type, size, dest.channel);
 	return true;
 }
 
@@ -613,11 +609,11 @@ void PacketBroker::add_type_received(MessageID id, size_t size, bool is_safe)
 	}
 }
 
-void PacketBroker::add_type_sent(MessageID id, size_t size, Protocol protocol)
+void PacketBroker::add_type_sent(MessageID id, size_t size, PacketChannel protocol)
 {
 	if (netstat)
 	{
-		add_type(send_stats[id], static_cast<ushort>(size), protocol == Protocol::tcp);
+		add_type(send_stats[id], static_cast<ushort>(size), protocol == PacketChannel::reliable);
 	}
 }
 
@@ -693,9 +689,11 @@ void PacketBroker::finalize()
 {
 	send(tcp_packet);
 	send(udp_packet);
+
 	tcp_packet.clear();
-	udp_packet.clear();
 	tcp_packet << MessageID::N_PlayerNumber << player_num;
+
+	udp_packet.clear();
 	udp_packet << MessageID::N_PlayerNumber << player_num;
 }
 
@@ -1145,7 +1143,7 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 	}
 
 	packet.finalize();
-	add_type_sent(packet_type, packet.get_type_size(), packet.protocol);
+	add_type_sent(packet_type, packet.get_type_size(), packet.channel);
 
 	return true;
 }

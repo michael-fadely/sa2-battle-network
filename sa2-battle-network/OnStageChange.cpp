@@ -53,11 +53,11 @@ void __stdcall events::SetCurrentLevel(short stage)
 		if (broker->wait_for_players(MessageID::S_Stage))
 		{
 			PrintDebug("<< Sending stage: %d", CurrentLevel);
-			PacketEx packet(Protocol::tcp);
+			PacketEx packet(PacketChannel::reliable);
 
 			packet.add_type(MessageID::S_Stage);
 			packet << CurrentLevel << Current2PLevelGroup;
-			broker->add_type_sent(MessageID::S_Stage, packet.get_type_size(), packet.protocol);
+			broker->add_type_sent(MessageID::S_Stage, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::S_Stage, packet);
@@ -99,11 +99,11 @@ static void __cdecl SetNextLevel_hook()
 		if (broker->wait_for_players(MessageID::S_NextStage))
 		{
 			PrintDebug("<< Sending next stage: %d", NextLevel);
-			PacketEx packet(Protocol::tcp);
+			PacketEx packet(PacketChannel::reliable);
 
 			packet.add_type(MessageID::S_NextStage);
 			packet << NextLevel;
-			broker->add_type_sent(MessageID::S_NextStage, packet.get_type_size(), packet.protocol);
+			broker->add_type_sent(MessageID::S_NextStage, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::S_NextStage, packet);

@@ -24,7 +24,7 @@ static void __cdecl AddRings_cpp(int8_t player_num, int32_t num_rings)
 
 		sws::Packet packet;
 		packet << RingCount[player_num] << num_rings;
-		globals::broker->append(MessageID::S_Rings, Protocol::tcp, &packet, true);
+		globals::broker->append(MessageID::S_Rings, PacketChannel::reliable, &packet, true);
 	}
 
 	events::AddRings_original(player_num, num_rings);

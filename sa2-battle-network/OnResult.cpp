@@ -31,7 +31,7 @@ static void __cdecl OnResult(Sint32 player)
 	{
 		sws::Packet packet;
 		packet << static_cast<pnum_t>(player);
-		broker->append(MessageID::S_Result, Protocol::tcp, &packet);
+		broker->append(MessageID::S_Result, PacketChannel::reliable, &packet);
 		OnResult_orig(player);
 	}
 }
@@ -57,7 +57,7 @@ static void __cdecl OnWin(Sint32 player)
 	{
 		sws::Packet packet;
 		packet << static_cast<pnum_t>(player);
-		broker->append(MessageID::S_Win, Protocol::tcp, &packet);
+		broker->append(MessageID::S_Win, PacketChannel::reliable, &packet);
 		OnWin_orig(player);
 	}
 }
@@ -130,7 +130,7 @@ static void __cdecl DispWinnerAndContinue_wrapper(ObjectMaster* _this)
 		{
 			sws::Packet packet;
 			packet << data->Action << data->Selection;
-			broker->append(MessageID::S_WinData, Protocol::tcp, &packet);
+			broker->append(MessageID::S_WinData, PacketChannel::reliable, &packet);
 		}
 
 		local_data = *data;

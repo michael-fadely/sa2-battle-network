@@ -9,18 +9,18 @@
 class PacketEx : public sws::Packet
 {
 public:
-	explicit PacketEx(nethax::Protocol protocol);
+	explicit PacketEx(nethax::PacketChannel channel);
 
-	bool contains(nethax::MessageID type) const;
+	[[nodiscard]] bool contains(nethax::MessageID type) const;
 
-	bool is_empty() const;
+	[[nodiscard]] bool is_empty() const;
 
 	void clear() override;
 
 	// Returns the number of unique messages in this instance of the packet
-	uint message_count() const;
+	[[nodiscard]] uint message_count() const;
 
-	size_t get_type_size() const;
+	[[nodiscard]] size_t get_type_size() const;
 
 	// Adds a message type to the packet.
 	// Returns true if it was added, false if it already exists.
@@ -29,7 +29,7 @@ public:
 
 	// Determines whether or not the packet is "Safe" (TCP) or "Fast" (UDP)
 	// This can be changed at any time before it is sent.
-	nethax::Protocol protocol;
+	nethax::PacketChannel channel;
 
 private:
 	void initialize();
@@ -42,6 +42,4 @@ private:
 	std::vector<bool> types;
 	// The number of messages currently in the packet
 	uint message_count_ = 0;
-	// UDP packet sequence number
-	static ushort sequence;
 };

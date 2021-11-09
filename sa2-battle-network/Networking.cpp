@@ -42,7 +42,6 @@ const std::unordered_map<MessageID, const char*> nethax::MESSAGE_ID_STRING = {
 
 	{ MessageID::N_START, "N_START" },
 
-	{ MessageID::N_Sequence, "N_Sequence" },
 	{ MessageID::N_VersionCheck, "N_VersionCheck" },
 	{ MessageID::N_VersionMismatch, "N_VersionMismatch" },
 	{ MessageID::N_VersionOK, "N_VersionOK" },

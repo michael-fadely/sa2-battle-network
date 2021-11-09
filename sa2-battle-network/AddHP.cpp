@@ -24,7 +24,7 @@ static void __stdcall AddHP_cpp(int player_num, float amount)
 			PrintDebug("<< HP SEND: %f, %f", data2->MechHP, amount);
 			sws::Packet packet;
 			packet << data2->MechHP << amount;
-			globals::broker->append(MessageID::P_HP, Protocol::tcp, &packet, true);
+			globals::broker->append(MessageID::P_HP, PacketChannel::reliable, &packet, true);
 		}
 	}
 

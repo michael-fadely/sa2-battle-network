@@ -58,7 +58,7 @@ static Sint32 __cdecl DamagePlayer_cpp(EntityData1* data1, CharObj2Base* data2)
 
 	if ((result = events::DamagePlayer_original(data1, data2)) != 0)
 	{
-		globals::broker->append(MessageID::P_Damage, Protocol::tcp, nullptr);
+		globals::broker->append(MessageID::P_Damage, PacketChannel::reliable, nullptr);
 	}
 
 	// HACK:
@@ -77,7 +77,7 @@ static void __stdcall KillPlayer_cpp(int playerNum)
 			return;
 		}
 
-		globals::broker->append(MessageID::P_Kill, Protocol::tcp, nullptr, true);
+		globals::broker->append(MessageID::P_Kill, PacketChannel::reliable, nullptr, true);
 	}
 
 	events::KillPlayer_original(playerNum);

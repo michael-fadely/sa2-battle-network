@@ -63,7 +63,7 @@ static void __cdecl NBarrier_cpp(int n)
 			return;
 		}
 
-		globals::broker->append(MessageID::S_NBarrier, Protocol::tcp, nullptr);
+		globals::broker->append(MessageID::S_NBarrier, PacketChannel::reliable, nullptr);
 	}
 
 	events::NBarrier_original(n);
@@ -89,7 +89,7 @@ static void __cdecl Speedup_cpp(int n)
 			return;
 		}
 
-		globals::broker->append(MessageID::S_Speedup, Protocol::tcp, nullptr);
+		globals::broker->append(MessageID::S_Speedup, PacketChannel::reliable, nullptr);
 	}
 
 	events::Speedup_original(n);
@@ -115,7 +115,7 @@ static void __cdecl TBarrier_cpp(int n)
 			return;
 		}
 
-		globals::broker->append(MessageID::S_TBarrier, Protocol::tcp, nullptr);
+		globals::broker->append(MessageID::S_TBarrier, PacketChannel::reliable, nullptr);
 	}
 
 	events::TBarrier_original(n);
@@ -141,7 +141,7 @@ static void __cdecl Invincibility_cpp(ObjectMaster* obj, int n)
 			return;
 		}
 
-		globals::broker->append(MessageID::S_Invincibility, Protocol::tcp, nullptr);
+		globals::broker->append(MessageID::S_Invincibility, PacketChannel::reliable, nullptr);
 	}
 
 	events::Invincibility_original(obj, n);
@@ -158,7 +158,7 @@ static void __cdecl DisplayItemBoxItem_cpp(int pnum, int tnum)
 
 		sws::Packet packet;
 		packet << tnum;
-		globals::broker->append(MessageID::S_ItemBoxItem, Protocol::tcp, &packet, true);
+		globals::broker->append(MessageID::S_ItemBoxItem, PacketChannel::reliable, &packet, true);
 	}
 
 	events::DisplayItemBoxItem_original(pnum, tnum);

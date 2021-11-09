@@ -15,41 +15,40 @@
 
 namespace nethax
 {
-	enum class Protocol
+	enum class PacketChannel
 	{
-		udp,
-		tcp,
+		fire_and_forget,
+		reliable,
 	};
 
 	enum class MessageID : uint8_t
 	{
 		None,
 
-		N_START,			// Marker: Start of Networking messages
+		N_START, // Marker: Start of Networking messages
 
-		N_Sequence,			// UDP Sequence
-		N_VersionCheck,		// Initial version check upon connection
-		N_VersionMismatch,	// Client version mismatch
-		N_VersionOK,		// Client version match
-		N_Password,			// Server password
-		N_PasswordMismatch,	// Incorrect server password
-		N_Settings,			// Used for synchronizing settings
-		N_Connected,		// Connection setup successful
-		N_Ready,			// Client is ready at current sync block
-		N_Disconnect,		// Request disconnect
-		N_SetPlayerNumber,	// Send a player number change
-		N_PlayerNumber,		// The player number this message came from
-		N_Node,				// The node number this message came from
+		N_VersionCheck,     // Initial version check upon connection
+		N_VersionMismatch,  // Client version mismatch
+		N_VersionOK,        // Client version match
+		N_Password,         // Server password
+		N_PasswordMismatch, // Incorrect server password
+		N_Settings,         // Used for synchronizing settings
+		N_Connected,        // Connection setup successful
+		N_Ready,            // Client is ready at current sync block
+		N_Disconnect,       // Request disconnect
+		N_SetPlayerNumber,  // Send a player number change
+		N_PlayerNumber,     // The player number this message came from
+		N_Node,             // The node number this message came from. TODO: Let networking subsystem handle this?
 
-		N_END,				// Marker: End of Networking messages
-		I_START,			// Marker: Start of input messages
+		N_END,   // Marker: End of Networking messages
+		I_START, // Marker: Start of input messages
 
 		I_Analog,
 		I_AnalogAngle,
 		I_Buttons,
 
-		I_END,				// Marker: End of input messages
-		M_START,			// Marker: Start of menu messages
+		I_END,   // Marker: End of input messages
+		M_START, // Marker: Start of menu messages
 
 		M_CostumeSelection,
 		M_BattleSelection,
@@ -58,8 +57,8 @@ namespace nethax
 		M_CharacterSelection,
 		M_StageSelection,
 
-		M_END,				// Marker: End of menu messages
-		P_START,			// Marker: Start of player messages
+		M_END,   // Marker: End of menu messages
+		P_START, // Marker: Start of player messages
 
 		P_Character,
 		// EntityData1
@@ -81,11 +80,11 @@ namespace nethax
 		P_DropRings,
 		P_Kill,
 
-		P_END,				// Marker: End of player messages
-		S_START,			// Marker: Start of system messages
+		P_END,   // Marker: End of player messages
+		S_START, // Marker: Start of system messages
 
 		S_FrameCount,
-		S_KeepAlive,
+		S_KeepAlive, // TODO: Let networking subsystem handle this (S_KeepAlive)
 		S_Seed,
 		S_Win,
 		S_Result,
@@ -107,7 +106,7 @@ namespace nethax
 		S_Invincibility,
 		S_ItemBoxItem,
 
-		S_END,				// Marker: End of system messages
+		S_END, // Marker: End of system messages
 		Count
 	};
 

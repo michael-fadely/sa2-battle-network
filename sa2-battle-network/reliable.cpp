@@ -3,6 +3,8 @@
 #include "reliable.h"
 #include "sequence_t.h"
 
+#include <stdexcept>
+
 using namespace sws;
 
 static_assert(sizeof(reliable::manage_id) == sizeof(uint8_t), "nope");
@@ -50,7 +52,7 @@ void reliable::reserve(Packet& packet, reliable_t type)
 			break;
 
 		default:
-			throw;
+			throw std::runtime_error("Invalid reliable type specified");
 	}
 
 	packet << sequence_t::dummy << manage_id::eop;

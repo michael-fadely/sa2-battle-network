@@ -8,10 +8,8 @@
 
 using namespace nethax;
 
-ushort PacketEx::sequence = 1;
-
-PacketEx::PacketEx(Protocol protocol)
-	: protocol(protocol),
+PacketEx::PacketEx(PacketChannel channel)
+	: channel(channel),
 	  empty_(true),
 	  building(false),
 	  size_offset(0),
@@ -22,15 +20,13 @@ PacketEx::PacketEx(Protocol protocol)
 
 void PacketEx::initialize()
 {
-	if (protocol != Protocol::tcp)
+	if (channel == PacketChannel::reliable)
 	{
-		if (!empty_)
-		{
-			sequence %= USHRT_MAX;
-			++sequence;
-		}
-
-		*this << MessageID::N_Sequence << sequence;
+		reliable::reserve(*this, reliable::reliable_t::ordered);
+	}
+	else
+	{
+		reliable::reserve(*this, reliable::reliable_t::newest);
 	}
 
 	empty_ = true;
@@ -92,7 +88,7 @@ bool PacketEx::add_type(MessageID type, bool allow_dupes)
 	*this << static_cast<ushort>(0xFFFF);
 	data_start = tell(sws::SeekCursor::write);
 
-	message_count_++;
+	++message_count_;
 	return types[static_cast<int>(type)] = true;
 }
 

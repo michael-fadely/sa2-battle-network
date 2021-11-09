@@ -30,7 +30,7 @@ sws::Packet& operator<<(sws::Packet& lhs, const AnalogThing& rhs)
 	return lhs << *reinterpret_cast<const PolarCoord*>(&rhs);
 }
 
-static void send(MessageID type, Protocol protocol, pnum_t pnum)
+static void send(MessageID type, PacketChannel protocol, pnum_t pnum)
 {
 	auto& pad = ControllerPointers[pnum];
 	auto& net_pad = net_input[pnum];
@@ -93,7 +93,7 @@ void __declspec(dllexport) OnInput()
 
 			if (pad->press || pad->release)
 			{
-				send(MessageID::I_Buttons, Protocol::tcp, static_cast<pnum_t>(i));
+				send(MessageID::I_Buttons, PacketChannel::reliable, static_cast<pnum_t>(i));
 				sent_buttons = true;
 			}
 
@@ -106,12 +106,12 @@ void __declspec(dllexport) OnInput()
 				    || !analog_timer)
 				{
 					analog_timer = 0;
-					send(MessageID::I_Analog, Protocol::udp, static_cast<pnum_t>(i));
+					send(MessageID::I_Analog, PacketChannel::fire_and_forget, static_cast<pnum_t>(i));
 					send_angle = true;
 				}
 				else if (!pad->x1 && !pad->y1)
 				{
-					send(MessageID::I_Analog, Protocol::tcp, static_cast<pnum_t>(i));
+					send(MessageID::I_Analog, PacketChannel::reliable, static_cast<pnum_t>(i));
 					send_angle = true;
 				}
 			}
@@ -178,7 +178,7 @@ void __declspec(dllexport) OnControl()
 				           mag_delta_exceeds_threshold,
 				           (!dir_delta_exceeds_threshold && !mag_delta_exceeds_threshold));
 #endif
-				send(MessageID::I_AnalogAngle, Protocol::udp, static_cast<pnum_t>(i));
+				send(MessageID::I_AnalogAngle, PacketChannel::fire_and_forget, static_cast<pnum_t>(i));
 				send_angle = false;
 			}
 

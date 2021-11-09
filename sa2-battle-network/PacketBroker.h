@@ -38,7 +38,7 @@ public:
 	 * \param allow_dupes If \c true, ignores duplicate types.
 	 * \return \c true if added to the outbound packets, \c false on failure (e.g already in outbound packets).
 	 */
-	bool request(nethax::MessageID type, nethax::Protocol protocol, bool allow_dupes = false);
+	bool request(nethax::MessageID type, nethax::PacketChannel protocol, bool allow_dupes = false);
 
 	/**
 	 * \brief Requests the specified message type to be added to the specified packet.
@@ -58,7 +58,7 @@ public:
 	 * \param allow_dupes If \c true, ignores duplicate types.
 	 * \return \c true on success.
 	 */
-	bool append(nethax::MessageID type, nethax::Protocol protocol, sws::Packet const* packet, bool allow_dupes = false);
+	bool append(nethax::MessageID type, nethax::PacketChannel protocol, sws::Packet const* packet, bool allow_dupes = false);
 
 	/**
 	 * \brief Finalizes this frame, sending queued packets.
@@ -83,7 +83,7 @@ public:
 	void toggle_netstat(bool value);
 	void save_netstat() const;
 	void add_type_received(nethax::MessageID id, size_t size, bool is_safe);
-	void add_type_sent(nethax::MessageID id, size_t size, nethax::Protocol protocol);
+	void add_type_sent(nethax::MessageID id, size_t size, nethax::PacketChannel protocol);
 
 	void register_reader(nethax::MessageID message_id, const MessageReader& reader);
 	void register_writer(nethax::MessageID message_id, const MessageWriter& writer);
