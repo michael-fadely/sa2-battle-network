@@ -24,7 +24,7 @@ public:
 	{
 		uint8_t major;
 		uint8_t minor;
-		std::string str() const;
+		[[nodiscard]] std::string str() const;
 		bool operator==(const Version& value) const;
 		bool operator!=(const Version& value) const;
 	};
@@ -56,7 +56,7 @@ private:
 
 	bool is_server_;
 	bool set_music_;
-	bool rejected_;	// Prevents connection spam upon rejection (client only)
+	bool rejected_; // Prevents connection spam upon rejection (client only)
 
 	// Applies code and other changes to memory.
 	// If apply is false, then the changes are reverted.

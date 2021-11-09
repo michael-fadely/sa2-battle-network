@@ -7,13 +7,14 @@ namespace reliable
 {
 	enum class manage_id : uint8_t
 	{
-		eop         = 127, // end of packet
-		connect     = 'C', // connect request
-		connected   = 'O', // O as in 'opened' I guess
-		type        = 'T', // reliable type (reliable_t)
-		sequence    = 'S', // sequence number (sequence_t)
-		ack         = 'A',
-		bad_version = 'V',
+		eop          = 127, // end of packet
+		connect      = 'C', // connect request
+		disconnected = 'D', // disconnect notification
+		connected    = 'O', // O as in 'opened' I guess
+		type         = 'T', // reliable type (reliable_t)
+		sequence     = 'S', // sequence number (sequence_t)
+		ack          = 'A',
+		bad_version  = 'V',
 	};
 
 	enum class reliable_t : uint8_t

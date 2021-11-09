@@ -33,18 +33,20 @@ public:
 		Store(Store&& other) noexcept;
 		Store& operator=(Store&& other) noexcept;
 
-		const clock::time_point& creation_time() const;
+		[[nodiscard]] clock::time_point creation_time() const;
 
-		bool should_send(const clock::duration& duration) const;
+		[[nodiscard]] bool should_send(const clock::duration& duration) const;
 		void reset_activity();
 	};
 
 private:
-	std::shared_ptr<sws::UdpSocket> socket;
-	bool connected_ = false;
-
 	// to be used for disconnecting
 	ConnectionManager* parent = nullptr;
+
+	std::shared_ptr<sws::UdpSocket> socket;
+	sws::Address remote_address_;
+
+	bool is_connected_ = false;
 
 	std::deque<sws::Packet> inbound;
 
@@ -71,9 +73,7 @@ private:
 	clock::duration current_rtt {};
 
 public:
-	sws::Address remote_address;
-
-	Connection(std::shared_ptr<sws::UdpSocket> socket_, ConnectionManager* parent_, sws::Address remote_address_);
+	Connection(ConnectionManager* parent_, std::shared_ptr<sws::UdpSocket> socket_, sws::Address remote_address_);
 	Connection(Connection&& other) noexcept;
 
 	Connection& operator=(Connection&& other) noexcept;
@@ -81,15 +81,23 @@ public:
 	sws::SocketState send(sws::Packet& packet, bool block = false);
 
 	sws::SocketState store_inbound(sws::Packet& packet);
-	bool handled(reliable::reliable_t type, sequence_t sequence);
-	void prune();
-	const clock::duration& round_trip_time();
-	void update();
-	bool pop(sws::Packet& packet);
-
-	bool connected() const;
 
 private:
+	bool handled(reliable::reliable_t type, sequence_t sequence);
+	void prune();
+
+public:
+	clock::duration round_trip_time();
+	void update();
+	bool pop(sws::Packet* out_packet);
+
+	[[nodiscard]] bool is_connected() const;
+
+	[[nodiscard]] const sws::Address& remote_address() const;
+	void disconnect();
+
+private:
+	void disconnect_internal();
 	void remove_outbound(reliable::reliable_t type, sequence_t sequence);
 	void add_rtt_point(const clock::time_point& point);
 };

@@ -32,7 +32,7 @@ SocketState ConnectionManager::host(const Address& address)
 	return result;
 }
 
-SocketState ConnectionManager::listen(std::shared_ptr<Connection>& connection)
+SocketState ConnectionManager::listen(std::shared_ptr<Connection>* out_connection)
 {
 	if (!is_bound_)
 	{
@@ -82,15 +82,27 @@ SocketState ConnectionManager::listen(std::shared_ptr<Connection>& connection)
 		socket_->send_to(out, address);
 	}
 
-	connection = std::make_shared<Connection>(socket_, this, address);
+	auto connection = std::make_shared<Connection>(this, socket_, address);
 	connections_[address] = connection;
+
+	if (out_connection)
+	{
+		*out_connection = std::move(connection);
+	}
+
 	return result;
 }
 
-SocketState ConnectionManager::connect(const Address& host_address, std::shared_ptr<Connection>& connection)
+SocketState ConnectionManager::connect(const Address& host_address, std::shared_ptr<Connection>* out_connection)
 {
-	if (is_connected_)
+	if (!connections_.empty())
 	{
+		if (connections_.contains(host_address))
+		{
+			// FIXME
+			return SocketState::error;
+		}
+
 		return SocketState::done;
 	}
 
@@ -144,10 +156,13 @@ SocketState ConnectionManager::connect(const Address& host_address, std::shared_
 		manage_id id = manage_id::eop;
 		in >> id;
 
-		switch (id)
+		switch (id)  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case manage_id::connected:
 				break;
+
+			case manage_id::disconnected:
+				return SocketState::closed; // FIXME: should SocketState::closed be used like this? usually this would indicate that *our* socket closed...
 
 			case manage_id::bad_version:
 				throw std::runtime_error("version mismatch with server");
@@ -161,15 +176,44 @@ SocketState ConnectionManager::connect(const Address& host_address, std::shared_
 		}
 	}
 
-	connection = std::make_shared<Connection>(socket_, this, host_address);
+	auto connection = std::make_shared<Connection>(this, socket_, host_address);
 	connections_[host_address] = connection;
-	is_connected_ = true;
+
+	if (out_connection)
+	{
+		*out_connection = std::move(connection);
+	}
+
 	return SocketState::done;
+}
+
+void ConnectionManager::disconnect()
+{
+	if (!is_connected())
+	{
+		return;
+	}
+
+	const std::unordered_map<Address, std::shared_ptr<Connection>> connections = std::move(connections_);
+
+	for (auto& [address, connection] : connections)
+	{
+		connection->disconnect();
+	}
+}
+
+void ConnectionManager::disconnect(const std::shared_ptr<Connection>& connection)
+{
+	if (connection)
+	{
+		connection->disconnect();
+		connections_.erase(connection->remote_address());
+	}
 }
 
 SocketState ConnectionManager::receive(bool block, const size_t count)
 {
-	size_t i = 0;
+	size_t received = 0;
 
 	Packet packet;
 	Address remote_address;
@@ -182,6 +226,12 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 
 		if (result == SocketState::in_progress)
 		{
+			if (block && !count && received > 0)
+			{
+				result = SocketState::done;
+				break;
+			}
+
 			std::this_thread::sleep_for(1ms);
 			continue;
 		}
@@ -196,10 +246,16 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 		else
 		{
 			result = it->second->store_inbound(packet);
+
+			if (!it->second->is_connected())
+			{
+				connections_.erase(it);
+			}
 		}
 
 		// TODO: decouple from pure ACKs
-		if (count && ++i >= count)
+		++received;
+		if (count && received >= count)
 		{
 			break;
 		}
@@ -213,7 +269,12 @@ bool ConnectionManager::is_bound() const
 	return is_bound_;
 }
 
-bool ConnectionManager::connected() const
+bool ConnectionManager::is_connected() const
 {
 	return !connections_.empty();
+}
+
+size_t ConnectionManager::connection_count() const
+{
+	return connections_.size();
 }

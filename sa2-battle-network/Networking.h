@@ -31,7 +31,6 @@ namespace nethax
 		N_VersionCheck,		// Initial version check upon connection
 		N_VersionMismatch,	// Client version mismatch
 		N_VersionOK,		// Client version match
-		N_Bind,				// UDP bind request/confirm
 		N_Password,			// Server password
 		N_PasswordMismatch,	// Incorrect server password
 		N_Settings,			// Used for synchronizing settings

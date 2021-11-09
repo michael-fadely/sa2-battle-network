@@ -122,14 +122,18 @@ void PacketBroker::initialize()
 	}
 
 	connection_manager_ = std::make_shared<ConnectionManager>();
+	connection_nodes_.clear();
+	node_connections_.clear();
 }
 
-sws::SocketState PacketBroker::listen(const sws::Address& address)
+sws::SocketState PacketBroker::listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
 {
-	set_player_number(0);
-
-	std::shared_ptr<Connection> connection;
-	is_server_ = true;
+	if (!is_bound())
+	{
+		PrintDebug("Hosting server on port %d...", address.port);
+		set_player_number(0);
+		is_server_ = true;
+	}
 
 	if (connection_manager_->host(address) != sws::SocketState::done)
 	{
@@ -137,16 +141,30 @@ sws::SocketState PacketBroker::listen(const sws::Address& address)
 	}
 
 	sws::SocketState result;
+	std::shared_ptr<Connection> connection;
 
-	if ((result = connection_manager_->listen(connection)) == sws::SocketState::done)
+	if ((result = connection_manager_->listen(&connection)) == sws::SocketState::done)
 	{
-		connections_.emplace_back(std::move(connection));
+		const node_t assigned_node = get_free_node();
+
+		if (assigned_node < 0)
+		{
+			return sws::SocketState::error;
+		}
+
+		connection_nodes_[connection.get()] = assigned_node;
+		node_connections_[assigned_node] = connection;
+
+		if (out_connection)
+		{
+			*out_connection = std::move(connection);
+		}
 	}
 
 	return result;
 }
 
-sws::SocketState PacketBroker::connect(const sws::Address& address)
+sws::SocketState PacketBroker::connect(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
 {
 	if (is_connected())
 	{
@@ -154,11 +172,18 @@ sws::SocketState PacketBroker::connect(const sws::Address& address)
 	}
 
 	std::shared_ptr<Connection> connection;
-	const sws::SocketState result = connection_manager_->connect(address, connection);
+	const sws::SocketState result = connection_manager_->connect(address, &connection);
 
 	if (result == sws::SocketState::done)
 	{
-		connections_.emplace_back(std::move(connection));
+		constexpr node_t server_node = 0;
+		connection_nodes_[connection.get()] = server_node;
+		node_connections_[server_node] = connection;
+
+		if (out_connection)
+		{
+			*out_connection = std::move(connection);
+		}
 	}
 
 	return result;
@@ -166,35 +191,33 @@ sws::SocketState PacketBroker::connect(const sws::Address& address)
 
 void PacketBroker::receive_loop()
 {
-	const bool should_broadcast = is_server_ && connections_.size() > 1;
+	const bool should_broadcast = is_server_ && is_connected();
 
 	connection_manager_->receive(false);
 
-	for (size_t i = 0; i < connections_.size(); ++i)
-	{
-		auto& connection = connections_[i];
+	std::vector connections(node_connections_.begin(), node_connections_.end());
 
+	for (auto& [node, connection] : connections)
+	{
 		connection->update();
 
 		sws::Packet received;
 
-		while (connection->pop(received))
+		while (connection->pop(&received))
 		{
-			read(received, /* FIXME: node */ 0);
+			read(received, node);
 
 			if (!should_broadcast)
 			{
 				continue;
 			}
 			
-			for (size_t j = 0; j < connections_.size(); ++j)
+			for (auto& [node_out, connection_out] : connections)
 			{
-				if (j == i)
+				if (connection_out == connection)
 				{
 					continue;
 				}
-
-				auto& connection_out = connections_[j];
 
 				// TODO: check result for connection failure
 				connection_out->send(received);
@@ -202,7 +225,7 @@ void PacketBroker::receive_loop()
 		}
 	}
 
-	const size_t connection_count = connections_.size();
+	const size_t connection_count = node_connections_.size();
 	size_t timeouts = 0;
 
 #ifndef _DEBUG
@@ -212,7 +235,7 @@ void PacketBroker::receive_loop()
 		{
 			PrintDebug("<> Player %d timed out.", it->first);
 			sequences.erase(it->first);
-			globals::broker->disconnect(it->first);
+			disconnect(it->first);
 			it = keep_alive.erase(it);
 			++timeouts;
 		}
@@ -275,7 +298,7 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 				if (is_server_ || real_node == 0)
 				{
-					globals::broker->disconnect(node);
+					disconnect(node);
 					packet.clear();
 				}
 				break;
@@ -403,7 +426,7 @@ bool PacketBroker::wait_for_players(MessageID id)
 		it = wait_requests.insert(it, std::make_pair(id, a));
 	}
 
-	while (it->second.count < static_cast<pnum_t>(connections_.size()))
+	while (it->second.count < static_cast<pnum_t>(node_connections_.size()))
 	{
 		// This handles incrementing of it->second.count
 		receive_loop();
@@ -428,7 +451,7 @@ void PacketBroker::send_ready(MessageID id)
 	sws::Packet packet = reliable::reserve(reliable::reliable_t::ordered);
 	add_ready(id, packet);
 
-	for (auto& connection : connections_)
+	for (auto& [node, connection] : node_connections_)
 	{
 		connection->send(packet);
 	}
@@ -507,7 +530,7 @@ void PacketBroker::set_player_number(pnum_t number)
 
 bool PacketBroker::is_connected() const
 {
-	return !connections_.empty();
+	return !connection_nodes_.empty();
 }
 
 bool PacketBroker::is_server() const
@@ -515,9 +538,24 @@ bool PacketBroker::is_server() const
 	return is_server_;
 }
 
-std::deque<std::shared_ptr<Connection>>& PacketBroker::connections()
+bool PacketBroker::is_bound() const
 {
-	return connections_;
+	return connection_manager_->is_bound();
+}
+
+size_t PacketBroker::connection_count() const
+{
+	return connection_manager_->connection_count();
+}
+
+void PacketBroker::disconnect() const
+{
+	connection_manager_->disconnect();
+}
+
+std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const
+{
+	return connection_manager_;
 }
 
 bool PacketBroker::request(MessageID type, Protocol protocol, bool allow_dupes)
@@ -601,6 +639,36 @@ void PacketBroker::add_bytes_sent(size_t size)
 	}
 }
 
+node_t PacketBroker::get_free_node()
+{
+	if (node_connections_.empty())
+	{
+		return 1;
+	}
+
+	node_t last_node = -1;
+
+	for (const auto& pair : node_connections_)
+	{
+		const node_t node = pair.first;
+
+		if (last_node < 0)
+		{
+			last_node = node;
+			continue;
+		}
+
+		if (node - last_node > 1)
+		{
+			return node + static_cast<node_t>(1);
+		}
+
+		last_node = node;
+	}
+
+	return -1;
+}
+
 bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes)
 {
 	if (allow_dupes || !exclude.contains(type))
@@ -638,7 +706,7 @@ void PacketBroker::send(sws::Packet& packet, bool block)
 		add_bytes_sent(packet.real_size());
 	}
 
-	for (auto& connection : connections_)
+	for (auto& [node, connection] : node_connections_)
 	{
 		connection->send(packet, block);
 	}
@@ -1080,6 +1148,20 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 	add_type_sent(packet_type, packet.get_type_size(), packet.protocol);
 
 	return true;
+}
+
+void PacketBroker::disconnect(node_t node)
+{
+	auto it = node_connections_.find(node);
+
+	if (it == node_connections_.end())
+	{
+		return;
+	}
+
+	std::shared_ptr<Connection> connection = std::move(it->second);
+	node_connections_.erase(it);
+	connection_nodes_.erase(connection.get());
 }
 
 #pragma endregion

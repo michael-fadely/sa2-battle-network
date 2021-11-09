@@ -26,8 +26,8 @@ public:
 
 	void initialize();
 
-	sws::SocketState listen(const sws::Address& address);
-	sws::SocketState connect(const sws::Address& address);
+	sws::SocketState listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection);
+	sws::SocketState connect(const sws::Address& address, std::shared_ptr<Connection>* out_connection);
 
 	void receive_loop();
 
@@ -93,11 +93,17 @@ public:
 	bool is_connected() const;
 
 	// FIXME: networking holdover
-	bool is_server() const;
+	[[nodiscard]] bool is_server() const;
 	// FIXME: networking holdover
-	std::deque<std::shared_ptr<Connection>>& connections();
+	[[nodiscard]] bool is_bound() const;
+	// FIXME: networking holdover
+	[[nodiscard]] size_t connection_count() const;
+
+	void disconnect() const;
 
 	const std::chrono::system_clock::duration connection_timeout;
+
+	std::shared_ptr<ConnectionManager> connection_manager() const;
 
 private:
 	struct WaitRequest
@@ -106,7 +112,8 @@ private:
 	};
 
 	std::shared_ptr<ConnectionManager> connection_manager_;
-	std::deque<std::shared_ptr<Connection>> connections_;
+	std::unordered_map<Connection*, node_t> connection_nodes_;
+	std::map<node_t, std::shared_ptr<Connection>> node_connections_;
 
 	std::unordered_map<node_t, std::chrono::system_clock::time_point> keep_alive;
 	std::unordered_map<nethax::MessageID, WaitRequest> wait_requests;
@@ -126,6 +133,8 @@ private:
 	void add_bytes_received(size_t size);
 	void add_bytes_sent(size_t size);
 
+	[[nodiscard]] node_t get_free_node();
+
 	static void add_type(nethax::MessageStat& stat, ushort size, bool is_safe);
 	bool request(nethax::MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes = false);
 
@@ -133,6 +142,7 @@ private:
 	// Adds the packet template for packetType to packet
 	bool add_packet(nethax::MessageID packet_type, PacketEx& packet);
 
+	void disconnect(node_t node);
 	void read(sws::Packet& packet, node_t node);
 
 	// Read and send System variables
@@ -144,7 +154,7 @@ private:
 
 	bool receive_system(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
 	bool receive_player(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
-	bool receive_menu(nethax::MessageID   type, pnum_t pnum, sws::Packet& packet);
+	bool receive_menu(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
 
 	bool run_message_reader(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
 

@@ -14,6 +14,7 @@
 
 #include "Program.h"
 #include "ChangeMusic.h"
+#include "ConnectionManager.h"
 
 using namespace nethax;
 
@@ -117,7 +118,6 @@ bool Program::connect()
 		PlayJingle(music_connected);
 
 		globals::broker->toggle_netstat(local_settings_.netstat);
-		globals::broker->set_connect_time();
 
 		if (player_num_ >= 0)
 		{
@@ -127,7 +127,7 @@ bool Program::connect()
 		apply_settings();
 		P2Start = 2;
 
-		if (globals::broker->connection_count() == 1)
+		if (globals::broker->connection_count())
 		{
 			events::Initialize();
 		}
@@ -187,14 +187,9 @@ Program::ConnectStatus Program::start_server()
 	sws::Packet packet;
 	sws::SocketState status;
 
-	if (!globals::broker->is_bound())
-	{
-		PrintDebug("Hosting server on port %d...", server_address_.port);
-	}
+	std::shared_ptr<Connection> connection;
 
-	node_t node;
-
-	if ((status = globals::broker->listen(server_address_/*, node, false*/)) != sws::SocketState::done)
+	if ((status = globals::broker->listen(server_address_, &connection)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -204,19 +199,26 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::listening;
 	}
 
-	const std::shared_ptr<Connection> connection = globals::broker->connections().back();
+	connection->update();
+	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
+
+	if ((status = manager->receive(true)) != sws::SocketState::done)
+	{
+		manager->disconnect(connection);
+		PrintDebug(">> An error occurred while waiting for version number.");
+		return ConnectStatus::error;
+	}
 
 	connection->update();
 
-	if ((status = globals::broker->receive_tcp(packet, connection, true)) != sws::SocketState::done)
+	if (!connection->pop(&packet))
 	{
-		PrintDebug(">> An error occurred while waiting for version number.");
+		manager->disconnect(connection);
 		return ConnectStatus::error;
 	}
 
 	const bool has_password = !local_settings_.password.empty();
 	bool match = false;
-	ushort remote_port = 0;
 
 	MessageID id = MessageID::None;
 	while (!packet.end())
@@ -238,8 +240,10 @@ Program::ConnectStatus Program::start_server()
 					PrintDebug("\n>> Connection rejected; the client's version does not match the local version.");
 					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
 
+					packet.clear();
+					reliable::reserve(packet, reliable::reliable_t::ack);
 					packet << MessageID::N_VersionMismatch << version_num;
-					globals::broker->send_tcp(packet, node);
+					connection->send(packet, true);
 
 					return ConnectStatus::error;
 				}
@@ -273,45 +277,35 @@ Program::ConnectStatus Program::start_server()
 
 				break;
 			}
-
-			case MessageID::N_Bind:
-			{
-				packet >> remote_port;
-				globals::broker->set_remote_port(node, remote_port);
-				break;
-			}
 		}
 	}
 
 	if (has_password && !match)
 	{
 		packet.clear();
+		reliable::reserve(packet, reliable::reliable_t::ack);
 		packet << MessageID::N_PasswordMismatch;
-		globals::broker->send_tcp(packet, node);
-		return ConnectStatus::error;
-	}
-
-	if (!remote_port)
-	{
-		PrintDebug(">> Error: Client didn't send their port!");
+		connection->send(packet, true);
 		return ConnectStatus::error;
 	}
 
 	packet.clear();
+	reliable::reserve(packet, reliable::reliable_t::ack);
 	packet << MessageID::N_VersionOK;
 
-	if ((status = globals::broker->send_tcp(packet, node)) != sws::SocketState::done)
+	if ((status = connection->send(packet, true)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
 		return ConnectStatus::error;
 	}
 
 	packet.clear();
+	reliable::reserve(packet, reliable::reliable_t::ack);
 	packet << MessageID::N_Settings << local_settings_
-		<< MessageID::N_SetPlayerNumber << static_cast<pnum_t>(globals::broker->connection_count())
+		<< MessageID::N_SetPlayerNumber << static_cast<pnum_t>(manager->connection_count())
 		<< MessageID::N_Connected;
 
-	if ((status = globals::broker->send_tcp(packet, node)) != sws::SocketState::done)
+	if ((status = connection->send(packet, true)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
 		return ConnectStatus::error;
@@ -332,7 +326,9 @@ Program::ConnectStatus Program::start_client()
 		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
 	}
 
-	if ((status = globals::broker->connect(server_address_)) != sws::SocketState::done)
+	std::shared_ptr<Connection> connection;
+
+	if ((status = globals::broker->connect(server_address_, &connection)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -343,78 +339,80 @@ Program::ConnectStatus Program::start_client()
 	}
 
 	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack);
-	packet << MessageID::N_VersionCheck << version_num.major << version_num.minor;
+	packet << MessageID::N_VersionCheck << version_num;
 
 	if (!local_settings_.password.empty())
 	{
 		packet << MessageID::N_Password << local_settings_.password;
 	}
 
-	packet << MessageID::N_Bind << globals::broker->get_local_port();
 	globals::broker->send(packet, true);
+	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
 
 	packet.clear();
 
 	// TODO: Timeout on both of these loops.
 	MessageID id = MessageID::None;
-	const auto connection = globals::broker->connections().back();
 
 	do
 	{
 		connection->update();
 
-		if ((status = globals::broker->receive_tcp(packet, connection, true)) != sws::SocketState::done)
+		if ((status = manager->receive(true)) != sws::SocketState::done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
 			return ConnectStatus::error;
 		}
 
-		while (!packet.end())
+		while (connection->pop(&packet))
 		{
-			packet >> id;
-
-			switch (id)
+			while (!packet.end())
 			{
-				default:
-					PrintDebug(">> Received malformed packet from server; aborting!");
-					rejected_ = true;
-					return ConnectStatus::error;
+				packet >> id;
 
-				case MessageID::N_VersionMismatch:
-					packet >> remote_version_;
-					PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
-					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
-					rejected_ = true;
-					return ConnectStatus::error;
+				switch (id)
+				{
+					default:
+						PrintDebug(">> Received malformed packet from server; aborting!");
+						rejected_ = true;
+						return ConnectStatus::error;
 
-				case MessageID::N_VersionOK:
-					PrintDebug(">> Version match!");
-					break;
+					case MessageID::N_VersionMismatch:
+						packet >> remote_version_;
+						PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
+						PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
+						rejected_ = true;
+						return ConnectStatus::error;
 
-					// This is only used for specials right now.
-				case MessageID::N_Settings:
-					packet >> remote_settings_;
-					PrintDebug(">> Specials %s by server.", remote_settings_.no_specials ? "disabled" : "enabled");
+					case MessageID::N_VersionOK:
+						PrintDebug(">> Version match!");
+						break;
 
-					if (remote_settings_.cheats)
-					{
-						PrintDebug(">> Cheats have been enabled by the server!");
-					}
-					break;
+						// This is only used for specials right now.
+					case MessageID::N_Settings:
+						packet >> remote_settings_;
+						PrintDebug(">> Specials %s by server.", remote_settings_.no_specials ? "disabled" : "enabled");
 
-				case MessageID::N_PasswordMismatch:
-					PrintDebug(!local_settings_.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
-					rejected_ = true;
-					return ConnectStatus::error;
+						if (remote_settings_.cheats)
+						{
+							PrintDebug(">> Cheats have been enabled by the server!");
+						}
+						break;
 
-				case MessageID::N_SetPlayerNumber:
-					packet >> player_num_;
-					PrintDebug("Received player number: %d", player_num_);
-					break;
+					case MessageID::N_PasswordMismatch:
+						PrintDebug(!local_settings_.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
+						rejected_ = true;
+						return ConnectStatus::error;
 
-				case MessageID::N_Connected:
-					PrintDebug("<< Connected!");
-					break;
+					case MessageID::N_SetPlayerNumber:
+						packet >> player_num_;
+						PrintDebug("Received player number: %d", player_num_);
+						break;
+
+					case MessageID::N_Connected:
+						PrintDebug("<< Connected!");
+						break;
+				}
 			}
 		}
 	} while (id != MessageID::N_Connected);
