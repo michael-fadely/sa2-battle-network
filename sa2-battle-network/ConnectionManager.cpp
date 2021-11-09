@@ -82,12 +82,15 @@ SocketState ConnectionManager::listen(std::shared_ptr<Connection>* out_connectio
 		socket_->send_to(out, address);
 	}
 
-	auto connection = std::make_shared<Connection>(this, socket_, address);
-	connections_[address] = connection;
-
-	if (out_connection)
+	if (!connections_.contains(address))
 	{
-		*out_connection = std::move(connection);
+		auto connection = std::make_shared<Connection>(this, socket_, address);
+		connections_[address] = connection;
+
+		if (out_connection)
+		{
+			*out_connection = std::move(connection);
+		}
 	}
 
 	return result;
@@ -176,12 +179,15 @@ SocketState ConnectionManager::connect(const Address& host_address, std::shared_
 		}
 	}
 
-	auto connection = std::make_shared<Connection>(this, socket_, host_address);
-	connections_[host_address] = connection;
-
-	if (out_connection)
+	if (!connections_.contains(host_address))
 	{
-		*out_connection = std::move(connection);
+		auto connection = std::make_shared<Connection>(this, socket_, host_address);
+		connections_[host_address] = connection;
+
+		if (out_connection)
+		{
+			*out_connection = std::move(connection);
+		}
 	}
 
 	return SocketState::done;
@@ -220,7 +226,7 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 
 	SocketState result = SocketState::done;
 
-	while ((block && result == SocketState::in_progress) || result == SocketState::done)
+	while (is_connected() && (block && result == SocketState::in_progress) || result == SocketState::done)
 	{
 		result = socket_->receive_from(packet, remote_address);
 
@@ -232,7 +238,11 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 				break;
 			}
 
-			std::this_thread::sleep_for(1ms);
+			if (count || block)
+			{
+				std::this_thread::sleep_for(1ms);
+			}
+
 			continue;
 		}
 
