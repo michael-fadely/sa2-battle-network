@@ -75,7 +75,7 @@ public:
 	void send_player();
 	void send_menu();
 
-	bool connection_timed_out() const;
+	[[nodiscard]] bool connection_timed_out() const;
 	bool wait_for_players(nethax::MessageID id);
 	void send_ready(nethax::MessageID id);
 	bool send_ready_and_wait(nethax::MessageID id);
@@ -89,8 +89,8 @@ public:
 	void register_writer(nethax::MessageID message_id, const MessageWriter& writer);
 
 	void set_player_number(pnum_t number);
-	auto get_player_number() const { return player_num; }
-	bool is_connected() const;
+	[[nodiscard]] auto get_player_number() const { return player_num; }
+	[[nodiscard]] bool is_connected() const;
 
 	// FIXME: networking holdover
 	[[nodiscard]] bool is_server() const;
@@ -103,7 +103,7 @@ public:
 
 	const std::chrono::system_clock::duration connection_timeout;
 
-	std::shared_ptr<ConnectionManager> connection_manager() const;
+	[[nodiscard]] std::shared_ptr<ConnectionManager> connection_manager() const;
 
 private:
 	struct WaitRequest
@@ -129,6 +129,8 @@ private:
 	size_t received_bytes   = 0;
 	size_t sent_packets     = 0;
 	size_t sent_bytes       = 0;
+
+	void reset_packet(PacketEx& packet) const;
 
 	void add_bytes_received(size_t size);
 	void add_bytes_sent(size_t size);
@@ -162,6 +164,12 @@ private:
 
 	PacketEx tcp_packet;
 	PacketEx udp_packet;
+
+	// HACK: attempting to reduce sent packets
+	size_t tcp_packet_size = 0;
+	// HACK: attempting to reduce sent packets
+	size_t udp_packet_size = 0;
+
 	PlayerObject net_player[2];
 
 	// Used for comparison to determine what to send.

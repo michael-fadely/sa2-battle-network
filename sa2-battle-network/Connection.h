@@ -51,13 +51,13 @@ private:
 	std::deque<sws::Packet> inbound;
 
 	std::deque<Store> ordered_out;
-	std::unordered_map<sequence_t, Store> uids_out;
+	std::unordered_map<sequence_t, clock::time_point> ordered_in;
 
-	std::unordered_map<sequence_t, clock::time_point> seqs_in;
+	std::unordered_map<sequence_t, Store> uids_out;
 	std::unordered_map<sequence_t, clock::time_point> uids_in;
 
 	sequence_t seq_in;
-	sequence_t acknew_in;
+	sequence_t ack_newest_in;
 	sequence_t faf_in;
 
 	sequence_t seq_out;
@@ -84,7 +84,7 @@ public:
 
 private:
 	bool handled(reliable::reliable_t type, sequence_t sequence);
-	void prune();
+	void prune_inbound_ids();
 
 public:
 	clock::duration round_trip_time();

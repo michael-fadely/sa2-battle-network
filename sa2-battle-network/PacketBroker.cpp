@@ -102,6 +102,7 @@ void PacketBroker::initialize()
 
 	sent_keep_alive = system_clock::now();
 	player_num      = -1;
+
 	keep_alive.clear();
 	wait_requests.clear();
 
@@ -124,6 +125,12 @@ void PacketBroker::initialize()
 	connection_manager_ = std::make_shared<ConnectionManager>();
 	connection_nodes_.clear();
 	node_connections_.clear();
+
+	reset_packet(tcp_packet);
+	tcp_packet_size = tcp_packet.work_size(); // HACK: attempting to reduce sent packets
+
+	reset_packet(udp_packet);
+	udp_packet_size = udp_packet.work_size(); // HACK: attempting to reduce sent packets
 }
 
 sws::SocketState PacketBroker::listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
@@ -195,7 +202,15 @@ void PacketBroker::receive_loop()
 
 	connection_manager_->receive(false);
 
-	std::vector connections(node_connections_.begin(), node_connections_.end());
+	// FIXME: completely disgusting copy because disconnects will modify node_connections_ inside read()
+	static std::vector<std::pair<const signed char, std::shared_ptr<Connection>>> connections;
+
+	connections.clear();
+
+	for (auto& pair : node_connections_)
+	{
+		connections.push_back(pair);
+	}
 
 	for (auto& [node, connection] : connections)
 	{
@@ -226,6 +241,8 @@ void PacketBroker::receive_loop()
 	}
 
 	const size_t connection_count = node_connections_.size();
+
+	// ReSharper disable once CppLocalVariableMayBeConst
 	size_t timeouts = 0;
 
 #ifndef _DEBUG
@@ -394,7 +411,17 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 					break;
 				}
 
-				PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d", pnum, length, type);
+				const auto it = MESSAGE_ID_STRING.find(type);
+
+				if (it != MESSAGE_ID_STRING.cend())
+				{
+					PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d (%s)", pnum, length, type, it->second);
+				}
+				else
+				{
+					PrintDebug("\t\t[P%d] Skipping %d bytes for id %02d", pnum, length, type);
+				}
+
 				packet.seek(sws::SeekCursor::read, sws::SeekType::relative, length);
 				break;
 			}
@@ -444,7 +471,7 @@ bool PacketBroker::wait_for_players(MessageID id)
 
 void PacketBroker::send_ready(MessageID id)
 {
-	sws::Packet packet = reliable::reserve(reliable::reliable_t::ordered);
+	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack_ordered);
 	add_ready(id, packet);
 
 	for (auto& [node, connection] : node_connections_)
@@ -617,6 +644,12 @@ void PacketBroker::add_type_sent(MessageID id, size_t size, PacketChannel protoc
 	}
 }
 
+void PacketBroker::reset_packet(PacketEx& packet) const
+{
+	packet.clear();
+	packet << MessageID::N_PlayerNumber << player_num;
+}
+
 void PacketBroker::add_bytes_received(size_t size)
 {
 	if (size)
@@ -687,14 +720,17 @@ bool PacketBroker::request(MessageID type, PacketEx& packet, bool allow_dupes)
 
 void PacketBroker::finalize()
 {
-	send(tcp_packet);
-	send(udp_packet);
+	if (/*tcp_packet.work_size() != tcp_packet_size*/ true) // HACK: attempting to reduce sent packets
+	{
+		send(tcp_packet, true);
+		reset_packet(tcp_packet);
+	}
 
-	tcp_packet.clear();
-	tcp_packet << MessageID::N_PlayerNumber << player_num;
-
-	udp_packet.clear();
-	udp_packet << MessageID::N_PlayerNumber << player_num;
+	if (/*udp_packet.work_size() != udp_packet_size*/ true) // HACK: attempting to reduce sent packets
+	{
+		send(udp_packet);
+		reset_packet(udp_packet);
+	}
 }
 
 void PacketBroker::send(sws::Packet& packet, bool block)
@@ -731,7 +767,7 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 {
 	if ((system_clock::now() - sent_keep_alive) >= KEEPALIVE_INTERVAL)
 	{
-		request(MessageID::S_KeepAlive, udp);
+		//request(MessageID::S_KeepAlive, udp);
 	}
 
 	// TODO: check if spectator

@@ -45,10 +45,10 @@ void reliable::reserve(Packet& packet, reliable_t type)
 
 	switch (type)
 	{
-		case reliable_t::newest:
-		case reliable_t::ack:
+		case reliable_t::take_newest:
+		case reliable_t::ack_any:
 		case reliable_t::ack_newest:
-		case reliable_t::ordered:
+		case reliable_t::ack_ordered:
 			break;
 
 		default:

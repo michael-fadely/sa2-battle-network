@@ -16,7 +16,7 @@ using namespace sws;
 using namespace std::chrono;
 using namespace reliable;
 
-static constexpr auto AGE_THRESHOLD = 1s;
+static constexpr auto age_threshold = 2.5s;
 
 Connection::Store::Store(sequence_t sequence, Packet packet)
 	: creation_time_(clock::now()),
@@ -86,8 +86,8 @@ Connection& Connection::operator=(Connection&& other) noexcept
 	uids_out    = std::move(other.uids_out);
 	acknew_data = std::move(other.acknew_data);
 
-	seqs_in = std::move(other.seqs_in);
-	uids_in = std::move(other.uids_in);
+	ordered_in = std::move(other.ordered_in);
+	uids_in    = std::move(other.uids_in);
 
 	rtt_points  = other.rtt_points;
 	rtt_invalid = other.rtt_invalid;
@@ -113,7 +113,6 @@ SocketState Connection::send(Packet& packet, bool block)
 	manage_id id = manage_id::eop;
 
 	ptrdiff_t sequence_offset = -1;
-	sequence_t outbound_sequence = 0;
 
 	do
 	{
@@ -141,9 +140,11 @@ SocketState Connection::send(Packet& packet, bool block)
 			}
 
 			default:
-				throw;
+				throw std::runtime_error("malformed packet header");
 		}
 	} while (id != manage_id::eop);
+
+	sequence_t outbound_sequence;
 
 	if (type == reliable_t::none)
 	{
@@ -163,12 +164,12 @@ SocketState Connection::send(Packet& packet, bool block)
 
 		switch (type)  // NOLINT(clang-diagnostic-switch-enum)
 		{
-			case reliable_t::newest:
+			case reliable_t::take_newest:
 				outbound_sequence = ++faf_out;
 				packet << outbound_sequence;
 				break;
 
-			case reliable_t::ack:
+			case reliable_t::ack_any:
 				outbound_sequence = ++uid_out;
 				packet << outbound_sequence;
 				uids_out.emplace(outbound_sequence, Store(outbound_sequence, packet));
@@ -180,14 +181,14 @@ SocketState Connection::send(Packet& packet, bool block)
 				acknew_data = std::make_unique<Store>(outbound_sequence, packet);
 				break;
 
-			case reliable_t::ordered:
+			case reliable_t::ack_ordered:
 				outbound_sequence = ++seq_out;
 				packet << outbound_sequence;
 				ordered_out.emplace_back(outbound_sequence, packet);
 				break;
 
 			default:
-				throw;
+				throw std::runtime_error("invalid reliable type");
 		}
 	}
 
@@ -204,20 +205,21 @@ SocketState Connection::send(Packet& packet, bool block)
 	switch (type)
 	{
 		case reliable_t::none:
-		case reliable_t::newest:
+		case reliable_t::take_newest:
 			return result;
 
-		case reliable_t::ack:
+		case reliable_t::ack_any:
 		{
 			while (uids_out.find(outbound_sequence) != uids_out.end())
 			{
-				if ((result = parent->receive(true, 1)) == SocketState::error)
+				result = parent->receive(true/*, 1*/);
+
+				if (result == SocketState::error)
 				{
 					return result;
 				}
 
 				update();
-				std::this_thread::sleep_for(1ms);
 			}
 			break;
 		}
@@ -226,30 +228,32 @@ SocketState Connection::send(Packet& packet, bool block)
 		{
 			while (acknew_data != nullptr)
 			{
-				if ((result = parent->receive(true, 1)) == SocketState::error)
+				result = parent->receive(true/*, 1*/);
+
+				if (result == SocketState::error)
 				{
 					return result;
 				}
 
 				update();
-				std::this_thread::sleep_for(1ms);
 			}
 
 			break;
 		}
 
-		case reliable_t::ordered:
+		case reliable_t::ack_ordered:
 		{
 			while (std::ranges::find_if(ordered_out,
 			                            [&](const Store& s) { return s.sequence == outbound_sequence; }) != ordered_out.end())
 			{
-				if ((result = parent->receive(true, 1)) == SocketState::error)
+				result = parent->receive(true/*, 1*/);
+
+				if (result == SocketState::error)
 				{
 					return result;
 				}
 
 				update();
-				std::this_thread::sleep_for(1ms);
 			}
 			break;
 		}
@@ -284,7 +288,7 @@ SocketState Connection::store_inbound(Packet& packet)
 		{
 			if (reliable_type != reliable_t::none)
 			{
-				throw;
+				throw std::runtime_error("reliable type was specified twice in inbound packet");
 			}
 
 			packet >> reliable_type;
@@ -323,7 +327,7 @@ SocketState Connection::store_inbound(Packet& packet)
 			case manage_id::sequence:
 				if (reliable_type == reliable_t::none)
 				{
-					throw;
+					throw std::runtime_error("received packet sequence when none should be present!");
 				}
 
 				packet >> packet_sequence;
@@ -341,16 +345,19 @@ SocketState Connection::store_inbound(Packet& packet)
 			}
 
 			default:
-				throw;
+				throw std::runtime_error("unhandled manage_id");
 		}
 	} while (id != manage_id::eop);
 
-	if (reliable_type != reliable_t::none && reliable_type != reliable_t::newest)
+	if (reliable_type != reliable_t::none)
 	{
-		Packet p;
+		if (reliable_type != reliable_t::take_newest)
+		{
+			Packet p;
 
-		p << manage_id::ack << reliable_type << packet_sequence << manage_id::eop;
-		socket->send_to(p, remote_address_);
+			p << manage_id::ack << reliable_type << packet_sequence << manage_id::eop;
+			socket->send_to(p, remote_address_);
+		}
 
 		if (handled(reliable_type, packet_sequence) && !should_disconnect)
 		{
@@ -378,7 +385,7 @@ bool Connection::handled(reliable_t type, sequence_t sequence)
 		case reliable_t::none:
 			return false;
 
-		case reliable_t::newest:
+		case reliable_t::take_newest:
 			if (sequence <= faf_in)
 			{
 				return true;
@@ -387,7 +394,7 @@ bool Connection::handled(reliable_t type, sequence_t sequence)
 			faf_in = sequence;
 			return false;
 
-		case reliable_t::ack:
+		case reliable_t::ack_any:
 		{
 			const auto it = uids_in.find(sequence);
 
@@ -402,25 +409,26 @@ bool Connection::handled(reliable_t type, sequence_t sequence)
 		}
 
 		case reliable_t::ack_newest:
-			if (sequence <= acknew_in)
+			if (sequence <= ack_newest_in)
 			{
 				return true;
 			}
 
-			acknew_in = sequence;
+			ack_newest_in = sequence;
 			return false;
 
-		case reliable_t::ordered:
+		case reliable_t::ack_ordered:
 		{
-			const auto it = seqs_in.find(sequence);
+			// FIXME: what if ordered packets are sent faster than they can be pruned? sequence IDs will overlap when the data is actually unique!
+			const auto it = ordered_in.find(sequence);
 
-			if (it != seqs_in.end())
+			if (it != ordered_in.end())
 			{
 				it->second = clock::now();
 				return true;
 			}
 
-			seqs_in[sequence] = clock::now();
+			ordered_in[sequence] = clock::now();
 			return false;
 		}
 
@@ -434,7 +442,7 @@ void Connection::disconnect_internal()
 	inbound.clear();
 	ordered_out.clear();
 	uids_out.clear();
-	seqs_in.clear();
+	ordered_in.clear();
 	uids_in.clear();
 
 	acknew_data = nullptr;
@@ -449,10 +457,10 @@ void Connection::remove_outbound(reliable_t type, sequence_t sequence)
 		case reliable_t::none:
 			throw;
 
-		case reliable_t::newest:
+		case reliable_t::take_newest:
 			return;
 
-		case reliable_t::ack:
+		case reliable_t::ack_any:
 		{
 			const auto it = uids_out.find(sequence);
 			if (it != uids_out.end())
@@ -471,7 +479,7 @@ void Connection::remove_outbound(reliable_t type, sequence_t sequence)
 			}
 			break;
 
-		case reliable_t::ordered:
+		case reliable_t::ack_ordered:
 		{
 			const auto it = std::ranges::find_if(ordered_out, [sequence](const Store& s)
 			{
@@ -492,15 +500,15 @@ void Connection::remove_outbound(reliable_t type, sequence_t sequence)
 	}
 }
 
-void Connection::prune()
+void Connection::prune_inbound_ids()
 {
 	const auto now = clock::now();
 
-	for (auto it = seqs_in.begin(); it != seqs_in.end();)
+	for (auto it = ordered_in.begin(); it != ordered_in.end();)
 	{
-		if (now - it->second >= AGE_THRESHOLD)
+		if (now - it->second >= age_threshold)
 		{
-			it = seqs_in.erase(it);
+			it = ordered_in.erase(it);
 		}
 		else
 		{
@@ -510,7 +518,7 @@ void Connection::prune()
 
 	for (auto it = uids_in.begin(); it != uids_in.end();)
 	{
-		if (now - it->second >= AGE_THRESHOLD)
+		if (now - it->second >= age_threshold)
 		{
 			it = uids_in.erase(it);
 		}
@@ -542,7 +550,7 @@ Connection::clock::duration Connection::round_trip_time()
 
 void Connection::update()
 {
-	prune();
+	prune_inbound_ids();
 
 	const clock::duration rtt = round_trip_time();
 

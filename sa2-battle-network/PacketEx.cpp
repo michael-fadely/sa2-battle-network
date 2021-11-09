@@ -22,11 +22,11 @@ void PacketEx::initialize()
 {
 	if (channel == PacketChannel::reliable)
 	{
-		reliable::reserve(*this, reliable::reliable_t::ordered);
+		reliable::reserve(*this, reliable::reliable_t::ack_ordered);
 	}
 	else
 	{
-		reliable::reserve(*this, reliable::reliable_t::newest);
+		reliable::reserve(*this, reliable::reliable_t::take_newest);
 	}
 
 	empty_ = true;

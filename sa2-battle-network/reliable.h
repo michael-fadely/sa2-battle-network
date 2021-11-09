@@ -13,7 +13,7 @@ namespace reliable
 		connected    = 'O', // O as in 'opened' I guess
 		type         = 'T', // reliable type (reliable_t)
 		sequence     = 'S', // sequence number (sequence_t)
-		ack          = 'A',
+		ack          = 'A', // acknowledge a reliable message
 		bad_version  = 'V',
 	};
 
@@ -27,13 +27,13 @@ namespace reliable
 		/**
 		 * \brief No ack required, but check the sequence number.
 		 */
-		newest,
+		take_newest,
 
 		/**
 		 * \brief Receiver should acknowledge once received;
 		 * no other special treatment required.
 		 */
-		ack,
+		ack_any,
 
 		/**
 		 * \brief Receiver should store only if newer than last received.
@@ -44,7 +44,7 @@ namespace reliable
 		 * \brief Same as regular ack, but the client holds back
 		 * until an ack is received back
 		 */
-		ordered,
+		ack_ordered,
 	};
 
 	void reserve(sws::Packet& packet, reliable_t type);

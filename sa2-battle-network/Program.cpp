@@ -241,7 +241,7 @@ Program::ConnectStatus Program::start_server()
 					PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
 
 					packet.clear();
-					reliable::reserve(packet, reliable::reliable_t::ack);
+					reliable::reserve(packet, reliable::reliable_t::ack_any);
 					packet << MessageID::N_VersionMismatch << version_num;
 					connection->send(packet, true);
 
@@ -283,14 +283,14 @@ Program::ConnectStatus Program::start_server()
 	if (has_password && !match)
 	{
 		packet.clear();
-		reliable::reserve(packet, reliable::reliable_t::ack);
+		reliable::reserve(packet, reliable::reliable_t::ack_any);
 		packet << MessageID::N_PasswordMismatch;
 		connection->send(packet, true);
 		return ConnectStatus::error;
 	}
 
 	packet.clear();
-	reliable::reserve(packet, reliable::reliable_t::ack);
+	reliable::reserve(packet, reliable::reliable_t::ack_any);
 	packet << MessageID::N_VersionOK;
 
 	if ((status = connection->send(packet, true)) != sws::SocketState::done)
@@ -300,7 +300,7 @@ Program::ConnectStatus Program::start_server()
 	}
 
 	packet.clear();
-	reliable::reserve(packet, reliable::reliable_t::ack);
+	reliable::reserve(packet, reliable::reliable_t::ack_any);
 	packet << MessageID::N_Settings << local_settings_
 		<< MessageID::N_SetPlayerNumber << static_cast<pnum_t>(manager->connection_count())
 		<< MessageID::N_Connected;
@@ -338,7 +338,7 @@ Program::ConnectStatus Program::start_client()
 		return ConnectStatus::listening;
 	}
 
-	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack);
+	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack_any);
 	packet << MessageID::N_VersionCheck << version_num;
 
 	if (!local_settings_.password.empty())
