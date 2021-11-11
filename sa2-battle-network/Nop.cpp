@@ -13,7 +13,7 @@ bool Nop::apply(intptr_t address, size_t length, bool skip_backup)
 {
 	// If there's already backup data for this address, return false
 	// unless the skip_backup override is enabled.
-	if (!skip_backup && backup_data.find(address) != backup_data.end())
+	if (!skip_backup && backup_data.contains(address))
 	{
 		return false;
 	}
@@ -26,7 +26,7 @@ bool Nop::apply(intptr_t address, size_t length, bool skip_backup)
 	{
 		std::vector<uint8_t> code(length);
 		ReadMemory(address, code.data(), length);
-		backup_data[address] = code;
+		backup_data[address] = std::move(code);
 	}
 
 	// Write the NOP instructions to memory.

@@ -3,17 +3,19 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <Windows.h>		// for GetCommandLineW(), GetCurrentProcess()
-#include <ShellAPI.h>		// for CommandLineToArgvW
-#include <direct.h>			// for _getcwd
+#include <locale>
+#include <codecvt>
+
+#include <Windows.h>  // for GetCommandLineW()
+#include <ShellAPI.h> // for CommandLineToArgvW()
+#include <direct.h>   // for _getcwd()
+
 #include <SA2ModLoader.h>
 
 #include "typedefs.h"
-#include "globals.h"		// PacketHandler, Program, PacketBroker
+#include "globals.h"
 #include "OnGameState.h"
 #include "Hash.h"
-#include <locale>
-#include <codecvt>
 
 void fake_main(const char* path, int argc, wchar_t** argv);
 
@@ -183,7 +185,7 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 
 	using namespace nethax;
 
-	auto addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
+	std::vector<sws::Address> addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
 	address = addresses[0];
 
 	globals::program = new Program(settings, is_server, address);

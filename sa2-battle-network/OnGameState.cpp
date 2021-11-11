@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include <SA2ModLoader.h>	// for everything
-#include "Networking.h"		// for MessageID
+#include <SA2ModLoader.h>
+#include "Networking.h" // for MessageID
 #include "globals.h"
 
 #include "OnGameState.h"
