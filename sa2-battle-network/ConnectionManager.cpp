@@ -49,6 +49,14 @@ SocketState ConnectionManager::listen(std::shared_ptr<Connection>* out_connectio
 		return result;
 	}
 
+	auto it = connections_.find(address);
+
+	if (it != connections_.end())
+	{
+		it->second->store_inbound(in);
+		return SocketState::in_progress;
+	}
+
 	while (!in.end())
 	{
 		manage_id id = manage_id::eop;
@@ -82,7 +90,7 @@ SocketState ConnectionManager::listen(std::shared_ptr<Connection>* out_connectio
 		socket_->send_to(out, address);
 	}
 
-	if (!connections_.contains(address))
+	if (it == connections_.end())
 	{
 		auto connection = std::make_shared<Connection>(this, socket_, address);
 		connections_[address] = connection;
@@ -221,14 +229,14 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 {
 	size_t received = 0;
 
-	Packet packet;
+	inbound_packet_.clear();
 	Address remote_address;
 
 	SocketState result = SocketState::done;
 
 	while (is_connected() && (block && result == SocketState::in_progress) || result == SocketState::done)
 	{
-		result = socket_->receive_from(packet, remote_address);
+		result = socket_->receive_from(inbound_packet_, remote_address);
 
 		if (result == SocketState::in_progress)
 		{
@@ -250,12 +258,12 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 
 		if (it == connections_.end())
 		{
-			packet.clear();
+			inbound_packet_.clear();
 			result = SocketState::in_progress;
 		}
 		else
 		{
-			result = it->second->store_inbound(packet);
+			result = it->second->store_inbound(inbound_packet_);
 
 			if (!it->second->is_connected())
 			{

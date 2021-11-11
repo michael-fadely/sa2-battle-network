@@ -135,10 +135,10 @@ private:
 	void add_bytes_received(size_t size);
 	void add_bytes_sent(size_t size);
 
-	[[nodiscard]] node_t get_free_node();
+	[[nodiscard]] node_t get_free_node() const;
 
 	static void add_type(nethax::MessageStat& stat, ushort size, bool is_safe);
-	bool request(nethax::MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes = false);
+	bool request(nethax::MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes = false);
 
 	// Called by RequestPacket
 	// Adds the packet template for packetType to packet

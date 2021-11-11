@@ -214,7 +214,7 @@ void PacketBroker::receive_loop()
 
 	for (auto& [node, connection] : connections)
 	{
-		connection->update();
+		connection->update_outbound();
 
 		sws::Packet received;
 
@@ -668,7 +668,7 @@ void PacketBroker::add_bytes_sent(size_t size)
 	}
 }
 
-node_t PacketBroker::get_free_node()
+node_t PacketBroker::get_free_node() const
 {
 	if (node_connections_.empty())
 	{
@@ -698,7 +698,7 @@ node_t PacketBroker::get_free_node()
 	return -1;
 }
 
-bool PacketBroker::request(MessageID type, PacketEx& packet, PacketEx& exclude, bool allow_dupes)
+bool PacketBroker::request(MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes)
 {
 	if (allow_dupes || !exclude.contains(type))
 	{
@@ -720,13 +720,13 @@ bool PacketBroker::request(MessageID type, PacketEx& packet, bool allow_dupes)
 
 void PacketBroker::finalize()
 {
-	if (/*tcp_packet.work_size() != tcp_packet_size*/ true) // HACK: attempting to reduce sent packets
+	if (tcp_packet.work_size() != tcp_packet_size) // HACK: attempting to reduce sent packets
 	{
 		send(tcp_packet, true);
 		reset_packet(tcp_packet);
 	}
 
-	if (/*udp_packet.work_size() != udp_packet_size*/ true) // HACK: attempting to reduce sent packets
+	if (udp_packet.work_size() != udp_packet_size) // HACK: attempting to reduce sent packets
 	{
 		send(udp_packet);
 		reset_packet(udp_packet);

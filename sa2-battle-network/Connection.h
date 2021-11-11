@@ -22,7 +22,7 @@ public:
 	{
 	private:
 		clock::time_point creation_time_;
-		clock::time_point last_active;
+		clock::time_point last_active_;
 
 	public:
 		sequence_t sequence;
@@ -41,39 +41,39 @@ public:
 
 private:
 	// to be used for disconnecting
-	ConnectionManager* parent = nullptr;
+	ConnectionManager* parent_ = nullptr;
 
-	std::shared_ptr<sws::UdpSocket> socket;
+	std::shared_ptr<sws::UdpSocket> socket_;
 	sws::Address remote_address_;
 
 	bool is_connected_ = false;
 
-	std::deque<sws::Packet> inbound;
+	std::deque<sws::Packet> inbound_;
 
-	std::deque<Store> ordered_out;
-	std::unordered_map<sequence_t, clock::time_point> ordered_in;
+	std::deque<Store> ordered_out_;
+	std::unordered_map<sequence_t, clock::time_point> ordered_in_;
 
-	std::unordered_map<sequence_t, Store> uids_out;
-	std::unordered_map<sequence_t, clock::time_point> uids_in;
+	std::unordered_map<sequence_t, Store> uids_out_;
+	std::unordered_map<sequence_t, clock::time_point> uids_in_;
 
-	sequence_t seq_in;
-	sequence_t ack_newest_in;
-	sequence_t faf_in;
+	sequence_t seq_in_;
+	sequence_t ack_newest_in_;
+	sequence_t faf_in_;
 
-	sequence_t seq_out;
-	sequence_t uid_out;
-	sequence_t faf_out;
+	sequence_t seq_out_;
+	sequence_t uid_out_;
+	sequence_t faf_out_;
 
-	sequence_t acknew_out;
-	std::unique_ptr<Store> acknew_data;
+	sequence_t acknew_out_;
+	std::unique_ptr<Store> acknew_data_;
 
-	bool rtt_invalid = false;
-	size_t rtt_i = 0;
-	std::array<clock::duration, 50> rtt_points {};
-	clock::duration current_rtt {};
+	bool rtt_invalid_ = false;
+	size_t rtt_i_ = 0;
+	std::array<clock::duration, 60> rtt_points_ {};
+	clock::duration current_rtt_ {};
 
 public:
-	Connection(ConnectionManager* parent_, std::shared_ptr<sws::UdpSocket> socket_, sws::Address remote_address_);
+	Connection(ConnectionManager* parent, std::shared_ptr<sws::UdpSocket> socket, sws::Address remote_address);
 	Connection(Connection&& other) noexcept;
 
 	Connection& operator=(Connection&& other) noexcept;
@@ -88,7 +88,7 @@ private:
 
 public:
 	clock::duration round_trip_time();
-	void update();
+	void update_outbound();
 	bool pop(sws::Packet* out_packet);
 
 	[[nodiscard]] bool is_connected() const;
@@ -98,6 +98,6 @@ public:
 
 private:
 	void disconnect_internal();
-	void remove_outbound(reliable::reliable_t type, sequence_t sequence);
+	void remove_outbound(reliable::reliable_t reliable_type, sequence_t sequence);
 	void add_rtt_point(const clock::time_point& point);
 };

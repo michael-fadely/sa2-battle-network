@@ -199,7 +199,7 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::listening;
 	}
 
-	connection->update();
+	connection->update_outbound();
 	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
 
 	if ((status = manager->receive(true)) != sws::SocketState::done)
@@ -209,7 +209,7 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::error;
 	}
 
-	connection->update();
+	connection->update_outbound();
 
 	if (!connection->pop(&packet))
 	{
@@ -229,6 +229,7 @@ Program::ConnectStatus Program::start_server()
 		{
 			default:
 				PrintDebug(">> Received malformed packet from client!");
+				manager->disconnect(connection);
 				return ConnectStatus::error;
 
 			case MessageID::N_VersionCheck:
@@ -245,6 +246,7 @@ Program::ConnectStatus Program::start_server()
 					packet << MessageID::N_VersionMismatch << version_num;
 					connection->send(packet, true);
 
+					manager->disconnect(connection);
 					return ConnectStatus::error;
 				}
 
@@ -286,6 +288,7 @@ Program::ConnectStatus Program::start_server()
 		reliable::reserve(packet, reliable::reliable_t::ack_any);
 		packet << MessageID::N_PasswordMismatch;
 		connection->send(packet, true);
+		manager->disconnect(connection);
 		return ConnectStatus::error;
 	}
 
@@ -296,6 +299,7 @@ Program::ConnectStatus Program::start_server()
 	if ((status = connection->send(packet, true)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming version numbers with the client.");
+		manager->disconnect(connection);
 		return ConnectStatus::error;
 	}
 
@@ -308,6 +312,7 @@ Program::ConnectStatus Program::start_server()
 	if ((status = connection->send(packet, true)) != sws::SocketState::done)
 	{
 		PrintDebug(">> An error occurred while confirming the connection with the client.");
+		manager->disconnect(connection);
 		return ConnectStatus::error;
 	}
 
@@ -319,13 +324,12 @@ Program::ConnectStatus Program::start_server()
 
 Program::ConnectStatus Program::start_client()
 {
-	sws::SocketState status;
-
 	if (!globals::broker->is_bound())
 	{
 		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
 	}
 
+	sws::SocketState status;
 	std::shared_ptr<Connection> connection;
 
 	if ((status = globals::broker->connect(server_address_, &connection)) != sws::SocketState::done)
@@ -356,11 +360,12 @@ Program::ConnectStatus Program::start_client()
 
 	do
 	{
-		connection->update();
+		connection->update_outbound();
 
 		if ((status = manager->receive(true)) != sws::SocketState::done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
+			manager->disconnect(connection);
 			return ConnectStatus::error;
 		}
 
@@ -375,6 +380,7 @@ Program::ConnectStatus Program::start_client()
 					default:
 						PrintDebug(">> Received malformed packet from server; aborting!");
 						rejected_ = true;
+						manager->disconnect(connection);
 						return ConnectStatus::error;
 
 					case MessageID::N_VersionMismatch:
@@ -382,6 +388,7 @@ Program::ConnectStatus Program::start_client()
 						PrintDebug("\n>> Connection rejected; the server's version does not match the local version.");
 						PrintDebug("->\tYour version: %s - Remote version: %s", version_num.str().c_str(), remote_version_.str().c_str());
 						rejected_ = true;
+						manager->disconnect(connection);
 						return ConnectStatus::error;
 
 					case MessageID::N_VersionOK:
@@ -402,6 +409,7 @@ Program::ConnectStatus Program::start_client()
 					case MessageID::N_PasswordMismatch:
 						PrintDebug(!local_settings_.password.empty() ? ">> Invalid password." : ">> This server is password protected.");
 						rejected_ = true;
+						manager->disconnect(connection);
 						return ConnectStatus::error;
 
 					case MessageID::N_SetPlayerNumber:

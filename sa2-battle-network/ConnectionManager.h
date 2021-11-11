@@ -18,6 +18,8 @@ class ConnectionManager
 
 	clock::time_point last_connect_;
 
+	sws::Packet inbound_packet_;
+
 public:
 	explicit ConnectionManager();
 

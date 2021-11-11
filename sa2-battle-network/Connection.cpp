@@ -20,7 +20,7 @@ static constexpr auto age_threshold = 2.5s;
 
 Connection::Store::Store(sequence_t sequence, Packet packet)
 	: creation_time_(clock::now()),
-	  last_active(clock::now()),
+	  last_active_(clock::now()),
 	  sequence(sequence),
 	  packet(std::move(packet))
 {
@@ -36,7 +36,7 @@ Connection::Store& Connection::Store::operator=(Store&& other) noexcept
 	sequence       = other.sequence;
 	packet         = std::move(other.packet);
 	creation_time_ = other.creation_time_;
-	last_active    = other.last_active;
+	last_active_   = other.last_active_;
 
 	return *this;
 }
@@ -48,21 +48,21 @@ Connection::clock::time_point Connection::Store::creation_time() const
 
 bool Connection::Store::should_send(const clock::duration& duration) const
 {
-	return clock::now() - last_active > duration;
+	return clock::now() - last_active_ > duration;
 }
 
 void Connection::Store::reset_activity()
 {
-	last_active = clock::now();
+	last_active_ = clock::now();
 }
 
-Connection::Connection(ConnectionManager* parent_, std::shared_ptr<UdpSocket> socket_, Address remote_address_)
-	: parent(parent_),
-	  socket(std::move(socket_)),
-	  remote_address_(std::move(remote_address_)),
+Connection::Connection(ConnectionManager* parent, std::shared_ptr<UdpSocket> socket, Address remote_address)
+	: parent_(parent),
+	  socket_(std::move(socket)),
+	  remote_address_(std::move(remote_address)),
 	  is_connected_(true)
 {
-	for (auto& point : rtt_points)
+	for (auto& point : rtt_points_)
 	{
 		point = 1s;
 	}
@@ -75,24 +75,26 @@ Connection::Connection(Connection&& other) noexcept
 
 Connection& Connection::operator=(Connection&& other) noexcept
 {
-	parent = other.parent;
-	socket = std::move(other.socket);
+	parent_ = other.parent_;
+	socket_ = std::move(other.socket_);
 
-	inbound = std::move(other.inbound);
+	inbound_ = std::move(other.inbound_);
 
 	remote_address_ = std::move(other.remote_address_);
 
-	ordered_out = std::move(other.ordered_out);
-	uids_out    = std::move(other.uids_out);
-	acknew_data = std::move(other.acknew_data);
+	ordered_out_ = std::move(other.ordered_out_);
+	uids_out_    = std::move(other.uids_out_);
+	acknew_data_ = std::move(other.acknew_data_);
 
-	ordered_in = std::move(other.ordered_in);
-	uids_in    = std::move(other.uids_in);
+	ordered_in_ = std::move(other.ordered_in_);
+	uids_in_    = std::move(other.uids_in_);
 
-	rtt_points  = other.rtt_points;
-	rtt_invalid = other.rtt_invalid;
-	rtt_i       = other.rtt_i;
-	current_rtt = other.current_rtt;
+	rtt_points_  = other.rtt_points_;
+	rtt_invalid_ = other.rtt_invalid_;
+	rtt_i_       = other.rtt_i_;
+	current_rtt_ = other.current_rtt_;
+
+	is_connected_ = std::exchange(other.is_connected_, false);
 
 	return *this;
 }
@@ -109,7 +111,7 @@ SocketState Connection::send(Packet& packet, bool block)
 
 	packet.seek(SeekCursor::both, SeekType::from_start, 0);
 
-	reliable_t type = reliable_t::none;
+	reliable_t reliable_type = reliable_t::none;
 	manage_id id = manage_id::eop;
 
 	ptrdiff_t sequence_offset = -1;
@@ -124,7 +126,7 @@ SocketState Connection::send(Packet& packet, bool block)
 				break;
 
 			case manage_id::type:
-				packet >> type;
+				packet >> reliable_type;
 				break;
 
 			case manage_id::sequence:
@@ -144,14 +146,19 @@ SocketState Connection::send(Packet& packet, bool block)
 		}
 	} while (id != manage_id::eop);
 
+	// ReSharper disable once CppInitializedValueIsAlwaysRewritten
+	bool should_send = false;
+
 	sequence_t outbound_sequence;
 
-	if (type == reliable_t::none)
+	if (reliable_type == reliable_t::none)
 	{
 		if (sequence_offset != -1)
 		{
 			throw std::runtime_error("sequence specified in non-sequenced packet");
 		}
+
+		should_send = true;
 	}
 	else
 	{
@@ -162,29 +169,35 @@ SocketState Connection::send(Packet& packet, bool block)
 
 		packet.seek(SeekCursor::write, SeekType::from_start, sequence_offset);
 
-		switch (type)  // NOLINT(clang-diagnostic-switch-enum)
+		switch (reliable_type)  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case reliable_t::take_newest:
-				outbound_sequence = ++faf_out;
+				should_send = true;
+				outbound_sequence = ++faf_out_;
 				packet << outbound_sequence;
 				break;
 
 			case reliable_t::ack_any:
-				outbound_sequence = ++uid_out;
+				should_send = true;
+				outbound_sequence = ++uid_out_;
 				packet << outbound_sequence;
-				uids_out.emplace(outbound_sequence, Store(outbound_sequence, packet));
+				uids_out_.emplace(outbound_sequence, Store(outbound_sequence, packet));
 				break;
 
 			case reliable_t::ack_newest:
-				outbound_sequence = ++acknew_out;
+				should_send = true;
+				outbound_sequence = ++acknew_out_;
 				packet << outbound_sequence;
-				acknew_data = std::make_unique<Store>(outbound_sequence, packet);
+				acknew_data_ = std::make_unique<Store>(outbound_sequence, packet);
 				break;
 
 			case reliable_t::ack_ordered:
-				outbound_sequence = ++seq_out;
+				// only send immediately if there are no other
+				// ordered packets waiting to be ack'd.
+				should_send = ordered_out_.empty();
+				outbound_sequence = ++seq_out_;
 				packet << outbound_sequence;
-				ordered_out.emplace_back(outbound_sequence, packet);
+				ordered_out_.emplace_back(outbound_sequence, packet);
 				break;
 
 			default:
@@ -192,17 +205,40 @@ SocketState Connection::send(Packet& packet, bool block)
 		}
 	}
 
-	SocketState result = socket->send_to(packet, remote_address_);
+	SocketState result = SocketState::in_progress;
+
+	if (should_send)
+	{
+		result = socket_->send_to(packet, remote_address_);
+	}
 
 	packet.seek(SeekCursor::read, SeekType::from_start, read_pos);
 	packet.seek(SeekCursor::write, SeekType::from_start, write_pos);
 
-	if (!block || result != SocketState::done)
+	if (!block || result == SocketState::error || result == SocketState::closed)
 	{
 		return result;
 	}
 
-	switch (type)
+	auto do_garbage = [&]() -> bool
+	{
+		update_outbound();
+		result = parent_->receive(false, 1);
+
+		if (result == SocketState::error)
+		{
+			return false;
+		}
+
+		if (result == SocketState::in_progress)
+		{
+			std::this_thread::sleep_for(1ms);
+		}
+
+		return true;
+	};
+
+	switch (reliable_type)
 	{
 		case reliable_t::none:
 		case reliable_t::take_newest:
@@ -210,32 +246,24 @@ SocketState Connection::send(Packet& packet, bool block)
 
 		case reliable_t::ack_any:
 		{
-			while (uids_out.find(outbound_sequence) != uids_out.end())
+			while (uids_out_.contains(outbound_sequence))
 			{
-				result = parent->receive(true/*, 1*/);
-
-				if (result == SocketState::error)
+				if (!do_garbage())
 				{
 					return result;
 				}
-
-				update();
 			}
 			break;
 		}
 
 		case reliable_t::ack_newest:
 		{
-			while (acknew_data != nullptr)
+			while (acknew_data_ != nullptr)
 			{
-				result = parent->receive(true/*, 1*/);
-
-				if (result == SocketState::error)
+				if (!do_garbage())
 				{
 					return result;
 				}
-
-				update();
 			}
 
 			break;
@@ -243,17 +271,13 @@ SocketState Connection::send(Packet& packet, bool block)
 
 		case reliable_t::ack_ordered:
 		{
-			while (std::ranges::find_if(ordered_out,
-			                            [&](const Store& s) { return s.sequence == outbound_sequence; }) != ordered_out.end())
+			while (std::ranges::find_if(ordered_out_,
+			                            [&](const Store& s) { return s.sequence == outbound_sequence; }) != ordered_out_.end())
 			{
-				result = parent->receive(true/*, 1*/);
-
-				if (result == SocketState::error)
+				if (!do_garbage())
 				{
 					return result;
 				}
-
-				update();
 			}
 			break;
 		}
@@ -277,6 +301,7 @@ SocketState Connection::store_inbound(Packet& packet)
 	reliable_t reliable_type = reliable_t::none;
 	manage_id id = manage_id::eop;
 	bool should_disconnect = false;
+	bool should_store = true;
 
 	sequence_t packet_sequence;
 
@@ -307,10 +332,11 @@ SocketState Connection::store_inbound(Packet& packet)
 					Packet p;
 					p << manage_id::connected << manage_id::eop;
 
-					socket->send_to(p, remote_address_);
+					socket_->send_to(p, remote_address_);
 
 					id = manage_id::eop;
 					result = SocketState::in_progress;
+					should_store = false;
 				}
 
 				break;
@@ -335,6 +361,8 @@ SocketState Connection::store_inbound(Packet& packet)
 
 			case manage_id::ack:
 			{
+				should_store = false;
+
 				reliable_t type = reliable_t::none;
 				sequence_t sequence;
 
@@ -356,7 +384,7 @@ SocketState Connection::store_inbound(Packet& packet)
 			Packet p;
 
 			p << manage_id::ack << reliable_type << packet_sequence << manage_id::eop;
-			socket->send_to(p, remote_address_);
+			socket_->send_to(p, remote_address_);
 		}
 
 		if (handled(reliable_type, packet_sequence) && !should_disconnect)
@@ -370,9 +398,9 @@ SocketState Connection::store_inbound(Packet& packet)
 		disconnect_internal();
 		result = SocketState::closed;
 	}
-	else
+	else if (should_store)
 	{
-		inbound.emplace_back(std::move(packet));
+		inbound_.emplace_back(std::move(packet));
 	}
 
 	return result;
@@ -386,49 +414,49 @@ bool Connection::handled(reliable_t type, sequence_t sequence)
 			return false;
 
 		case reliable_t::take_newest:
-			if (sequence <= faf_in)
+			if (sequence <= faf_in_)
 			{
 				return true;
 			}
 
-			faf_in = sequence;
+			faf_in_ = sequence;
 			return false;
 
 		case reliable_t::ack_any:
 		{
-			const auto it = uids_in.find(sequence);
+			const auto it = uids_in_.find(sequence);
 
-			if (it != uids_in.end())
+			if (it != uids_in_.end())
 			{
 				it->second = clock::now();
 				return true;
 			}
 
-			uids_in[sequence] = clock::now();
+			uids_in_[sequence] = clock::now();
 			return false;
 		}
 
 		case reliable_t::ack_newest:
-			if (sequence <= ack_newest_in)
+			if (sequence <= ack_newest_in_)
 			{
 				return true;
 			}
 
-			ack_newest_in = sequence;
+			ack_newest_in_ = sequence;
 			return false;
 
 		case reliable_t::ack_ordered:
 		{
 			// FIXME: what if ordered packets are sent faster than they can be pruned? sequence IDs will overlap when the data is actually unique!
-			const auto it = ordered_in.find(sequence);
+			const auto it = ordered_in_.find(sequence);
 
-			if (it != ordered_in.end())
+			if (it != ordered_in_.end())
 			{
 				it->second = clock::now();
 				return true;
 			}
 
-			ordered_in[sequence] = clock::now();
+			ordered_in_[sequence] = clock::now();
 			return false;
 		}
 
@@ -439,20 +467,20 @@ bool Connection::handled(reliable_t type, sequence_t sequence)
 
 void Connection::disconnect_internal()
 {
-	inbound.clear();
-	ordered_out.clear();
-	uids_out.clear();
-	ordered_in.clear();
-	uids_in.clear();
+	inbound_.clear();
+	ordered_out_.clear();
+	uids_out_.clear();
+	ordered_in_.clear();
+	uids_in_.clear();
 
-	acknew_data = nullptr;
+	acknew_data_ = nullptr;
 
 	is_connected_ = false;
 }
 
-void Connection::remove_outbound(reliable_t type, sequence_t sequence)
+void Connection::remove_outbound(reliable_t reliable_type, sequence_t sequence)
 {
-	switch (type)
+	switch (reliable_type)
 	{
 		case reliable_t::none:
 			throw;
@@ -462,34 +490,36 @@ void Connection::remove_outbound(reliable_t type, sequence_t sequence)
 
 		case reliable_t::ack_any:
 		{
-			const auto it = uids_out.find(sequence);
-			if (it != uids_out.end())
+			const auto it = uids_out_.find(sequence);
+
+			if (it != uids_out_.end())
 			{
 				add_rtt_point(it->second.creation_time());
-				uids_out.erase(it);
+				uids_out_.erase(it);
 			}
+
 			break;
 		}
 
 		case reliable_t::ack_newest:
-			if (acknew_out == sequence && acknew_data != nullptr)
+			if (acknew_out_ == sequence && acknew_data_ != nullptr)
 			{
-				add_rtt_point(acknew_data->creation_time());
-				acknew_data = nullptr;
+				add_rtt_point(acknew_data_->creation_time());
+				acknew_data_ = nullptr;
 			}
 			break;
 
 		case reliable_t::ack_ordered:
 		{
-			const auto it = std::ranges::find_if(ordered_out, [sequence](const Store& s)
+			const auto it = std::ranges::find_if(ordered_out_, [sequence](const Store& s)
 			{
 				return s.sequence == sequence;
 			});
 
-			if (it != ordered_out.end())
+			if (it != ordered_out_.end())
 			{
 				add_rtt_point(it->creation_time());
-				ordered_out.erase(it);
+				ordered_out_.erase(it);
 			}
 
 			break;
@@ -504,11 +534,11 @@ void Connection::prune_inbound_ids()
 {
 	const auto now = clock::now();
 
-	for (auto it = ordered_in.begin(); it != ordered_in.end();)
+	for (auto it = ordered_in_.begin(); it != ordered_in_.end();)
 	{
 		if (now - it->second >= age_threshold)
 		{
-			it = ordered_in.erase(it);
+			it = ordered_in_.erase(it);
 		}
 		else
 		{
@@ -516,11 +546,11 @@ void Connection::prune_inbound_ids()
 		}
 	}
 
-	for (auto it = uids_in.begin(); it != uids_in.end();)
+	for (auto it = uids_in_.begin(); it != uids_in_.end();)
 	{
 		if (now - it->second >= age_threshold)
 		{
-			it = uids_in.erase(it);
+			it = uids_in_.erase(it);
 		}
 		else
 		{
@@ -531,73 +561,73 @@ void Connection::prune_inbound_ids()
 
 Connection::clock::duration Connection::round_trip_time()
 {
-	if (rtt_invalid)
+	if (rtt_invalid_)
 	{
 		clock::duration::rep duration {};
 
-		for (auto& point : rtt_points)
+		for (auto& point : rtt_points_)
 		{
 			duration += point.count();
 		}
 
-		duration /= rtt_points.size();
-		current_rtt = clock::duration(duration);
-		rtt_invalid = false;
+		duration /= rtt_points_.size();
+		current_rtt_ = clock::duration(duration);
+		rtt_invalid_ = false;
 	}
 
-	return current_rtt;
+	return current_rtt_;
 }
 
-void Connection::update()
+void Connection::update_outbound()
 {
 	prune_inbound_ids();
 
 	const clock::duration rtt = round_trip_time();
 
-	if (!ordered_out.empty())
+	if (!ordered_out_.empty())
 	{
-		auto& store = ordered_out.front();
+		auto& store = ordered_out_.front();
 
 		if (store.should_send(rtt))
 		{
 			add_rtt_point(store.creation_time());
-			socket->send_to(store.packet, remote_address_);
+			socket_->send_to(store.packet, remote_address_);
 			store.reset_activity();
 		}
 	}
 
-	for (auto& pair : uids_out)
+	for (auto& pair : uids_out_)
 	{
 		auto& store = pair.second;
 
 		if (store.should_send(rtt))
 		{
 			add_rtt_point(store.creation_time());
-			socket->send_to(store.packet, remote_address_);
+			socket_->send_to(store.packet, remote_address_);
 			store.reset_activity();
 		}
 	}
 
-	if (acknew_data != nullptr)
+	if (acknew_data_ != nullptr)
 	{
-		if (acknew_data->should_send(rtt))
+		if (acknew_data_->should_send(rtt))
 		{
-			add_rtt_point(acknew_data->creation_time());
-			socket->send_to(acknew_data->packet, remote_address_);
-			acknew_data->reset_activity();
+			add_rtt_point(acknew_data_->creation_time());
+			socket_->send_to(acknew_data_->packet, remote_address_);
+			acknew_data_->reset_activity();
 		}
 	}
 }
 
 bool Connection::pop(sws::Packet* out_packet)
 {
-	if (inbound.empty())
+	if (inbound_.empty())
 	{
 		return false;
 	}
 
-	auto packet = std::move(inbound.front());
-	inbound.pop_front();
+	auto packet = std::move(inbound_.front());
+	inbound_.pop_front();
 
 	if (out_packet)
 	{
@@ -627,14 +657,14 @@ void Connection::disconnect()
 	Packet packet;
 	packet << manage_id::disconnected << manage_id::eop;
 
-	socket->send_to(packet, remote_address_);
+	socket_->send_to(packet, remote_address_);
 
 	disconnect_internal();
 }
 
 void Connection::add_rtt_point(const clock::time_point& point)
 {
-	rtt_points[rtt_i++] = clock::now() - point;
-	rtt_i %= rtt_points.size();
-	rtt_invalid = true;
+	rtt_points_[rtt_i_++] = clock::now() - point;
+	rtt_i_ %= rtt_points_.size();
+	rtt_invalid_ = true;
 }
