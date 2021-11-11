@@ -576,6 +576,7 @@ void PacketBroker::disconnect()
 	connection_manager_->disconnect();
 	connection_nodes_.clear();
 	node_connections_.clear();
+	keep_alive.clear();
 }
 
 std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const
@@ -679,6 +680,7 @@ node_t PacketBroker::get_free_node() const
 
 	node_t last_node = -1;
 
+	// FIXME: this might actually be busted when there's only one connection
 	for (const auto& pair : node_connections_)
 	{
 		const node_t node = pair.first;

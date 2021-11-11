@@ -35,10 +35,10 @@ namespace nethax
 		N_Settings,         // Used for synchronizing settings
 		N_Connected,        // Connection setup successful
 		N_Ready,            // Client is ready at current sync block
-		N_Disconnect,       // Request disconnect
+		N_Disconnect,       // Request disconnect. TODO: Let networking subsystem handle this? (N_Disconnect - but notifying other players...?)
 		N_SetPlayerNumber,  // Send a player number change
 		N_PlayerNumber,     // The player number this message came from
-		N_Node,             // The node number this message came from. TODO: Let networking subsystem handle this?
+		N_Node,             // The node number this message came from. TODO: Let networking subsystem handle this? (N_Node)
 
 		N_END,   // Marker: End of Networking messages
 		I_START, // Marker: Start of input messages
