@@ -9,9 +9,10 @@
 
 using namespace nethax;
 
-void nethax::write_netstat_csv(std::ofstream& file, std::map<MessageID, MessageStat> map)
+void nethax::write_netstat_csv(std::ofstream& file, const std::map<MessageID, MessageStat>& map)
 {
 	file << "Message ID,TCP count,UDP count,Total count,Size,TCP size,UDP size,Total size" << std::endl;
+
 	for (const auto& i : map)
 	{
 		const MessageStat& stat = i.second;

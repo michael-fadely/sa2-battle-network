@@ -119,7 +119,7 @@ namespace nethax
 
 	const extern std::unordered_map<MessageID, const char*> MESSAGE_ID_STRING;
 
-	void write_netstat_csv(std::ofstream& file, std::map<MessageID, MessageStat> map);
+	void write_netstat_csv(std::ofstream& file, const std::map<MessageID, MessageStat>& map);
 }
 
 sws::Packet& operator <<(sws::Packet& packet, const nethax::MessageID& data);
