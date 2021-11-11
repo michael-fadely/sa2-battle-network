@@ -99,7 +99,7 @@ public:
 	// FIXME: networking holdover
 	[[nodiscard]] size_t connection_count() const;
 
-	void disconnect() const;
+	void disconnect();
 
 	const std::chrono::system_clock::duration connection_timeout;
 

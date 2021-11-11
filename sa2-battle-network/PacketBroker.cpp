@@ -571,9 +571,11 @@ size_t PacketBroker::connection_count() const
 	return connection_manager_->connection_count();
 }
 
-void PacketBroker::disconnect() const
+void PacketBroker::disconnect()
 {
 	connection_manager_->disconnect();
+	connection_nodes_.clear();
+	node_connections_.clear();
 }
 
 std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const

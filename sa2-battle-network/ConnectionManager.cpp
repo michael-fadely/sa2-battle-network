@@ -208,11 +208,20 @@ void ConnectionManager::disconnect()
 		return;
 	}
 
-	const std::unordered_map<Address, std::shared_ptr<Connection>> connections = std::move(connections_);
+	std::unordered_map<Address, std::shared_ptr<Connection>> connections = std::move(connections_);
 
 	for (auto& [address, connection] : connections)
 	{
 		connection->disconnect();
+	}
+
+	connections.clear();
+
+	if (is_bound_)
+	{
+		socket_->close();
+		socket_ = std::make_shared<UdpSocket>(false);
+		is_bound_ = false;
 	}
 }
 
