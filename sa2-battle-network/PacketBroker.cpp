@@ -767,7 +767,7 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 {
 	if ((system_clock::now() - sent_keep_alive) >= KEEPALIVE_INTERVAL)
 	{
-		//request(MessageID::S_KeepAlive, udp);
+		request(MessageID::S_KeepAlive, udp);
 	}
 
 	// TODO: check if spectator
