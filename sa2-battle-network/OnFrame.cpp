@@ -2,7 +2,6 @@
 
 #include <SA2ModLoader.h>
 #include "globals.h"
-#include "CommonEnums.h"
 
 using namespace nethax;
 
@@ -13,22 +12,22 @@ extern "C" __declspec(dllexport) void OnFrame()
 		return;
 	}
 
-	// FIXME: Bad variable name
-	const bool this_thing = globals::broker->is_server() &&
-	                        CurrentMenu == Menu::battle &&
-	                        CurrentSubMenu > SubMenu2P::i_start;
+	const bool can_connect = Program::can_connect();
 
-	if (!globals::is_connected() || this_thing)
+	const bool server_can_accept_more = globals::broker->is_server() &&
+	                                    can_connect;
+
+	if (!globals::is_connected() || server_can_accept_more)
 	{
 		globals::program->connect();
 
-		if (!this_thing)
+		if (!server_can_accept_more)
 		{
 			return;
 		}
 	}
 
-	if (!Program::can_connect())
+	if (!globals::is_connected() && !can_connect)
 	{
 		globals::program->disconnect();
 		return;

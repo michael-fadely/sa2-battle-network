@@ -79,8 +79,8 @@ Program::Program(const Settings& settings, const bool is_server, const sws::Addr
 
 bool Program::can_connect()
 {
-	return CurrentMenu >= Menu::battle &&
-	       (CurrentSubMenu > SubMenu2P::i_start || globals::is_connected());
+	return CurrentMenu == Menu::battle &&
+	       (CurrentSubMenu == SubMenu2P::s_start || CurrentSubMenu == SubMenu2P::s_ready);
 }
 
 bool Program::connect()
