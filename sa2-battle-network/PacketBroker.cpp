@@ -133,67 +133,26 @@ void PacketBroker::initialize()
 	udp_packet_size = udp_packet.work_size(); // HACK: attempting to reduce sent packets
 }
 
-sws::SocketState PacketBroker::listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
+void PacketBroker::add_client(std::shared_ptr<Connection> connection)
 {
-	if (!connection_manager_->is_bound())
+	is_server_ = true;
+
+	const node_t assigned_node = get_free_node();
+
+	if (assigned_node < 0)
 	{
-		PrintDebug("Hosting server on port %d...", address.port);
-		set_player_number(0);
-		is_server_ = true;
+		throw std::runtime_error("unable to assign node to connection!");
 	}
 
-	if (connection_manager_->host(address) != sws::SocketState::done)
-	{
-		throw std::runtime_error("host failed");
-	}
-
-	sws::SocketState result;
-	std::shared_ptr<Connection> connection;
-
-	if ((result = connection_manager_->listen(&connection)) == sws::SocketState::done)
-	{
-		const node_t assigned_node = get_free_node();
-
-		if (assigned_node < 0)
-		{
-			return sws::SocketState::error;
-		}
-
-		connection_nodes_[connection.get()] = assigned_node;
-		node_connections_[assigned_node] = connection;
-
-		if (out_connection)
-		{
-			*out_connection = std::move(connection);
-		}
-	}
-
-	return result;
+	connection_nodes_[connection.get()] = assigned_node;
+	node_connections_[assigned_node] = std::move(connection);
 }
 
-sws::SocketState PacketBroker::connect(const sws::Address& address, std::shared_ptr<Connection>* out_connection)
+void PacketBroker::add_server(std::shared_ptr<Connection> connection)
 {
-	if (is_connected())
-	{
-		return sws::SocketState::done;
-	}
-
-	std::shared_ptr<Connection> connection;
-	const sws::SocketState result = connection_manager_->connect(address, &connection);
-
-	if (result == sws::SocketState::done)
-	{
-		constexpr node_t server_node = 0;
-		connection_nodes_[connection.get()] = server_node;
-		node_connections_[server_node] = connection;
-
-		if (out_connection)
-		{
-			*out_connection = std::move(connection);
-		}
-	}
-
-	return result;
+	constexpr node_t server_node = 0;
+	connection_nodes_[connection.get()] = server_node;
+	node_connections_[server_node] = std::move(connection);
 }
 
 void PacketBroker::receive_loop()
@@ -673,33 +632,33 @@ void PacketBroker::add_bytes_sent(size_t size)
 
 node_t PacketBroker::get_free_node() const
 {
+	node_t last_node = 1;
+
 	if (node_connections_.empty())
 	{
-		return 1;
+		return last_node;
 	}
 
-	node_t last_node = -1;
+	auto it = node_connections_.find(last_node);
 
-	// FIXME: this might actually be busted when there's only one connection
-	for (const auto& pair : node_connections_)
+	if (it != node_connections_.end())
 	{
-		const node_t node = pair.first;
+		++it;
 
-		if (last_node < 0)
+		while (it != node_connections_.end())
 		{
-			last_node = node;
-			continue;
+			if (it->first - last_node > 1)
+			{
+				break;
+			}
+
+			last_node = it->first;
 		}
 
-		if (node - last_node > 1)
-		{
-			return node + static_cast<node_t>(1);
-		}
-
-		last_node = node;
+		++last_node;
 	}
 
-	return -1;
+	return last_node;
 }
 
 bool PacketBroker::request(MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes)

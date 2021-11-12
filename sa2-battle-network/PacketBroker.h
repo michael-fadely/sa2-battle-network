@@ -26,8 +26,8 @@ public:
 
 	void initialize();
 
-	sws::SocketState listen(const sws::Address& address, std::shared_ptr<Connection>* out_connection);
-	sws::SocketState connect(const sws::Address& address, std::shared_ptr<Connection>* out_connection);
+	void add_client(std::shared_ptr<Connection> connection);
+	void add_server(std::shared_ptr<Connection> connection);
 
 	void receive_loop();
 

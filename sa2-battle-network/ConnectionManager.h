@@ -28,7 +28,7 @@ public:
 	sws::SocketState connect(const sws::Address& host_address, std::shared_ptr<Connection>* out_connection);
 	void disconnect();
 	void disconnect(const std::shared_ptr<Connection>& connection);
-	sws::SocketState receive(bool block = false, size_t count = 0);
+	sws::SocketState receive(bool block = false, size_t count = 0, bool skip_ack = true);
 
 	[[nodiscard]] bool is_bound() const;
 	[[nodiscard]] bool is_connected() const;

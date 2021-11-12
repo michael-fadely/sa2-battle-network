@@ -234,11 +234,10 @@ void ConnectionManager::disconnect(const std::shared_ptr<Connection>& connection
 	}
 }
 
-SocketState ConnectionManager::receive(bool block, const size_t count)
+SocketState ConnectionManager::receive(bool block, const size_t count, bool skip_ack)
 {
 	size_t received = 0;
 
-	inbound_packet_.clear();
 	Address remote_address;
 
 	SocketState result = SocketState::done;
@@ -280,8 +279,11 @@ SocketState ConnectionManager::receive(bool block, const size_t count)
 			}
 		}
 
-		// TODO: decouple from pure ACKs
-		++received;
+		if (result != SocketState::in_progress || !skip_ack)
+		{
+			++received;
+		}
+
 		if (count && received >= count)
 		{
 			break;

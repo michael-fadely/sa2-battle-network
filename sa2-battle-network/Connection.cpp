@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <algorithm>
 #include <chrono>
 #include <thread>
 #include <utility>
@@ -62,10 +63,7 @@ Connection::Connection(ConnectionManager* parent, std::shared_ptr<UdpSocket> soc
 	  remote_address_(std::move(remote_address)),
 	  is_connected_(true)
 {
-	for (auto& point : rtt_points_)
-	{
-		point = 1s;
-	}
+	std::ranges::fill(rtt_points_, 1s);
 }
 
 Connection::Connection(Connection&& other) noexcept
@@ -223,7 +221,7 @@ SocketState Connection::send(Packet& packet, bool block)
 	auto do_garbage = [&]() -> bool
 	{
 		update_outbound();
-		result = parent_->receive(false, 1);
+		result = parent_->receive(false, 1, false);
 
 		if (result == SocketState::error)
 		{

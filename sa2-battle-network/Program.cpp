@@ -187,9 +187,23 @@ Program::ConnectStatus Program::start_server()
 	sws::Packet packet;
 	sws::SocketState status;
 
+	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
 	std::shared_ptr<Connection> connection;
 
-	if ((status = globals::broker->listen(server_address_, &connection)) != sws::SocketState::done)
+	if (!manager->is_bound())
+	{
+		PrintDebug("Hosting server on port %d...", server_address_.port);
+
+		if ((status = manager->host(server_address_)) != sws::SocketState::done)
+		{
+			PrintDebug("Host failed!");
+			return ConnectStatus::error;
+		}
+
+		is_server_ = true;
+	}
+
+	if ((status = manager->listen(&connection)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
@@ -199,17 +213,12 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::listening;
 	}
 
-	connection->update_outbound();
-	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
-
 	if ((status = manager->receive(true)) != sws::SocketState::done)
 	{
 		manager->disconnect(connection);
 		PrintDebug(">> An error occurred while waiting for version number.");
 		return ConnectStatus::error;
 	}
-
-	connection->update_outbound();
 
 	if (!connection->pop(&packet))
 	{
@@ -294,18 +303,9 @@ Program::ConnectStatus Program::start_server()
 
 	packet.clear();
 	reliable::reserve(packet, reliable::reliable_t::ack_any);
-	packet << MessageID::N_VersionOK;
-
-	if ((status = connection->send(packet, true)) != sws::SocketState::done)
-	{
-		PrintDebug(">> An error occurred while confirming version numbers with the client.");
-		manager->disconnect(connection);
-		return ConnectStatus::error;
-	}
-
-	packet.clear();
-	reliable::reserve(packet, reliable::reliable_t::ack_any);
-	packet << MessageID::N_Settings << local_settings_
+	packet
+		<< MessageID::N_VersionOK
+		<< MessageID::N_Settings << local_settings_
 		<< MessageID::N_SetPlayerNumber << static_cast<pnum_t>(manager->connection_count())
 		<< MessageID::N_Connected;
 
@@ -316,7 +316,8 @@ Program::ConnectStatus Program::start_server()
 		return ConnectStatus::error;
 	}
 
-	globals::broker->set_player_number(0);
+	player_num_ = 0;
+	globals::broker->add_client(std::move(connection));
 
 	PrintDebug(">> Connected!");
 	return ConnectStatus::success;
@@ -324,19 +325,21 @@ Program::ConnectStatus Program::start_server()
 
 Program::ConnectStatus Program::start_client()
 {
-	if (!globals::broker->is_bound())
+	sws::SocketState status;
+	std::shared_ptr<Connection> connection;
+	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
+
+	if (!manager->is_bound())
 	{
 		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
 	}
 
-	sws::SocketState status;
-	std::shared_ptr<Connection> connection;
-
-	if ((status = globals::broker->connect(server_address_, &connection)) != sws::SocketState::done)
+	if ((status = manager->connect(server_address_, &connection)) != sws::SocketState::done)
 	{
 		if (status == sws::SocketState::error)
 		{
 			PrintDebug("<< A connection error has occurred.");
+			return ConnectStatus::error;
 		}
 
 		return ConnectStatus::listening;
@@ -350,8 +353,11 @@ Program::ConnectStatus Program::start_client()
 		packet << MessageID::N_Password << local_settings_.password;
 	}
 
-	globals::broker->send(packet, true);
-	const std::shared_ptr<ConnectionManager> manager = globals::broker->connection_manager();
+	if ((status = connection->send(packet, true)) != sws::SocketState::done)
+	{
+		PrintDebug("<< Error sending request to server.");
+		return ConnectStatus::error;
+	}
 
 	packet.clear();
 
@@ -360,8 +366,6 @@ Program::ConnectStatus Program::start_client()
 
 	do
 	{
-		connection->update_outbound();
-
 		if ((status = manager->receive(true)) != sws::SocketState::done)
 		{
 			PrintDebug(">> An error occurred while confirming the connection with the server.");
@@ -424,6 +428,8 @@ Program::ConnectStatus Program::start_client()
 			}
 		}
 	} while (id != MessageID::N_Connected);
+
+	globals::broker->add_server(std::move(connection));
 
 	return ConnectStatus::success;
 }
