@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+// TODO: Replace with GameStates
 struct GameState
 {
 	enum GameStates : short
