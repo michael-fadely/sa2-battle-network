@@ -675,7 +675,7 @@ bool PacketBroker::request(MessageID type, PacketEx& packet, bool allow_dupes)
 {
 	if (type >= MessageID::N_Disconnect && packet.add_type(type, allow_dupes))
 	{
-		return add_packet(type, packet);
+		return add_to_packet(type, packet);
 	}
 
 	return false;
@@ -783,7 +783,6 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		{
 			if (ControllerPointers[player_num]->on & Buttons_Y && ControllerPointers[player_num]->press & Buttons_Up)
 			{
-				// Teleport to recvPlayer
 				PrintDebug("<> Teleporting to other player...");
 
 				auto n = static_cast<int>(player_num != 1);
@@ -797,9 +796,9 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			}
 		}
 
-		char character_id = MainCharacter[player_num]->Data2.Character->CharID2;
+		const char character_id = MainCharacter[player_num]->Data2.Character->CharID2;
 
-		bool send_spin_timer =
+		const bool have_spin_timer =
 			character_id == Characters_Sonic ||
 			character_id == Characters_Shadow ||
 			character_id == Characters_Amy ||
@@ -811,8 +810,8 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		}
 
 		// TODO: Make less spammy
-		if (send_spin_timer && net_player[player_num].sonic.SpindashCounter
-		    != reinterpret_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
+		if (have_spin_timer && net_player[player_num].sonic.SpindashCounter
+		    != static_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
 		{
 			request(MessageID::P_SpinTimer, tcp, udp);
 		}
@@ -832,7 +831,7 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			request(MessageID::P_Animation, tcp, udp);
 			request(MessageID::P_Position, tcp, udp);
 
-			if (send_spin_timer)
+			if (have_spin_timer)
 			{
 				request(MessageID::P_SpinTimer, tcp, udp);
 			}
@@ -937,13 +936,13 @@ void PacketBroker::send_menu(PacketEx& packet)
 				}
 
 				// I hate this so much
-				if (first_menu_entry
-				    || local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume
-				    || local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume
-				    || local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume
-				    || local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume
-				    || local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume
-				    || local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
+				if (first_menu_entry ||
+				    local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume ||
+				    local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume ||
+				    local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume ||
+				    local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume ||
+				    local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume ||
+				    local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
 				{
 					request(MessageID::M_CostumeSelection, packet);
 				}
@@ -951,17 +950,19 @@ void PacketBroker::send_menu(PacketEx& packet)
 				break;
 
 			case SubMenu2P::s_stagesel:
-				if (first_menu_entry
-				    || local.menu.StageSelection2P[0] != StageSelection2P[0] || local.menu.StageSelection2P[1] != StageSelection2P[1]
-				    || local.menu.BattleOptionsButton != BattleOptionsButton)
+				if (first_menu_entry ||
+				    local.menu.StageSelection2P[0] != StageSelection2P[0] ||
+				    local.menu.StageSelection2P[1] != StageSelection2P[1] ||
+				    local.menu.BattleOptionsButton != BattleOptionsButton)
 				{
 					request(MessageID::M_StageSelection, packet);
 				}
 				break;
 
 			case SubMenu2P::s_battleopt:
-				if (first_menu_entry || local.menu.BattleOptionsSelection != BattleOptionsSelection
-				    || local.menu.BattleOptionsBack != BattleOptionsBack)
+				if (first_menu_entry ||
+				    local.menu.BattleOptionsSelection != BattleOptionsSelection ||
+				    local.menu.BattleOptionsBack != BattleOptionsBack)
 				{
 					request(MessageID::M_BattleConfigSelection, packet);
 				}
@@ -971,7 +972,7 @@ void PacketBroker::send_menu(PacketEx& packet)
 	}
 }
 
-bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
+bool PacketBroker::add_to_packet(MessageID packet_type, PacketEx& packet)
 {
 	switch (packet_type)
 	{
@@ -1149,14 +1150,14 @@ bool PacketBroker::add_packet(MessageID packet_type, PacketEx& packet)
 
 void PacketBroker::disconnect(node_t node)
 {
-	auto it = node_connections_.find(node);
+	const auto it = node_connections_.find(node);
 
 	if (it == node_connections_.end())
 	{
 		return;
 	}
 
-	std::shared_ptr<Connection> connection = std::move(it->second);
+	const std::shared_ptr<Connection> connection = std::move(it->second);
 	node_connections_.erase(it);
 	connection_nodes_.erase(connection.get());
 }
@@ -1225,6 +1226,7 @@ bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& pack
 {
 	if (round_started() && pnum != player_num)
 	{
+		// TODO: remove
 		write_player = (type > MessageID::P_START && type < MessageID::P_END);
 
 		switch (type)

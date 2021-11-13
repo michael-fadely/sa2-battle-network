@@ -141,8 +141,8 @@ private:
 	bool request(nethax::MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes = false);
 
 	// Called by RequestPacket
-	// Adds the packet template for packetType to packet
-	bool add_packet(nethax::MessageID packet_type, PacketEx& packet);
+	// Adds the packet template for packet_type to packet
+	bool add_to_packet(nethax::MessageID packet_type, PacketEx& packet);
 
 	void disconnect(node_t node);
 	void read(sws::Packet& packet, node_t node);
