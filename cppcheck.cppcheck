@@ -4,9 +4,8 @@
         <dir name="sa2-mod-loader/SA2ModLoader/include/"/>
     </includedir>
     <exclude>
-        <path name="SFML/"/>
+        <path name="simple-winsock-wrapper/"/>
         <path name="sa2-mod-loader/"/>
-        <path name="stuff/"/>
     </exclude>
     <suppressions>
         <suppression>cstyleCast</suppression>
