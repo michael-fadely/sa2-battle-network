@@ -9,7 +9,6 @@
 #endif
 
 #include <cmath> // for abs
-#include <fstream>
 #include <thread>
 
 #include "globals.h"
@@ -376,14 +375,14 @@ bool PacketBroker::connection_timed_out() const
 #endif
 }
 
-bool PacketBroker::wait_for_players(MessageID id)
+bool PacketBroker::wait_for_players(MessageID message_id)
 {
-	auto it = wait_requests.find(id);
+	auto it = wait_requests.find(message_id);
 
 	if (it == wait_requests.end())
 	{
 		WaitRequest a {};
-		it = wait_requests.insert(it, std::make_pair(id, a));
+		it = wait_requests.insert(it, std::make_pair(message_id, a));
 	}
 
 	while (it->second.count < static_cast<pnum_t>(node_connections_.size()))
@@ -406,10 +405,10 @@ bool PacketBroker::wait_for_players(MessageID id)
 	return true;
 }
 
-void PacketBroker::send_ready(MessageID id)
+void PacketBroker::send_ready(MessageID message_id)
 {
 	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack_ordered);
-	add_ready(id, packet);
+	add_ready(message_id, packet);
 
 	for (auto& [node, connection] : node_connections_)
 	{
@@ -417,27 +416,27 @@ void PacketBroker::send_ready(MessageID id)
 	}
 }
 
-bool PacketBroker::send_ready_and_wait(MessageID id)
+bool PacketBroker::send_ready_and_wait(MessageID message_id)
 {
 	if (is_server_)
 	{
-		const bool result = wait_for_players(id);
+		const bool result = wait_for_players(message_id);
 
 		if (result)
 		{
-			send_ready(id);
+			send_ready(message_id);
 		}
 
 		return result;
 	}
 
-	send_ready(id);
-	return wait_for_players(id);
+	send_ready(message_id);
+	return wait_for_players(message_id);
 }
 
-void PacketBroker::add_ready(MessageID id, sws::Packet& packet)
+void PacketBroker::add_ready(MessageID message_id, sws::Packet& packet)
 {
-	packet << MessageID::N_Ready << id;
+	packet << MessageID::N_Ready << message_id;
 }
 
 void PacketBroker::register_reader(nethax::MessageID message_id, const MessageReader& reader)
@@ -497,25 +496,24 @@ std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const
 	return connection_manager_;
 }
 
-bool PacketBroker::request(MessageID type, PacketChannel protocol, bool allow_dupes)
+bool PacketBroker::request(MessageID message_id, PacketChannel protocol, bool allow_dupes)
 {
-	return request(type,
+	return request(message_id,
 	               protocol == PacketChannel::reliable ? tcp_packet : udp_packet,
 	               protocol != PacketChannel::reliable ? tcp_packet : udp_packet,
 	               allow_dupes);
 }
 
-bool PacketBroker::append(MessageID type, PacketChannel protocol, sws::Packet const* packet, bool allow_dupes)
+bool PacketBroker::append(MessageID message_id, PacketChannel protocol, sws::Packet const* packet, bool allow_dupes)
 {
 	auto& dest = protocol == PacketChannel::reliable ? tcp_packet : udp_packet;
-	const auto size = packet == nullptr ? 0 : packet->real_size();
 
-	if (!allow_dupes && dest.contains(type))
+	if (!allow_dupes && dest.contains(message_id))
 	{
 		return false;
 	}
 
-	if (!dest.add_type(type, allow_dupes))
+	if (!dest.add_type(message_id, allow_dupes))
 	{
 		return false;
 	}
@@ -566,21 +564,21 @@ node_t PacketBroker::get_free_node() const
 	return last_node;
 }
 
-bool PacketBroker::request(MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes)
+bool PacketBroker::request(MessageID message_id, PacketEx& packet, const PacketEx& exclude, bool allow_dupes)
 {
-	if (allow_dupes || !exclude.contains(type))
+	if (allow_dupes || !exclude.contains(message_id))
 	{
-		return request(type, packet);
+		return request(message_id, packet);
 	}
 
 	return false;
 }
 
-bool PacketBroker::request(MessageID type, PacketEx& packet, bool allow_dupes)
+bool PacketBroker::request(MessageID message_id, PacketEx& packet, bool allow_dupes)
 {
-	if (type >= MessageID::N_Disconnect && packet.add_type(type, allow_dupes))
+	if (message_id >= MessageID::N_Disconnect && packet.add_type(message_id, allow_dupes))
 	{
-		return add_to_packet(type, packet);
+		return add_to_packet(message_id, packet);
 	}
 
 	return false;
@@ -878,9 +876,9 @@ void PacketBroker::send_menu(PacketEx& packet)
 	}
 }
 
-bool PacketBroker::add_to_packet(MessageID packet_type, PacketEx& packet)
+bool PacketBroker::add_to_packet(MessageID message_id, PacketEx& packet)
 {
-	switch (packet_type)
+	switch (message_id)
 	{
 		default:
 			return false;
@@ -1071,14 +1069,14 @@ void PacketBroker::disconnect(node_t node)
 #pragma region Receive
 
 // TODO: remove from this class
-bool PacketBroker::receive_system(MessageID type, pnum_t pnum, sws::Packet& packet)
+bool PacketBroker::receive_system(MessageID message_id, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started())
 	{
 		return false;
 	}
 
-	switch (type)
+	switch (message_id)
 	{
 		default:
 			return false;
@@ -1127,7 +1125,7 @@ bool PacketBroker::receive_system(MessageID type, pnum_t pnum, sws::Packet& pack
 	return true;
 }
 
-bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& packet)
+bool PacketBroker::receive_player(MessageID message_id, pnum_t pnum, sws::Packet& packet)
 {
 	if (!round_started() || pnum == player_num)
 	{
@@ -1135,9 +1133,9 @@ bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& pack
 	}
 
 	// TODO: remove
-	write_player = (type > MessageID::P_START && type < MessageID::P_END);
+	write_player = (message_id > MessageID::P_START && message_id < MessageID::P_END);
 
-	switch (type)
+	switch (message_id)
 	{
 		default:
 			return false;
@@ -1201,14 +1199,14 @@ bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& pack
 	return write_player;
 }
 
-bool PacketBroker::receive_menu(MessageID type, pnum_t pnum, sws::Packet& packet)
+bool PacketBroker::receive_menu(MessageID message_id, pnum_t pnum, sws::Packet& packet)
 {
 	if (GameState != GameState::Inactive)
 	{
 		return false;
 	}
 
-	switch (type)
+	switch (message_id)
 	{
 		default:
 			return false;
@@ -1286,16 +1284,16 @@ bool PacketBroker::receive_menu(MessageID type, pnum_t pnum, sws::Packet& packet
 	return true;
 }
 
-bool PacketBroker::run_message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
+bool PacketBroker::run_message_reader(MessageID message_id, pnum_t pnum, sws::Packet& packet)
 {
-	const auto it = message_readers.find(type);
+	const auto it = message_readers.find(message_id);
 
 	if (it == message_readers.end())
 	{
 		return false;
 	}
 
-	return it->second(type, pnum, packet);
+	return it->second(message_id, pnum, packet);
 }
 
 #pragma endregion

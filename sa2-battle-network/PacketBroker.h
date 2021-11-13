@@ -34,32 +34,32 @@ public:
 
 	/**
 	 * \brief Requests the specified message type to be added to the outbound packets.
-	 * \param type The message type.
+	 * \param message_id The message type.
 	 * \param protocol The protocol.
 	 * \param allow_dupes If \c true, ignores duplicate types.
 	 * \return \c true if added to the outbound packets, \c false on failure (e.g already in outbound packets).
 	 */
-	bool request(nethax::MessageID type, nethax::PacketChannel protocol, bool allow_dupes = false);
+	bool request(nethax::MessageID message_id, nethax::PacketChannel protocol, bool allow_dupes = false);
 
 	/**
 	 * \brief Requests the specified message type to be added to the specified packet.
-	 * \param type The message type.
+	 * \param message_id The message type.
 	 * \param packet The packet to add the data to.
 	 * \param allow_dupes If \c true, ignores duplicate types.
 	 * \return \c true on success.
 	 */
-	bool request(nethax::MessageID type, PacketEx& packet, bool allow_dupes = false);
+	bool request(nethax::MessageID message_id, PacketEx& packet, bool allow_dupes = false);
 
 	/**
 	 * \brief Appends data to the outbound packets for this frame.
-	 * \param type The message type.
+	 * \param message_id The message type.
 	 * \param protocol The protocol.
 	 * \param packet The packet containing data to append to the mega packet.
 	 *  If \c nullptr, the message id will be added with no additional data.
 	 * \param allow_dupes If \c true, ignores duplicate types.
 	 * \return \c true on success.
 	 */
-	bool append(nethax::MessageID type, nethax::PacketChannel protocol, sws::Packet const* packet, bool allow_dupes = false);
+	bool append(nethax::MessageID message_id, nethax::PacketChannel protocol, sws::Packet const* packet, bool allow_dupes = false);
 
 	/**
 	 * \brief Finalizes this frame, sending queued packets.
@@ -77,10 +77,10 @@ public:
 	void send_menu();
 
 	[[nodiscard]] bool connection_timed_out() const;
-	bool wait_for_players(nethax::MessageID id);
-	void send_ready(nethax::MessageID id);
-	bool send_ready_and_wait(nethax::MessageID id);
-	void add_ready(nethax::MessageID id, sws::Packet& packet);
+	bool wait_for_players(nethax::MessageID message_id);
+	void send_ready(nethax::MessageID message_id);
+	bool send_ready_and_wait(nethax::MessageID message_id);
+	void add_ready(nethax::MessageID message_id, sws::Packet& packet);
 
 	void register_reader(nethax::MessageID message_id, const MessageReader& reader);
 	void register_writer(nethax::MessageID message_id, const MessageWriter& writer);
@@ -122,11 +122,11 @@ private:
 
 	[[nodiscard]] node_t get_free_node() const;
 
-	bool request(nethax::MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes = false);
+	bool request(nethax::MessageID message_id, PacketEx& packet, const PacketEx& exclude, bool allow_dupes = false);
 
 	// Called by RequestPacket
-	// Adds the packet template for packet_type to packet
-	bool add_to_packet(nethax::MessageID packet_type, PacketEx& packet);
+	// Adds the packet template for message_id to packet
+	bool add_to_packet(nethax::MessageID message_id, PacketEx& packet);
 
 	void disconnect(node_t node);
 	void read(sws::Packet& packet, node_t node);
@@ -138,11 +138,11 @@ private:
 	// Read and send Menu variables
 	void send_menu(PacketEx& packet);
 
-	bool receive_system(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
-	bool receive_player(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
-	bool receive_menu(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
+	bool receive_system(nethax::MessageID message_id, pnum_t pnum, sws::Packet& packet);
+	bool receive_player(nethax::MessageID message_id, pnum_t pnum, sws::Packet& packet);
+	bool receive_menu(nethax::MessageID message_id, pnum_t pnum, sws::Packet& packet);
 
-	bool run_message_reader(nethax::MessageID type, pnum_t pnum, sws::Packet& packet);
+	bool run_message_reader(nethax::MessageID message_id, pnum_t pnum, sws::Packet& packet);
 
 	bool is_server_ = false;
 
