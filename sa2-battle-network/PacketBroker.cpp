@@ -85,7 +85,6 @@ static const uint STATUS_MASK = ~(Status_HoldObject | Status_Unknown1 | Status_U
 
 PacketBroker::PacketBroker(uint timeout)
 	: connection_timeout(milliseconds(timeout)),
-	  netstat(false),
 	  tcp_packet(PacketChannel::reliable),
 	  udp_packet(PacketChannel::fire_and_forget)
 {
@@ -106,21 +105,7 @@ void PacketBroker::initialize()
 	keep_alive.clear();
 	wait_requests.clear();
 
-	for (auto& i : net_player)
-	{
-		i = {};
-	}
-
-	if (netstat)
-	{
-		send_stats.clear();
-		recv_stats.clear();
-
-		received_packets = 0;
-		received_bytes   = 0;
-		sent_packets     = 0;
-		sent_bytes       = 0;
-	}
+	net_player = {};
 
 	connection_manager_ = std::make_shared<ConnectionManager>();
 	connection_nodes_.clear();
@@ -230,11 +215,6 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 	node_t real_node = node;
 	pnum_t pnum = -1;
 
-	if (netstat)
-	{
-		add_bytes_received(packet.real_size());
-	}
-
 	while (!packet.end())
 	{
 		MessageID type = MessageID::None;
@@ -330,8 +310,6 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 				ushort length = 0;
 				packet >> length;
-
-				add_type_received(type, length, /* FIXME: channel */ false);
 
 				if (pnum >= 0 && pnum < 2)
 				{
@@ -459,31 +437,7 @@ bool PacketBroker::send_ready_and_wait(MessageID id)
 
 void PacketBroker::add_ready(MessageID id, sws::Packet& packet)
 {
-	add_type_sent(id, sizeof(MessageID), PacketChannel::reliable);
 	packet << MessageID::N_Ready << id;
-}
-
-void PacketBroker::toggle_netstat(bool value)
-{
-	netstat = value;
-}
-
-void PacketBroker::save_netstat() const
-{
-	if (!netstat)
-	{
-		return;
-	}
-
-	std::ofstream netstat_sent("netstat.sent.csv");
-	write_netstat_csv(netstat_sent, send_stats);
-	netstat_sent << "Total packets/bytes (including overhead): "
-		<< sent_packets << '/' << sent_bytes + 4 * sent_packets << std::endl;
-
-	std::ofstream netstat_recv("netstat.recv.csv");
-	write_netstat_csv(netstat_recv, recv_stats);
-	netstat_recv << "Total packets/bytes (including overhead): "
-		<< received_packets << '/' << received_bytes + 4 * received_packets << std::endl;
 }
 
 void PacketBroker::register_reader(nethax::MessageID message_id, const MessageReader& reader)
@@ -572,62 +526,13 @@ bool PacketBroker::append(MessageID type, PacketChannel protocol, sws::Packet co
 	}
 
 	dest.finalize();
-	add_type_sent(type, size, dest.channel);
 	return true;
-}
-
-inline void PacketBroker::add_type(MessageStat& stat, ushort size, bool is_safe)
-{
-	if (is_safe)
-	{
-		++stat.tcp_count;
-	}
-	else
-	{
-		++stat.udp_count;
-	}
-
-	stat.size = size;
-}
-
-void PacketBroker::add_type_received(MessageID id, size_t size, bool is_safe)
-{
-	if (netstat)
-	{
-		add_type(recv_stats[id], static_cast<ushort>(size), is_safe);
-	}
-}
-
-void PacketBroker::add_type_sent(MessageID id, size_t size, PacketChannel protocol)
-{
-	if (netstat)
-	{
-		add_type(send_stats[id], static_cast<ushort>(size), protocol == PacketChannel::reliable);
-	}
 }
 
 void PacketBroker::reset_packet(PacketEx& packet) const
 {
 	packet.clear();
 	packet << MessageID::N_PlayerNumber << player_num;
-}
-
-void PacketBroker::add_bytes_received(size_t size)
-{
-	if (size)
-	{
-		++received_packets;
-		received_bytes += size;
-	}
-}
-
-void PacketBroker::add_bytes_sent(size_t size)
-{
-	if (size)
-	{
-		++sent_packets;
-		sent_bytes += size;
-	}
 }
 
 node_t PacketBroker::get_free_node() const
@@ -698,11 +603,6 @@ void PacketBroker::finalize()
 
 void PacketBroker::send(sws::Packet& packet, bool block)
 {
-	if (netstat)
-	{
-		add_bytes_sent(packet.real_size());
-	}
-
 	for (auto& [node, connection] : node_connections_)
 	{
 		connection->send(packet, block);
@@ -1143,7 +1043,6 @@ bool PacketBroker::add_to_packet(MessageID packet_type, PacketEx& packet)
 	}
 
 	packet.finalize();
-	add_type_sent(packet_type, packet.get_type_size(), packet.channel);
 
 	return true;
 }

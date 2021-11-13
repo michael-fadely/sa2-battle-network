@@ -117,8 +117,6 @@ bool Program::connect()
 		PlayMusic(music_default);
 		PlayJingle(music_connected);
 
-		globals::broker->toggle_netstat(local_settings_.netstat);
-
 		if (player_num_ >= 0)
 		{
 			globals::broker->set_player_number(player_num_);
@@ -151,7 +149,6 @@ void Program::disconnect()
 		apply_settings(local_settings_);
 	}
 
-	globals::broker->save_netstat();
 	globals::broker->initialize();
 	player_num_ = -1;
 	PlayJingle(music_disconnected);

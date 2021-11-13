@@ -57,7 +57,6 @@ void __stdcall events::SetCurrentLevel(short stage)
 
 			packet.add_type(MessageID::S_Stage);
 			packet << CurrentLevel << Current2PLevelGroup;
-			broker->add_type_sent(MessageID::S_Stage, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::S_Stage, packet);
@@ -103,7 +102,6 @@ static void __cdecl SetNextLevel_hook()
 
 			packet.add_type(MessageID::S_NextStage);
 			packet << NextLevel;
-			broker->add_type_sent(MessageID::S_NextStage, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::S_NextStage, packet);

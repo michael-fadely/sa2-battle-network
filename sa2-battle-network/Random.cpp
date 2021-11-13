@@ -41,7 +41,6 @@ void __cdecl random::srand_hook(unsigned int seed)
 
 			packet.add_type(MessageID::S_Seed);
 			packet << current_seed;
-			broker->add_type_sent(MessageID::S_Seed, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::S_Seed, packet);

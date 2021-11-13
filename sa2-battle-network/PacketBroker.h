@@ -7,6 +7,7 @@
 
 #include "PacketEx.h" // for PacketEx
 #include "Networking.h"
+#include <array>
 #include <unordered_map>
 #include <functional>
 #include <chrono>
@@ -80,10 +81,6 @@ public:
 	void send_ready(nethax::MessageID id);
 	bool send_ready_and_wait(nethax::MessageID id);
 	void add_ready(nethax::MessageID id, sws::Packet& packet);
-	void toggle_netstat(bool value);
-	void save_netstat() const;
-	void add_type_received(nethax::MessageID id, size_t size, bool is_safe);
-	void add_type_sent(nethax::MessageID id, size_t size, nethax::PacketChannel protocol);
 
 	void register_reader(nethax::MessageID message_id, const MessageReader& reader);
 	void register_writer(nethax::MessageID message_id, const MessageWriter& writer);
@@ -121,23 +118,10 @@ private:
 	std::unordered_map<nethax::MessageID, MessageReader> message_readers;
 	std::unordered_map<nethax::MessageID, MessageWriter> message_writers;
 
-	bool netstat;
-	std::map<nethax::MessageID, nethax::MessageStat> send_stats;
-	std::map<nethax::MessageID, nethax::MessageStat> recv_stats;
-
-	size_t received_packets = 0;
-	size_t received_bytes   = 0;
-	size_t sent_packets     = 0;
-	size_t sent_bytes       = 0;
-
 	void reset_packet(PacketEx& packet) const;
-
-	void add_bytes_received(size_t size);
-	void add_bytes_sent(size_t size);
 
 	[[nodiscard]] node_t get_free_node() const;
 
-	static void add_type(nethax::MessageStat& stat, ushort size, bool is_safe);
 	bool request(nethax::MessageID type, PacketEx& packet, const PacketEx& exclude, bool allow_dupes = false);
 
 	// Called by RequestPacket
@@ -170,15 +154,13 @@ private:
 	// HACK: attempting to reduce sent packets
 	size_t udp_packet_size = 0;
 
-	PlayerObject net_player[2];
+	std::array<PlayerObject, 2> net_player {};
 
-	// Used for comparison to determine what to send.
 	MemStruct local {};
 
 	// Toggles and things
 	bool first_menu_entry = false;
 
-	// Set in ReceivePlayer to true upon receival of a valid player message.
 	bool write_player = false;
 
 	bool timed_out = false;

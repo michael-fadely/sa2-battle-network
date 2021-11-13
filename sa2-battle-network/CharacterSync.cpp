@@ -27,7 +27,6 @@ static int __cdecl Menu_Battle_hook()
 			packet << CurrentCharacter << AltCostume[0] << AltCharacter[0]
 				<< CurrentCharacter2P << AltCostume[1] << AltCharacter[1];
 
-			broker->add_type_sent(MessageID::P_Character, packet.get_type_size(), packet.channel);
 			packet.finalize();
 
 			broker->add_ready(MessageID::P_Character, packet);
