@@ -190,7 +190,6 @@ void PacketBroker::receive_loop()
 		if ((system_clock::now() - it->second) >= connection_timeout)
 		{
 			PrintDebug("<> Player %d timed out.", it->first);
-			sequences.erase(it->first);
 			disconnect(it->first);
 			it = keep_alive.erase(it);
 			++timeouts;

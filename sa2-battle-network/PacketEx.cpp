@@ -3,6 +3,7 @@
 #include <vector>
 #include "Networking.h"
 #include "typedefs.h"
+#include "reliable.h"
 
 #include "PacketEx.h"
 
