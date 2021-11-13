@@ -30,8 +30,14 @@ public:
 
 		Store() = default;
 		Store(sequence_t sequence, sws::Packet packet);
-		Store(Store&& other) noexcept;
-		Store& operator=(Store&& other) noexcept;
+		Store(Store&& other) noexcept = default;
+
+		~Store() = default;
+
+		Store& operator=(Store&& other) noexcept = default;
+
+		Store(const Store&) = delete;
+		Store& operator=(const Store&) = delete;
 
 		[[nodiscard]] clock::time_point creation_time() const;
 
@@ -64,8 +70,8 @@ private:
 	sequence_t uid_out_;
 	sequence_t faf_out_;
 
-	sequence_t acknew_out_;
-	std::unique_ptr<Store> acknew_data_;
+	sequence_t ack_newest_out_;
+	std::unique_ptr<Store> ack_newest_data_;
 
 	bool rtt_invalid_ = false;
 	size_t rtt_i_ = 0;
