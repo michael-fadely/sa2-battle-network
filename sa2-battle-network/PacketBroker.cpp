@@ -639,33 +639,35 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 		return;
 	}
 
-	if (round_started())
+	if (!round_started())
 	{
-		if (local.system.GameState != GameState)
-		{
-			request(MessageID::S_GameState, tcp, udp);
-		}
+		return;
+	}
 
-		if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
-		{
-			request(MessageID::S_PauseSelection, tcp, udp);
-		}
+	if (local.system.GameState != GameState)
+	{
+		request(MessageID::S_GameState, tcp, udp);
+	}
 
-		if (local.game.TimerSeconds != TimerSeconds && is_server_)
-		{
-			request(MessageID::S_Time, udp, tcp);
-		}
+	if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
+	{
+		request(MessageID::S_PauseSelection, tcp, udp);
+	}
 
-		if (local.game.TimeStopped != TimeStopped)
-		{
-			request(MessageID::S_TimeStop, tcp, udp);
-		}
+	if (local.game.TimerSeconds != TimerSeconds && is_server_)
+	{
+		request(MessageID::S_Time, udp, tcp);
+	}
 
-		if (memcmp(local.game.SpecialAttacks[player_num],
-		           player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
-		{
-			request(MessageID::S_2PSpecials, tcp, udp);
-		}
+	if (local.game.TimeStopped != TimeStopped)
+	{
+		request(MessageID::S_TimeStop, tcp, udp);
+	}
+
+	if (memcmp(local.game.SpecialAttacks[player_num],
+	           player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
+	{
+		request(MessageID::S_2PSpecials, tcp, udp);
 	}
 }
 
@@ -677,95 +679,97 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		return;
 	}
 
-	if (round_started() && CurrentMenu >= Menu::battle)
+	if (!round_started() || CurrentMenu < Menu::battle)
 	{
-		if (globals::program->settings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
+		return;
+	}
+
+	if (globals::program->settings().cheats && GameState == GameState::Ingame && TwoPlayerMode > 0)
+	{
+		if (ControllerPointers[player_num]->on & Buttons_Y && ControllerPointers[player_num]->press & Buttons_Up)
 		{
-			if (ControllerPointers[player_num]->on & Buttons_Y && ControllerPointers[player_num]->press & Buttons_Up)
-			{
-				PrintDebug("<> Teleporting to other player...");
+			PrintDebug("<> Teleporting to other player...");
 
-				auto n = static_cast<int>(player_num != 1);
+			auto n = static_cast<int>(player_num != 1);
 
-				MainCharacter[player_num]->Data1.Entity->Position = net_player[n].data1.Position;
-				MainCharacter[player_num]->Data1.Entity->Rotation = net_player[n].data1.Rotation;
-				MainCharacter[player_num]->Data2.Character->Speed = {};
+			MainCharacter[player_num]->Data1.Entity->Position = net_player[n].data1.Position;
+			MainCharacter[player_num]->Data1.Entity->Rotation = net_player[n].data1.Rotation;
+			MainCharacter[player_num]->Data2.Character->Speed = {};
 
-				request(MessageID::P_Position, tcp, udp);
-				request(MessageID::P_Speed, tcp, udp);
-			}
+			request(MessageID::P_Position, tcp, udp);
+			request(MessageID::P_Speed, tcp, udp);
 		}
+	}
 
-		const char character_id = MainCharacter[player_num]->Data2.Character->CharID2;
+	const char character_id = MainCharacter[player_num]->Data2.Character->CharID2;
 
-		const bool have_spin_timer =
-			character_id == Characters_Sonic ||
-			character_id == Characters_Shadow ||
-			character_id == Characters_Amy ||
-			character_id == Characters_MetalSonic;
+	const bool have_spin_timer =
+		character_id == Characters_Sonic ||
+		character_id == Characters_Shadow ||
+		character_id == Characters_Amy ||
+		character_id == Characters_MetalSonic;
 
-		if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1.Entity->Position))
-		{
-			request(MessageID::P_Position, udp, tcp);
-		}
+	if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1.Entity->Position))
+	{
+		request(MessageID::P_Position, udp, tcp);
+	}
 
-		// TODO: Make less spammy
-		if (have_spin_timer && net_player[player_num].sonic.SpindashCounter
-		    != static_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
+	// TODO: Make less spammy
+	if (have_spin_timer && net_player[player_num].sonic.SpindashCounter
+	    != static_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
+	{
+		request(MessageID::P_SpinTimer, tcp, udp);
+	}
+
+	if (MainCharacter[player_num]->Data1.Entity->Status & Status_DoNextAction && MainCharacter[player_num]->Data1.Entity->NextAction
+	    != net_player[player_num].data1.NextAction)
+	{
+		request(MessageID::P_NextAction, tcp, udp);
+	}
+
+	if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1.Entity->Action ||
+	    (net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
+	{
+		request(MessageID::P_Action, tcp, udp);
+		request(MessageID::P_Status, tcp, udp);
+
+		request(MessageID::P_Animation, tcp, udp);
+		request(MessageID::P_Position, tcp, udp);
+
+		if (have_spin_timer)
 		{
 			request(MessageID::P_SpinTimer, tcp, udp);
 		}
-
-		if (MainCharacter[player_num]->Data1.Entity->Status & Status_DoNextAction && MainCharacter[player_num]->Data1.Entity->NextAction
-		    != net_player[player_num].data1.NextAction)
-		{
-			request(MessageID::P_NextAction, tcp, udp);
-		}
-
-		if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1.Entity->Action ||
-		    (net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
-		{
-			request(MessageID::P_Action, tcp, udp);
-			request(MessageID::P_Status, tcp, udp);
-
-			request(MessageID::P_Animation, tcp, udp);
-			request(MessageID::P_Position, tcp, udp);
-
-			if (have_spin_timer)
-			{
-				request(MessageID::P_SpinTimer, tcp, udp);
-			}
-		}
-
-		if (MainCharacter[player_num]->Data1.Entity->Action != Action_ObjectControl)
-		{
-			if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation) ||
-			    speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed) ||
-			    net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
-			{
-				request(MessageID::P_Rotation, udp, tcp);
-				request(MessageID::P_Position, udp, tcp);
-				request(MessageID::P_Speed, udp, tcp);
-			}
-		}
-
-		if (memcmp(&net_player[player_num].data1.Scale, &MainCharacter[player_num]->Data1.Entity->Scale, sizeof(NJS_VECTOR)) != 0)
-		{
-			request(MessageID::P_Scale, tcp, udp);
-		}
-
-		if (net_player[player_num].data2.Powerups != MainCharacter[player_num]->Data2.Character->Powerups)
-		{
-			request(MessageID::P_Powerups, tcp, udp);
-		}
-
-		if (net_player[player_num].data2.Upgrades != MainCharacter[player_num]->Data2.Character->Upgrades)
-		{
-			request(MessageID::P_Upgrades, tcp, udp);
-		}
-
-		net_player[player_num].copy(MainCharacter[player_num]);
 	}
+
+	if (MainCharacter[player_num]->Data1.Entity->Action != Action_ObjectControl)
+	{
+		if (rotation_threshold(net_player[player_num].data1.Rotation, MainCharacter[player_num]->Data1.Entity->Rotation) ||
+		    speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed) ||
+		    net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
+		{
+			request(MessageID::P_Rotation, udp, tcp);
+			request(MessageID::P_Position, udp, tcp);
+			request(MessageID::P_Speed, udp, tcp);
+		}
+	}
+
+	if (memcmp(&net_player[player_num].data1.Scale, &MainCharacter[player_num]->Data1.Entity->Scale, sizeof(NJS_VECTOR)) != 0)
+	{
+		request(MessageID::P_Scale, tcp, udp);
+	}
+
+	if (net_player[player_num].data2.Powerups != MainCharacter[player_num]->Data2.Character->Powerups)
+	{
+		request(MessageID::P_Powerups, tcp, udp);
+	}
+
+	if (net_player[player_num].data2.Upgrades != MainCharacter[player_num]->Data2.Character->Upgrades)
+	{
+		request(MessageID::P_Upgrades, tcp, udp);
+	}
+
+	net_player[player_num].copy(MainCharacter[player_num]);
 }
 
 void PacketBroker::send_menu(PacketEx& packet)
@@ -776,99 +780,101 @@ void PacketBroker::send_menu(PacketEx& packet)
 		return;
 	}
 
-	if (GameState == GameState::Inactive && CurrentMenu == Menu::battle)
+	if (GameState != GameState::Inactive || CurrentMenu != Menu::battle)
 	{
-		// Send battle options
-		if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
-		{
-			request(MessageID::S_BattleOptions, packet);
-		}
+		return;
+	}
 
-		// Always send information about the menu you enter,
-		// regardless of detected change.
-		if ((first_menu_entry = (local.menu.SubMenu != CurrentSubMenu && is_server_)))
-		{
-			local.menu.SubMenu = CurrentSubMenu;
-		}
+	// Send battle options
+	if (memcmp(local.menu.BattleOptions, BattleOptions, BattleOptions_Length) != 0)
+	{
+		request(MessageID::S_BattleOptions, packet);
+	}
 
-		switch (CurrentSubMenu)
-		{
-			default:
-				break;
+	// Always send information about the menu you enter,
+	// regardless of detected change.
+	if ((first_menu_entry = (local.menu.SubMenu != CurrentSubMenu && is_server_)))
+	{
+		local.menu.SubMenu = CurrentSubMenu;
+	}
 
-			case SubMenu2P::s_ready:
-			case SubMenu2P::o_ready:
-				if (first_menu_entry || local.menu.PlayerReady[player_num] != PlayerReady[player_num])
-				{
-					request(MessageID::S_2PReady, packet);
-				}
+	switch (CurrentSubMenu)
+	{
+		default:
+			break;
 
-				break;
+		case SubMenu2P::s_ready:
+		case SubMenu2P::o_ready:
+			if (first_menu_entry || local.menu.PlayerReady[player_num] != PlayerReady[player_num])
+			{
+				request(MessageID::S_2PReady, packet);
+			}
 
-			case SubMenu2P::s_battlemode:
-				if (first_menu_entry || local.menu.BattleSelection != BattleSelection)
-				{
-					request(MessageID::M_BattleSelection, packet);
-				}
+			break;
 
-				break;
+		case SubMenu2P::s_battlemode:
+			if (first_menu_entry || local.menu.BattleSelection != BattleSelection)
+			{
+				request(MessageID::M_BattleSelection, packet);
+			}
 
-			case SubMenu2P::s_charsel:
-			case SubMenu2P::o_charsel:
-				// HACK: Character select bug work-around. Details below.
-				// When a button press is missed but the character selected state is synchronized,
-				// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
-				if (CharacterSelected[0] && CharacterSelected[1] && CurrentSubMenu == SubMenu2P::s_charsel)
-				{
-					PrintDebug("<> Resetting character selections");
-					CharacterSelectTimer = 0;
-					CurrentSubMenu = SubMenu2P::o_charsel;
-				}
+			break;
 
-				if (first_menu_entry || local.menu.CharacterSelection[player_num] != CharacterSelection[player_num])
-				{
-					request(MessageID::M_CharacterSelection, packet);
-				}
+		case SubMenu2P::s_charsel:
+		case SubMenu2P::o_charsel:
+			// HACK: Character select bug work-around. Details below.
+			// When a button press is missed but the character selected state is synchronized,
+			// the sub menu does not change to O_CHARSEL, so it won't progress. This forces it to.
+			if (CharacterSelected[0] && CharacterSelected[1] && CurrentSubMenu == SubMenu2P::s_charsel)
+			{
+				PrintDebug("<> Resetting character selections");
+				CharacterSelectTimer = 0;
+				CurrentSubMenu = SubMenu2P::o_charsel;
+			}
 
-				if (first_menu_entry || local.menu.CharacterSelected[player_num] != CharacterSelected[player_num])
-				{
-					request(MessageID::M_CharacterChosen, packet);
-				}
+			if (first_menu_entry || local.menu.CharacterSelection[player_num] != CharacterSelection[player_num])
+			{
+				request(MessageID::M_CharacterSelection, packet);
+			}
 
-				// I hate this so much
-				if (first_menu_entry ||
-				    local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume ||
-				    local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume ||
-				    local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume ||
-				    local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume ||
-				    local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume ||
-				    local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
-				{
-					request(MessageID::M_CostumeSelection, packet);
-				}
+			if (first_menu_entry || local.menu.CharacterSelected[player_num] != CharacterSelected[player_num])
+			{
+				request(MessageID::M_CharacterChosen, packet);
+			}
 
-				break;
+		// I hate this so much
+			if (first_menu_entry ||
+			    local.menu.CharSelectThings[0].Costume != CharSelectThings[0].Costume ||
+			    local.menu.CharSelectThings[1].Costume != CharSelectThings[1].Costume ||
+			    local.menu.CharSelectThings[2].Costume != CharSelectThings[2].Costume ||
+			    local.menu.CharSelectThings[3].Costume != CharSelectThings[3].Costume ||
+			    local.menu.CharSelectThings[4].Costume != CharSelectThings[4].Costume ||
+			    local.menu.CharSelectThings[5].Costume != CharSelectThings[5].Costume)
+			{
+				request(MessageID::M_CostumeSelection, packet);
+			}
 
-			case SubMenu2P::s_stagesel:
-				if (first_menu_entry ||
-				    local.menu.StageSelection2P[0] != StageSelection2P[0] ||
-				    local.menu.StageSelection2P[1] != StageSelection2P[1] ||
-				    local.menu.BattleOptionsButton != BattleOptionsButton)
-				{
-					request(MessageID::M_StageSelection, packet);
-				}
-				break;
+			break;
 
-			case SubMenu2P::s_battleopt:
-				if (first_menu_entry ||
-				    local.menu.BattleOptionsSelection != BattleOptionsSelection ||
-				    local.menu.BattleOptionsBack != BattleOptionsBack)
-				{
-					request(MessageID::M_BattleConfigSelection, packet);
-				}
+		case SubMenu2P::s_stagesel:
+			if (first_menu_entry ||
+			    local.menu.StageSelection2P[0] != StageSelection2P[0] ||
+			    local.menu.StageSelection2P[1] != StageSelection2P[1] ||
+			    local.menu.BattleOptionsButton != BattleOptionsButton)
+			{
+				request(MessageID::M_StageSelection, packet);
+			}
+			break;
 
-				break;
-		}
+		case SubMenu2P::s_battleopt:
+			if (first_menu_entry ||
+			    local.menu.BattleOptionsSelection != BattleOptionsSelection ||
+			    local.menu.BattleOptionsBack != BattleOptionsBack)
+			{
+				request(MessageID::M_BattleConfigSelection, packet);
+			}
+
+			break;
 	}
 }
 
@@ -1067,217 +1073,217 @@ void PacketBroker::disconnect(node_t node)
 // TODO: remove from this class
 bool PacketBroker::receive_system(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
-	if (round_started())
+	if (!round_started())
 	{
-		switch (type)
-		{
-			default:
-				return false;
-
-			case MessageID::S_Time:
-				packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
-				TimerMinutes = local.game.TimerMinutes;
-				TimerSeconds = local.game.TimerSeconds;
-				TimerFrames  = local.game.TimerFrames;
-				break;
-
-			RECEIVED(MessageID::S_GameState);
-				{
-					short recv_game_state;
-					packet >> recv_game_state;
-
-					if (GameState >= GameState::NormalRestart && recv_game_state > GameState::LoadFinished)
-					{
-						GameState = local.system.GameState = recv_game_state;
-					}
-
-					break;
-				}
-
-			RECEIVED(MessageID::S_PauseSelection);
-				packet >> local.system.PauseSelection;
-				PauseSelection = local.system.PauseSelection;
-				break;
-
-			RECEIVED(MessageID::S_TimeStop);
-				packet >> local.game.TimeStopped;
-				TimeStopped = local.game.TimeStopped;
-				break;
-
-			RECEIVED(MessageID::S_2PSpecials);
-				for (size_t i = 0; i < 3; i++)
-				{
-					packet >> local.game.SpecialAttacks[pnum][i];
-				}
-
-				SpecialActivateTimer[pnum] = 60;
-				memcpy(pnum == 0 ? P1SpecialAttacks : P2SpecialAttacks, local.game.SpecialAttacks[pnum], sizeof(char) * 3);
-				break;
-		}
-
-		return true;
+		return false;
 	}
 
-	return false;
+	switch (type)
+	{
+		default:
+			return false;
+
+		case MessageID::S_Time:
+			packet >> local.game.TimerMinutes >> local.game.TimerSeconds >> local.game.TimerFrames;
+			TimerMinutes = local.game.TimerMinutes;
+			TimerSeconds = local.game.TimerSeconds;
+			TimerFrames  = local.game.TimerFrames;
+			break;
+
+		RECEIVED(MessageID::S_GameState);
+			{
+				short recv_game_state;
+				packet >> recv_game_state;
+
+				if (GameState >= GameState::NormalRestart && recv_game_state > GameState::LoadFinished)
+				{
+					GameState = local.system.GameState = recv_game_state;
+				}
+
+				break;
+			}
+
+		RECEIVED(MessageID::S_PauseSelection);
+			packet >> local.system.PauseSelection;
+			PauseSelection = local.system.PauseSelection;
+			break;
+
+		RECEIVED(MessageID::S_TimeStop);
+			packet >> local.game.TimeStopped;
+			TimeStopped = local.game.TimeStopped;
+			break;
+
+		RECEIVED(MessageID::S_2PSpecials);
+			for (size_t i = 0; i < 3; i++)
+			{
+				packet >> local.game.SpecialAttacks[pnum][i];
+			}
+
+			SpecialActivateTimer[pnum] = 60;
+			memcpy(pnum == 0 ? P1SpecialAttacks : P2SpecialAttacks, local.game.SpecialAttacks[pnum], sizeof(char) * 3);
+			break;
+	}
+
+	return true;
 }
 
 bool PacketBroker::receive_player(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
-	if (round_started() && pnum != player_num)
+	if (!round_started() || pnum == player_num)
 	{
-		// TODO: remove
-		write_player = (type > MessageID::P_START && type < MessageID::P_END);
-
-		switch (type)
-		{
-			default:
-				return false;
-
-			RECEIVED(MessageID::P_Action);
-				packet >> net_player[pnum].data1.Action;
-				break;
-
-			RECEIVED(MessageID::P_NextAction);
-				packet >> net_player[pnum].data1.NextAction;
-				break;
-
-			RECEIVED(MessageID::P_Status);
-				packet >> net_player[pnum].data1.Status;
-				break;
-
-			RECEIVED(MessageID::P_Rotation);
-				packet >> net_player[pnum].data1.Rotation;
-				break;
-
-			RECEIVED(MessageID::P_Position);
-				packet >> net_player[pnum].data1.Position;
-				break;
-
-			RECEIVED(MessageID::P_Scale);
-				packet >> net_player[pnum].data1.Scale;
-				break;
-
-			RECEIVED(MessageID::P_Powerups);
-				packet >> net_player[pnum].data2.Powerups;
-				break;
-
-			RECEIVED(MessageID::P_Upgrades);
-				packet >> net_player[pnum].data2.Upgrades;
-				break;
-
-			RECEIVED(MessageID::P_HP);
-				float hp, diff;
-				packet >> hp >> diff;
-				PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
-
-				MainCharacter[pnum]->Data2.Character->MechHP = hp;
-				events::AddHP_original(pnum, diff);
-				net_player[pnum].data2.MechHP = MainCharacter[pnum]->Data2.Character->MechHP;
-				break;
-
-			RECEIVED(MessageID::P_Speed);
-				packet >> net_player[pnum].data2.Speed;
-				packet >> net_player[pnum].data2.PhysData.BaseSpeed;
-				break;
-
-			RECEIVED(MessageID::P_Animation);
-				packet >> net_player[pnum].data2.AnimInfo.Next;
-				break;
-
-			RECEIVED(MessageID::P_SpinTimer);
-				packet >> net_player[pnum].sonic.SpindashCounter;
-				break;
-		}
-
-		return write_player;
+		return false;
 	}
 
-	return false;
+	// TODO: remove
+	write_player = (type > MessageID::P_START && type < MessageID::P_END);
+
+	switch (type)
+	{
+		default:
+			return false;
+
+		RECEIVED(MessageID::P_Action);
+			packet >> net_player[pnum].data1.Action;
+			break;
+
+		RECEIVED(MessageID::P_NextAction);
+			packet >> net_player[pnum].data1.NextAction;
+			break;
+
+		RECEIVED(MessageID::P_Status);
+			packet >> net_player[pnum].data1.Status;
+			break;
+
+		RECEIVED(MessageID::P_Rotation);
+			packet >> net_player[pnum].data1.Rotation;
+			break;
+
+		RECEIVED(MessageID::P_Position);
+			packet >> net_player[pnum].data1.Position;
+			break;
+
+		RECEIVED(MessageID::P_Scale);
+			packet >> net_player[pnum].data1.Scale;
+			break;
+
+		RECEIVED(MessageID::P_Powerups);
+			packet >> net_player[pnum].data2.Powerups;
+			break;
+
+		RECEIVED(MessageID::P_Upgrades);
+			packet >> net_player[pnum].data2.Upgrades;
+			break;
+
+		RECEIVED(MessageID::P_HP);
+			float hp, diff;
+			packet >> hp >> diff;
+			PrintDebug(">> HP CHANGE: %f + %f", hp, diff);
+
+			MainCharacter[pnum]->Data2.Character->MechHP = hp;
+			events::AddHP_original(pnum, diff);
+			net_player[pnum].data2.MechHP = MainCharacter[pnum]->Data2.Character->MechHP;
+			break;
+
+		RECEIVED(MessageID::P_Speed);
+			packet >> net_player[pnum].data2.Speed;
+			packet >> net_player[pnum].data2.PhysData.BaseSpeed;
+			break;
+
+		RECEIVED(MessageID::P_Animation);
+			packet >> net_player[pnum].data2.AnimInfo.Next;
+			break;
+
+		RECEIVED(MessageID::P_SpinTimer);
+			packet >> net_player[pnum].sonic.SpindashCounter;
+			break;
+	}
+
+	return write_player;
 }
 
 bool PacketBroker::receive_menu(MessageID type, pnum_t pnum, sws::Packet& packet)
 {
-	if (GameState == GameState::Inactive)
+	if (GameState != GameState::Inactive)
 	{
-		switch (type)
-		{
-			default:
-				return false;
-
-			RECEIVED(MessageID::S_2PReady);
-				packet >> local.menu.PlayerReady[pnum];
-				PlayerReady[pnum] = local.menu.PlayerReady[pnum];
-
-				PrintDebug(">> Player ready state changed. ", local.menu.PlayerReady[pnum]);
-				break;
-
-			RECEIVED(MessageID::M_CharacterSelection);
-				packet >> local.menu.CharacterSelection[pnum];
-				CharacterSelection[pnum] = local.menu.CharacterSelection[pnum];
-				break;
-
-			RECEIVED(MessageID::M_CharacterChosen);
-				packet >> local.menu.CharacterSelected[pnum];
-				CharacterSelected[pnum] = local.menu.CharacterSelected[pnum];
-				break;
-
-			RECEIVED(MessageID::M_CostumeSelection);
-				packet >> local.menu.CharSelectThings[0].Costume
-					>> local.menu.CharSelectThings[1].Costume
-					>> local.menu.CharSelectThings[2].Costume
-					>> local.menu.CharSelectThings[3].Costume
-					>> local.menu.CharSelectThings[4].Costume
-					>> local.menu.CharSelectThings[5].Costume;
-
-				CharSelectThings[0].Costume = local.menu.CharSelectThings[0].Costume;
-				CharSelectThings[1].Costume = local.menu.CharSelectThings[1].Costume;
-				CharSelectThings[2].Costume = local.menu.CharSelectThings[2].Costume;
-				CharSelectThings[3].Costume = local.menu.CharSelectThings[3].Costume;
-				CharSelectThings[4].Costume = local.menu.CharSelectThings[4].Costume;
-				CharSelectThings[5].Costume = local.menu.CharSelectThings[5].Costume;
-
-				break;
-
-			RECEIVED(MessageID::S_BattleOptions);
-				for (signed char& option : local.menu.BattleOptions)
-				{
-					packet >> option;
-				}
-
-				memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
-
-				break;
-
-			RECEIVED(MessageID::M_BattleConfigSelection);
-				packet >> local.menu.BattleOptionsSelection
-					>> local.menu.BattleOptionsBack;
-				BattleOptionsSelection = local.menu.BattleOptionsSelection;
-				BattleOptionsBack      = local.menu.BattleOptionsBack;
-
-				break;
-
-			RECEIVED(MessageID::M_StageSelection);
-				packet >> local.menu.StageSelection2P[0]
-					>> local.menu.StageSelection2P[1]
-					>> local.menu.BattleOptionsButton;
-
-				StageSelection2P[0] = local.menu.StageSelection2P[0];
-				StageSelection2P[1] = local.menu.StageSelection2P[1];
-				BattleOptionsButton = local.menu.BattleOptionsButton;
-
-				break;
-
-			RECEIVED(MessageID::M_BattleSelection);
-				packet >> local.menu.BattleSelection;
-				BattleSelection = local.menu.BattleSelection;
-
-				break;
-		}
-
-		return true;
+		return false;
 	}
 
-	return false;
+	switch (type)
+	{
+		default:
+			return false;
+
+		RECEIVED(MessageID::S_2PReady);
+			packet >> local.menu.PlayerReady[pnum];
+			PlayerReady[pnum] = local.menu.PlayerReady[pnum];
+
+			PrintDebug(">> Player ready state changed. ", local.menu.PlayerReady[pnum]);
+			break;
+
+		RECEIVED(MessageID::M_CharacterSelection);
+			packet >> local.menu.CharacterSelection[pnum];
+			CharacterSelection[pnum] = local.menu.CharacterSelection[pnum];
+			break;
+
+		RECEIVED(MessageID::M_CharacterChosen);
+			packet >> local.menu.CharacterSelected[pnum];
+			CharacterSelected[pnum] = local.menu.CharacterSelected[pnum];
+			break;
+
+		RECEIVED(MessageID::M_CostumeSelection);
+			packet >> local.menu.CharSelectThings[0].Costume
+				>> local.menu.CharSelectThings[1].Costume
+				>> local.menu.CharSelectThings[2].Costume
+				>> local.menu.CharSelectThings[3].Costume
+				>> local.menu.CharSelectThings[4].Costume
+				>> local.menu.CharSelectThings[5].Costume;
+
+			CharSelectThings[0].Costume = local.menu.CharSelectThings[0].Costume;
+			CharSelectThings[1].Costume = local.menu.CharSelectThings[1].Costume;
+			CharSelectThings[2].Costume = local.menu.CharSelectThings[2].Costume;
+			CharSelectThings[3].Costume = local.menu.CharSelectThings[3].Costume;
+			CharSelectThings[4].Costume = local.menu.CharSelectThings[4].Costume;
+			CharSelectThings[5].Costume = local.menu.CharSelectThings[5].Costume;
+
+			break;
+
+		RECEIVED(MessageID::S_BattleOptions);
+			for (signed char& option : local.menu.BattleOptions)
+			{
+				packet >> option;
+			}
+
+			memcpy(BattleOptions, local.menu.BattleOptions, sizeof(char) * 4);
+
+			break;
+
+		RECEIVED(MessageID::M_BattleConfigSelection);
+			packet >> local.menu.BattleOptionsSelection
+				>> local.menu.BattleOptionsBack;
+			BattleOptionsSelection = local.menu.BattleOptionsSelection;
+			BattleOptionsBack      = local.menu.BattleOptionsBack;
+
+			break;
+
+		RECEIVED(MessageID::M_StageSelection);
+			packet >> local.menu.StageSelection2P[0]
+				>> local.menu.StageSelection2P[1]
+				>> local.menu.BattleOptionsButton;
+
+			StageSelection2P[0] = local.menu.StageSelection2P[0];
+			StageSelection2P[1] = local.menu.StageSelection2P[1];
+			BattleOptionsButton = local.menu.BattleOptionsButton;
+
+			break;
+
+		RECEIVED(MessageID::M_BattleSelection);
+			packet >> local.menu.BattleSelection;
+			BattleSelection = local.menu.BattleSelection;
+
+			break;
+	}
+
+	return true;
 }
 
 bool PacketBroker::run_message_reader(MessageID type, pnum_t pnum, sws::Packet& packet)
