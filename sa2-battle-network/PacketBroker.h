@@ -2,10 +2,10 @@
 
 #include "typedefs.h"
 
-#include "PlayerObject.h" // for PlayerObject
-#include "MemoryStruct.h" // for MemStruct
+#include "PlayerObject.h"
+#include "MemoryStruct.h"
 
-#include "PacketEx.h" // for PacketEx
+#include "PacketEx.h"
 #include "Networking.h"
 #include <array>
 #include <unordered_map>

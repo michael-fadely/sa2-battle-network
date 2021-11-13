@@ -8,25 +8,21 @@
 #define RECEIVED RECV_CONCISE
 #endif
 
+#include "PacketBroker.h"
+
 #include <cmath> // for abs
 #include <thread>
-
-#include "globals.h"
-#include "CommonEnums.h"
-
-#include "Networking.h"
-#include "PacketEx.h"
-#include "AdventurePacketOverloads.h"
 
 #include <SA2ModLoader.h>
 #include "ModLoaderExtensions.h"
 
+#include "globals.h"
+#include "CommonEnums.h"
+#include "Networking.h"
+#include "PacketEx.h"
+#include "AdventurePacketOverloads.h"
 #include "AddHP.h"
 #include "OnInput.h"
-
-#include "PacketBroker.h"
-
-
 #include "ConnectionManager.h"
 #include "reliable.h"
 
