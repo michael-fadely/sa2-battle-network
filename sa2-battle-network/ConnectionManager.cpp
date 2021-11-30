@@ -121,7 +121,7 @@ SocketState ConnectionManager::connect(const Address& host_address, std::shared_
 
 	if (!is_bound_)
 	{
-		const Address bind_address = Address::get_addresses("localhost", Socket::any_port, host_address.family)[0];
+		const Address bind_address = Address::get_addresses("", Socket::any_port, host_address.family)[0];
 		result = socket_->bind(bind_address);
 
 		is_bound_ = result == SocketState::done;
