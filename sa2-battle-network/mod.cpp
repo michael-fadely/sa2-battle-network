@@ -102,7 +102,6 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 	Program::Settings settings = {};
 
 	sws::Address address;
-	address.address = "localhost";
 
 	parse_config(build_mod_path(path, "config.ini"), settings, address);
 
@@ -148,9 +147,9 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 			settings.cheats = true;
 			valid_args = true;
 		}
-		else if (!wcscmp(argv[i], L"--password") && ++i < argc)
+		else if (!wcscmp(argv[i], L"--password") && i + 1 < argc)
 		{
-			std::wstring password_w(argv[i]);
+			std::wstring password_w(argv[++i]);
 			std::string password_a = wstring_to_string(password_w);
 
 			Hash hash;
