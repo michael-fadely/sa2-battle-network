@@ -189,7 +189,7 @@ Program::ConnectStatus Program::start_server()
 
 	if (!manager->is_bound())
 	{
-		PrintDebug("Hosting server on port %d...", server_address_.port);
+		PrintDebug("Hosting server on %s...", server_address_.to_string().c_str());
 
 		if ((status = manager->host(server_address_)) != sws::SocketState::done)
 		{
@@ -328,7 +328,7 @@ Program::ConnectStatus Program::start_client()
 
 	if (!manager->is_bound())
 	{
-		PrintDebug("<< Connecting to server at %s on port %d...", server_address_.address.c_str(), server_address_.port);
+		PrintDebug("<< Connecting to server at %s...", server_address_.to_string().c_str());
 	}
 
 	if ((status = manager->connect(server_address_, &connection)) != sws::SocketState::done)
