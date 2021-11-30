@@ -95,7 +95,6 @@ void PacketBroker::initialize()
 
 	player_num = -1;
 
-	keep_alive.clear();
 	wait_requests.clear();
 
 	net_player = {};
@@ -181,26 +180,9 @@ void PacketBroker::receive_loop()
 
 	const size_t connection_count = node_connections_.size();
 
+	// FIXME: timeouts
 	// ReSharper disable once CppLocalVariableMayBeConst
 	size_t timeouts = 0;
-
-#ifndef _DEBUG
-	for (auto it = keep_alive.begin(); it != keep_alive.end();)
-	{
-		if ((system_clock::now() - it->second) >= connection_timeout)
-		{
-			PrintDebug("<> Player %d timed out.", it->first);
-			disconnect(it->first);
-			it = keep_alive.erase(it);
-			++timeouts;
-		}
-		else
-		{
-			++it;
-		}
-	}
-#endif
-
 	timed_out = timeouts >= connection_count;
 }
 
@@ -236,13 +218,13 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 			case MessageID::N_Disconnect:
 				PrintDebug(">> Player %d disconnected.", real_node);
-				keep_alive.erase(real_node);
 
 				if (is_server_ || real_node == 0)
 				{
 					disconnect(node);
 					packet.clear();
 				}
+
 				break;
 
 			case MessageID::N_Ready:
@@ -478,7 +460,6 @@ void PacketBroker::disconnect()
 	connection_manager_->disconnect();
 	connection_nodes_.clear();
 	node_connections_.clear();
-	keep_alive.clear();
 }
 
 std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const

@@ -113,7 +113,6 @@ private:
 	std::unordered_map<Connection*, node_t> connection_nodes_;
 	std::map<node_t, std::shared_ptr<Connection>> node_connections_;
 
-	std::unordered_map<node_t, std::chrono::system_clock::time_point> keep_alive;
 	std::unordered_map<nethax::MessageID, WaitRequest> wait_requests;
 
 	std::unordered_map<nethax::MessageID, MessageReader> message_readers;
