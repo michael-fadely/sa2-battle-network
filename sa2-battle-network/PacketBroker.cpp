@@ -40,10 +40,9 @@ static system_clock::time_point position_timer;
 static system_clock::time_point rotate_timer;
 static system_clock::time_point speed_timer;
 
-static const auto POSITION_INTERVAL  = milliseconds(10000);
-static const auto ROTATION_INTERVAL  = milliseconds(125);
-static const auto SPEED_INTERVAL     = milliseconds(10000);
-static const auto KEEPALIVE_INTERVAL = milliseconds(1000);
+static const auto POSITION_INTERVAL = milliseconds(10000);
+static const auto ROTATION_INTERVAL = milliseconds(125);
+static const auto SPEED_INTERVAL    = milliseconds(10000);
 
 static bool position_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
@@ -94,8 +93,7 @@ void PacketBroker::initialize()
 	write_player     = false;
 	timed_out        = false;
 
-	sent_keep_alive = system_clock::now();
-	player_num      = -1;
+	player_num = -1;
 
 	keep_alive.clear();
 	wait_requests.clear();
@@ -106,9 +104,11 @@ void PacketBroker::initialize()
 	connection_nodes_.clear();
 	node_connections_.clear();
 
+	// FIXME: since player_num is -1, the first packet sent has the wrong player number
 	reset_packet(tcp_packet);
 	tcp_packet_size = tcp_packet.work_size(); // HACK: attempting to reduce sent packets
 
+	// FIXME: since player_num is -1, the first packet sent has the wrong player number
 	reset_packet(udp_packet);
 	udp_packet_size = udp_packet.work_size(); // HACK: attempting to reduce sent packets
 }
@@ -287,11 +287,6 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 
 			case MessageID::N_Node:
 				packet >> real_node;
-				break;
-
-			case MessageID::S_KeepAlive:
-				keep_alive[node] = system_clock::now();
-				packet.seek(sws::SeekCursor::read, sws::SeekType::relative, sizeof(ushort));
 				break;
 
 			default:
@@ -621,11 +616,6 @@ void PacketBroker::send_menu()
 
 void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 {
-	if ((system_clock::now() - sent_keep_alive) >= KEEPALIVE_INTERVAL)
-	{
-		request(MessageID::S_KeepAlive, udp);
-	}
-
 	// TODO: check if spectator
 	if (player_num > 1)
 	{
@@ -983,10 +973,6 @@ bool PacketBroker::add_to_packet(MessageID message_id, PacketEx& packet)
 #pragma endregion
 
 #pragma region System
-
-		case MessageID::S_KeepAlive:
-			sent_keep_alive = system_clock::now();
-			break;
 
 		case MessageID::S_2PReady:
 			packet << PlayerReady[player_num];

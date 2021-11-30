@@ -1,7 +1,6 @@
 #pragma once
 
 #include "typedefs.h"
-#include <map>
 #include <unordered_map>
 #include <sws/Packet.h>
 
@@ -88,7 +87,6 @@ namespace nethax
 		S_START, // Marker: Start of system messages
 
 		S_FrameCount,
-		S_KeepAlive, // TODO: Let networking subsystem handle this (S_KeepAlive)
 		S_Seed,
 		S_Win,
 		S_Result,
@@ -122,8 +120,6 @@ namespace nethax
 	};
 
 	const extern std::unordered_map<MessageID, const char*> MESSAGE_ID_STRING;
-
-	void write_netstat_csv(std::ofstream& file, const std::map<MessageID, MessageStat>& map);
 }
 
 sws::Packet& operator <<(sws::Packet& packet, const nethax::MessageID& data);

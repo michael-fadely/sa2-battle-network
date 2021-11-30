@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <functional>
 #include <chrono>
+#include <map>
 
 #include "Connection.h"
 
@@ -164,6 +165,5 @@ private:
 	bool write_player = false;
 
 	bool timed_out = false;
-	std::chrono::system_clock::time_point sent_keep_alive;
 	pnum_t player_num = 0;
 };

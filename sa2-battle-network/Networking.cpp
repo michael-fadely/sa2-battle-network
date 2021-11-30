@@ -1,39 +1,12 @@
 #include "stdafx.h"
 
-#include <fstream>
-#include <map>
+#include <unordered_map>
 
 #include <sws/Packet.h>
 
 #include "Networking.h"
 
 using namespace nethax;
-
-void nethax::write_netstat_csv(std::ofstream& file, const std::map<MessageID, MessageStat>& map)
-{
-	file << "Message ID,TCP count,UDP count,Total count,Size,TCP size,UDP size,Total size" << std::endl;
-
-	for (const auto& i : map)
-	{
-		const MessageStat& stat = i.second;
-
-		const auto total_count = stat.tcp_count + stat.udp_count;
-		const auto tcp_bytes   = stat.size * stat.tcp_count;
-		const auto udp_bytes   = stat.size * stat.udp_count;
-		const auto bytes       = stat.size * total_count;
-
-		file << static_cast<ushort>(i.first) << " - "
-			<< MESSAGE_ID_STRING.at(i.first) << ',' // Message ID
-			<< stat.tcp_count << ','                // TCP count
-			<< stat.udp_count << ','                // UDP count
-			<< total_count << ','                   // Total count
-			<< stat.size << ','                     // Size
-			<< tcp_bytes << ','                     // TCP size
-			<< udp_bytes << ','                     // UDP size
-			<< bytes                                // Total size
-			<< std::endl;
-	}
-}
 
 // Regex magic: ^(.+),(?:(\s*//.+)?)$
 // to:          { MessageID::$1, "$1" },
@@ -96,7 +69,6 @@ const std::unordered_map<MessageID, const char*> nethax::MESSAGE_ID_STRING = {
 	{ MessageID::P_END, "P_END" },
 	{ MessageID::S_START, "S_START" },
 
-	{ MessageID::S_KeepAlive, "S_KeepAlive" },
 	{ MessageID::S_Seed, "S_Seed" },
 	{ MessageID::S_Win, "S_Win" },
 	{ MessageID::S_Result, "S_Result" },
