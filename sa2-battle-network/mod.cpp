@@ -6,7 +6,6 @@
 
 #include <Windows.h>  // for GetCommandLineW()
 #include <ShellAPI.h> // for CommandLineToArgvW()
-#include <direct.h>   // for _getcwd()
 
 #include <SA2ModLoader.h>
 
@@ -15,7 +14,8 @@
 #include "OnGameState.h"
 #include "Hash.h"
 
-void fake_main(const char* path, int argc, wchar_t** argv);
+static void store_paths(const char* path_relative);
+static void fake_main(int argc, wchar_t** argv);
 
 extern "C"
 {
@@ -23,24 +23,61 @@ __declspec(dllexport) ModInfo SA2ModInfo = { ModLoaderVer, nullptr, nullptr, 0, 
 
 __declspec(dllexport) void __cdecl Init(const char* path)
 {
+	store_paths(path);
+
 	int argc = 0;
 	wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	fake_main(path, argc, argv);
+	fake_main(argc, argv);
 	LocalFree(argv);
 }
 }
 
-std::string build_mod_path(const char* mod_path, const char* path)
+static std::string working_directory;
+static std::string mod_path_relative;
+static std::string mod_path_absolute;
+
+static void store_paths(const char* path_relative)
+{
+	mod_path_relative = path_relative;
+
+	const DWORD required_length = GetCurrentDirectoryA(0, nullptr);
+
+	if (required_length < 1)
+	{
+		throw std::exception("GetCurrentDirectory failed");
+	}
+
+	working_directory.resize(required_length, '\0');
+
+	const DWORD produced_length = GetCurrentDirectoryA(required_length, working_directory.data());
+
+	if (produced_length != required_length - 1)
+	{
+		throw std::exception("GetCurrentDirectory didn't produce the expected number of characters");
+	}
+
+	working_directory.resize(produced_length);
+	mod_path_absolute = working_directory + "\\" + mod_path_relative;
+}
+
+static std::string build_mod_path(const std::string& base, const std::string& path)
 {
 	std::stringstream result;
-	char working_dir[FILENAME_MAX] {};
-
-	result << _getcwd(working_dir, FILENAME_MAX) << "\\" << mod_path << "\\" << path;
-
+	result << base << "\\" << path;
 	return result.str();
 }
 
-void parse_config(const std::string& path, Program::Settings& settings, sws::Address& address)
+static std::string build_mod_path_absolute(const std::string& path)
+{
+	return build_mod_path(mod_path_absolute, path);
+}
+
+static std::string build_mod_path_relative(const std::string& path)
+{
+	return build_mod_path(mod_path_relative, path);
+}
+
+static void parse_config(const std::string& path, Program::Settings& settings, sws::Address& address)
 {
 	std::array<char, 255> buffer {};
 
@@ -72,7 +109,7 @@ void parse_config(const std::string& path, Program::Settings& settings, sws::Add
 		if (GetPrivateProfileIntA("Server", "PasswordHashed", 0, path.c_str()) != 1)
 		{
 			Hash hash;
-			settings.password = hash.compute_hash(reinterpret_cast<const void*>(password_a.c_str()), password_a.length(), CALG_SHA_256);
+			settings.password = hash.compute_hash(password_a.c_str(), password_a.length(), CALG_SHA_256);
 			WritePrivateProfileStringA("Server", "Password", Hash::to_string(settings.password).c_str(), path.c_str());
 			WritePrivateProfileStringA("Server", "PasswordHashed", "1", path.c_str());
 		}
@@ -83,7 +120,7 @@ void parse_config(const std::string& path, Program::Settings& settings, sws::Add
 	}
 }
 
-std::string wstring_to_string(const std::wstring& wstr)
+static std::string wstring_to_string(const std::wstring& wstr)
 {
 	const size_t wstr_length = wstr.size();
 
@@ -132,7 +169,7 @@ std::string wstring_to_string(const std::wstring& wstr)
 	return str;
 }
 
-void fake_main(const char* path, int argc, wchar_t** argv)
+static void fake_main(int argc, wchar_t** argv)
 {
 	bool valid_args = false;
 	bool is_server = false;
@@ -144,7 +181,7 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 
 	sws::Address address;
 
-	parse_config(build_mod_path(path, "config.ini"), settings, address);
+	parse_config(build_mod_path_absolute("config.ini"), settings, address);
 
 	// TODO: fix cases where valid_args would invalidate configuration read from disk.
 	for (int i = 1; i < argc; i++)
@@ -223,7 +260,7 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 
 	using namespace nethax;
 
-	std::vector<sws::Address> addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
+	const std::vector<sws::Address> addresses = sws::Address::get_addresses(address.address.c_str(), address.port, sws::AddressFamily::inet);
 	address = addresses[0];
 
 	globals::program = new Program(settings, is_server, address);
