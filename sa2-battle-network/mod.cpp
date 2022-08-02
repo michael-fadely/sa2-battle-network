@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <locale>
-#include <codecvt>
 
 #include <Windows.h>  // for GetCommandLineW()
 #include <ShellAPI.h> // for CommandLineToArgvW()
@@ -87,8 +85,51 @@ void parse_config(const std::string& path, Program::Settings& settings, sws::Add
 
 std::string wstring_to_string(const std::wstring& wstr)
 {
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-	return converter.to_bytes(wstr);
+	const size_t wstr_length = wstr.size();
+
+	if (!wstr_length)
+	{
+		return {};
+	}
+
+	if (wstr_length > static_cast<size_t>(std::numeric_limits<int>::max()))
+	{
+		throw std::exception("input string length too long");
+	}
+
+	const int wstr_int_length = static_cast<int>(wstr_length);
+
+	const int required_length = WideCharToMultiByte(CP_UTF8,
+	                                                WC_ERR_INVALID_CHARS,
+	                                                wstr.data(),
+	                                                wstr_int_length,
+	                                                nullptr,
+	                                                0,
+	                                                NULL,
+	                                                NULL);
+
+	if (required_length < 1)
+	{
+		throw std::exception("buffer size determination for wstring to string conversion failed");
+	}
+
+	std::string str(required_length, '\0');
+
+	const int produced_length = WideCharToMultiByte(CP_UTF8,
+	                                                WC_ERR_INVALID_CHARS,
+	                                                wstr.data(),
+	                                                wstr_int_length,
+	                                                str.data(),
+	                                                required_length,
+	                                                NULL,
+	                                                NULL);
+
+	if (produced_length != required_length)
+	{
+		throw std::exception("produced characters do not match buffer length");
+	}
+
+	return str;
 }
 
 void fake_main(const char* path, int argc, wchar_t** argv)
@@ -116,8 +157,7 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 		}
 		else if ((!wcscmp(argv[i], L"--connect") || !wcscmp(argv[i], L"-c")) && i + 1 < argc)
 		{
-			std::wstring ip_w = argv[++i];
-			std::string ip = wstring_to_string(ip_w);
+			std::string ip = wstring_to_string(argv[++i]);
 
 			if (ip.empty())
 			{
@@ -149,11 +189,10 @@ void fake_main(const char* path, int argc, wchar_t** argv)
 		}
 		else if (!wcscmp(argv[i], L"--password") && i + 1 < argc)
 		{
-			std::wstring password_w(argv[++i]);
-			std::string password_a = wstring_to_string(password_w);
+			std::string password = wstring_to_string(argv[++i]);
 
 			Hash hash;
-			settings.password = hash.compute_hash(password_a.c_str(), password_a.length(), CALG_SHA_256);
+			settings.password = hash.compute_hash(password.c_str(), password.length(), CALG_SHA_256);
 		}
 		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
 		{
