@@ -112,6 +112,7 @@
     <ClInclude Include="globals.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="Damage.h" />
+    <ClInclude Include="INIFile.h" />
     <ClInclude Include="ItemBoxItems.h" />
     <ClInclude Include="ConnectionManager.h" />
     <ClInclude Include="OnGameState.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="EmeraldSync.cpp" />
     <ClCompile Include="Damage.cpp" />
+    <ClCompile Include="INIFile.cpp" />
     <ClCompile Include="ItemBoxItems.cpp" />
     <ClCompile Include="ConnectionManager.cpp" />
     <ClCompile Include="Networking.cpp" />

@@ -1,8 +1,9 @@
 #include "stdafx.h"
 
 #include <algorithm>
-#include <string>
+#include <filesystem>
 #include <sstream>
+#include <string>
 
 #include <Windows.h>  // for GetCommandLineW()
 #include <ShellAPI.h> // for CommandLineToArgvW()
@@ -13,6 +14,8 @@
 #include "globals.h"
 #include "OnGameState.h"
 #include "Hash.h"
+
+#include "INIFile.h"
 
 static void store_paths(const char* path_relative);
 static void fake_main(int argc, wchar_t** argv);
@@ -79,43 +82,51 @@ static std::string build_mod_path_relative(const std::string& path)
 
 static void parse_config(const std::string& path, Program::Settings& settings, sws::Address& address)
 {
-	std::array<char, 255> buffer {};
+	INIFile ini;
 
-	GetPrivateProfileStringA("Config", "Nickname", "", buffer.data(), buffer.size(), path.c_str());
-
-	if (buffer[0] != '\0')
+	if (std::filesystem::exists(path))
 	{
-		settings.nickname = buffer.data();
+		std::fstream file(path, std::fstream::in);
+		ini.read(file);
 	}
 
-	settings.no_specials = GetPrivateProfileIntA("Config", "Specials", 1, path.c_str()) == 0;
-	settings.cheats = GetPrivateProfileIntA("Config", "Cheats", 0, path.c_str()) != 0;
+	std::shared_ptr<INISection> section = ini.get_section("Config");
 
-	GetPrivateProfileStringA("Server", "Name", "", buffer.data(), buffer.size(), path.c_str());
-
-	if (buffer[0] != '\0')
+	if (section)
 	{
-		settings.server_name = buffer.data();
+		settings.nickname    = section->try_get<std::string>("Nickname").value_or(std::string());
+		settings.no_specials = !section->try_get<bool>("Specials").value_or(true);
+		settings.cheats      = section->try_get<bool>("Cheats").value_or(false);
 	}
 
-	address.port = static_cast<sws::port_t>(GetPrivateProfileIntA("Server", "Port", 21790, path.c_str()));
+	section = ini.get_section("Server");
 
-	GetPrivateProfileStringA("Server", "Password", "", buffer.data(), buffer.size(), path.c_str());
-
-	if (buffer[0] != '\0')
+	if (section)
 	{
-		const std::string password_a(buffer.data(), buffer.size());
+		settings.server_name = section->try_get<std::string>("Name").value_or(std::string());
+		address.port = section->try_get<sws::port_t>("Port").value_or(21790);
 
-		if (GetPrivateProfileIntA("Server", "PasswordHashed", 0, path.c_str()) != 1)
+		std::optional<std::string> password = section->try_get<std::string>("Password");
+
+		if (password.has_value() && !password.value().empty())
 		{
-			Hash hash;
-			settings.password = hash.compute_hash(password_a.c_str(), password_a.length(), CALG_SHA_256);
-			WritePrivateProfileStringA("Server", "Password", Hash::to_string(settings.password).c_str(), path.c_str());
-			WritePrivateProfileStringA("Server", "PasswordHashed", "1", path.c_str());
-		}
-		else
-		{
-			settings.password = Hash::from_string(password_a);
+			const bool password_hashed = section->try_get<bool>("PasswordHashed").value_or(false);
+			const std::string& password_value = password.value();
+
+			if (password_hashed)
+			{
+				settings.password = Hash::from_string(password_value);
+			}
+			else
+			{
+				Hash hash;
+				settings.password = hash.compute_hash(password_value.data(), password_value.length(), CALG_SHA_256);
+				section->set<std::string>("Password", Hash::to_string(settings.password));
+				section->set<bool>("PasswordHashed", true);
+
+				std::fstream file(path, std::fstream::out | std::fstream::trunc);
+				ini.write(file);
+			}
 		}
 	}
 }
