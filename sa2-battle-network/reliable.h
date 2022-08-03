@@ -10,10 +10,11 @@ namespace reliable
 		eop          = 127, // end of packet
 		connect      = 'C', // connect request
 		disconnected = 'D', // disconnect notification
-		connected    = 'O', // O as in 'opened' I guess
+		connected    = 'O', // O as in "opened" I guess
 		type         = 'T', // reliable type (reliable_t)
 		sequence     = 'S', // sequence number (sequence_t)
 		ack          = 'A', // acknowledge a reliable message
+		keep_alive   = 'K', // keep alive!
 		bad_version  = 'V',
 	};
 

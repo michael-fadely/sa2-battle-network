@@ -73,6 +73,8 @@ private:
 	sequence_t ack_newest_out_;
 	std::unique_ptr<Store> ack_newest_data_;
 
+	clock::time_point last_heard_;
+
 	bool rtt_invalid_ = false;
 	size_t rtt_i_ = 0;
 	std::array<clock::duration, 60> rtt_points_ {};
@@ -103,6 +105,7 @@ public:
 	void disconnect();
 
 private:
+	void send_keep_alive();
 	void disconnect_internal();
 	void remove_outbound(reliable::reliable_t reliable_type, sequence_t sequence);
 	void add_rtt_point(const clock::time_point& point);

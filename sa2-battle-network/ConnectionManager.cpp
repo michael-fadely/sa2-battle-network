@@ -49,7 +49,7 @@ SocketState ConnectionManager::listen(std::shared_ptr<Connection>* out_connectio
 		return result;
 	}
 
-	auto it = connections_.find(address);
+	const auto it = connections_.find(address);
 
 	if (it != connections_.end())
 	{

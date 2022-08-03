@@ -10,13 +10,13 @@
 #include "ConnectionManager.h"
 #include "Connection.h"
 
-// TODO: ping
-
-using namespace sws;
-using namespace std::chrono;
 using namespace reliable;
+using namespace std::chrono;
+using namespace sws;
 
 static constexpr auto age_threshold = 2.5s;
+static constexpr auto keep_alive_interval = 1s;
+static constexpr auto timeout_threshold = 5s; // FIXME: hard-coded connection timeout time
 
 Connection::Store::Store(sequence_t sequence, Packet packet)
 	: creation_time_(clock::now()),
@@ -45,7 +45,8 @@ Connection::Connection(ConnectionManager* parent, std::shared_ptr<UdpSocket> soc
 	: parent_(parent),
 	  socket_(std::move(socket)),
 	  remote_address_(std::move(remote_address)),
-	  is_connected_(true)
+	  is_connected_(true),
+	  last_heard_(clock::now())
 {
 	std::ranges::fill(rtt_points_, 1s);
 }
@@ -67,6 +68,7 @@ Connection::Connection(Connection&& other) noexcept
 	  uid_out_(other.uid_out_),
 	  faf_out_(other.faf_out_),
 	  ack_newest_data_(std::move(other.ack_newest_data_)),
+	  last_heard_(other.last_heard_),
 	  rtt_invalid_(other.rtt_invalid_),
 	  rtt_i_(other.rtt_i_),
 	  rtt_points_(other.rtt_points_),
@@ -94,6 +96,7 @@ Connection& Connection::operator=(Connection&& other) noexcept
 		uid_out_         = other.uid_out_;
 		faf_out_         = other.faf_out_;
 		ack_newest_data_ = std::move(other.ack_newest_data_);
+		last_heard_      = other.last_heard_;
 		rtt_invalid_     = other.rtt_invalid_;
 		rtt_i_           = other.rtt_i_;
 		rtt_points_      = other.rtt_points_;
@@ -262,6 +265,7 @@ SocketState Connection::send(Packet& packet, bool block)
 					return result;
 				}
 			}
+
 			break;
 		}
 
@@ -288,6 +292,7 @@ SocketState Connection::send(Packet& packet, bool block)
 					return result;
 				}
 			}
+
 			break;
 		}
 
@@ -386,12 +391,16 @@ SocketState Connection::store_inbound(Packet& packet)
 		}
 	} while (id != manage_id::eop);
 
+	if (!should_disconnect || should_store)
+	{
+		last_heard_ = clock::now();
+	}
+
 	if (reliable_type != reliable_t::none)
 	{
 		if (reliable_type != reliable_t::take_newest && socket_)
 		{
 			Packet p;
-
 			p << manage_id::ack << reliable_type << packet_sequence << manage_id::eop;
 			socket_->send_to(p, remote_address_);
 		}
@@ -516,6 +525,7 @@ void Connection::remove_outbound(reliable_t reliable_type, sequence_t sequence)
 				add_rtt_point(ack_newest_data_->creation_time());
 				ack_newest_data_ = nullptr;
 			}
+
 			break;
 
 		case reliable_t::ack_ordered:
@@ -593,6 +603,16 @@ void Connection::update_outbound()
 
 	const clock::duration rtt = round_trip_time();
 
+	const auto now = clock::now();
+	const auto time_since_last = now - last_heard_;
+
+	if (time_since_last >= timeout_threshold)
+	{
+		disconnect();
+		disconnect_internal();
+		return;
+	}
+
 	if (!ordered_out_.empty())
 	{
 		Store& store = ordered_out_.front();
@@ -608,6 +628,10 @@ void Connection::update_outbound()
 
 			store.reset_activity();
 		}
+	}
+	else if (time_since_last >= keep_alive_interval)
+	{
+		send_keep_alive();
 	}
 
 	for (auto& pair : uids_out_)
@@ -686,6 +710,16 @@ void Connection::disconnect()
 	}
 
 	disconnect_internal();
+}
+
+void Connection::send_keep_alive()
+{
+	if (socket_)
+	{
+		// FIXME: include manage_id::keep_alive
+		Packet packet = reliable::reserve(reliable_t::ack_ordered);
+		send(packet);
+	}
 }
 
 void Connection::add_rtt_point(const clock::time_point& point)
