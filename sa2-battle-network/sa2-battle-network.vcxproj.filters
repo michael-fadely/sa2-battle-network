@@ -159,6 +159,9 @@
     <ClInclude Include="INIFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="operator_overloads.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MemoryManagement.cpp">
@@ -255,6 +258,9 @@
       <Filter>Source Files\Networking</Filter>
     </ClCompile>
     <ClCompile Include="INIFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="operator_overloads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

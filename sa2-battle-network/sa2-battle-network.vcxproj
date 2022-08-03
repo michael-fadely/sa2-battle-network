@@ -119,6 +119,7 @@
     <ClInclude Include="OnInput.h" />
     <ClInclude Include="OnResult.h" />
     <ClInclude Include="OnStageChange.h" />
+    <ClInclude Include="operator_overloads.h" />
     <ClInclude Include="PacketOverloads.h" />
     <ClInclude Include="PoseEffect2PStartMan.h" />
     <ClInclude Include="Program.h" />
@@ -159,6 +160,7 @@
     <ClCompile Include="OnInput.cpp" />
     <ClCompile Include="OnResult.cpp" />
     <ClCompile Include="OnStageChange.cpp" />
+    <ClCompile Include="operator_overloads.cpp" />
     <ClCompile Include="PoseEffect2PStartMan.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="mod.cpp" />

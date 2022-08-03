@@ -25,6 +25,7 @@
 #include "OnInput.h"
 #include "ConnectionManager.h"
 #include "reliable.h"
+#include "operator_overloads.h"
 
 // Namespaces
 using namespace std::chrono;
@@ -48,7 +49,7 @@ static bool position_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
 {
 	// HACK: Right now this basically means it only sends on a timer.
 	return abs(CheckDistance(&last, &current)) >= POSITION_THRESHOLD ||
-	       /*memcmp(&last, &current, sizeof(Vertex)) != 0 &&*/ system_clock::now() - position_timer >= POSITION_INTERVAL;
+	       /*last != current &&*/ system_clock::now() - position_timer >= POSITION_INTERVAL;
 }
 
 static bool rotation_threshold(const Rotation& last, const Rotation& current)
@@ -56,7 +57,7 @@ static bool rotation_threshold(const Rotation& last, const Rotation& current)
 	return abs(last.x - current.x) >= ROTATE_THRESHOLD ||
 	       abs(last.y - current.y) >= ROTATE_THRESHOLD ||
 	       abs(last.z - current.z) >= ROTATE_THRESHOLD ||
-	       (system_clock::now() - rotate_timer >= ROTATION_INTERVAL && memcmp(&last, &current, sizeof(Rotation)) != 0);
+	       (system_clock::now() - rotate_timer >= ROTATION_INTERVAL && last != current);
 }
 
 static bool speed_threshold(NJS_VECTOR& last, NJS_VECTOR& current)
@@ -718,7 +719,7 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		}
 	}
 
-	if (memcmp(&net_player[player_num].data1.Scale, &MainCharacter[player_num]->Data1.Entity->Scale, sizeof(NJS_VECTOR)) != 0)
+	if (net_player[player_num].data1.Scale != MainCharacter[player_num]->Data1.Entity->Scale)
 	{
 		request(MessageID::P_Scale, tcp, udp);
 	}

@@ -61,5 +61,6 @@
 #include "Nop.h"
 #include "typedefs.h"
 #include "INIFile.h"
+#include "operator_overloads.h"
 
 #endif
