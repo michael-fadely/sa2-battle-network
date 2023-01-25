@@ -107,11 +107,11 @@ void PacketBroker::initialize()
 
 	// FIXME: since player_num is -1, the first packet sent has the wrong player number
 	reset_packet(ack_packet);
-	ack_packet_size = ack_packet.work_size(); // HACK: attempting to reduce sent packets
+	ack_packet_min_size = ack_packet.work_size(); // HACK: ensures sent packets hold more than just player number
 
 	// FIXME: since player_num is -1, the first packet sent has the wrong player number
 	reset_packet(faf_packet);
-	faf_packet_size = faf_packet.work_size(); // HACK: attempting to reduce sent packets
+	faf_packet_min_size = faf_packet.work_size(); // HACK: ensures sent packets hold more than just player number
 }
 
 void PacketBroker::add_client(std::shared_ptr<Connection> connection)
@@ -552,13 +552,13 @@ bool PacketBroker::request(MessageID message_id, PacketEx& packet, bool allow_du
 
 void PacketBroker::finalize()
 {
-	if (ack_packet.work_size() != ack_packet_size) // HACK: attempting to reduce sent packets
+	if (ack_packet.work_size() > ack_packet_min_size) // HACK: ensures sent packets hold more than just player number
 	{
 		send(ack_packet);
 		reset_packet(ack_packet);
 	}
 
-	if (faf_packet.work_size() != faf_packet_size) // HACK: attempting to reduce sent packets
+	if (faf_packet.work_size() > faf_packet_min_size) // HACK: ensures sent packets hold more than just player number
 	{
 		send(faf_packet);
 		reset_packet(faf_packet);

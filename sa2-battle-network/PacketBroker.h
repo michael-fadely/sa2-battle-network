@@ -149,10 +149,10 @@ private:
 	PacketEx ack_packet;
 	PacketEx faf_packet;
 
-	// HACK: attempting to reduce sent packets
-	size_t ack_packet_size = 0;
-	// HACK: attempting to reduce sent packets
-	size_t faf_packet_size = 0;
+	// HACK: ensures sent packets hold more than just player number
+	size_t ack_packet_min_size = 0;
+	// HACK: ensures sent packets hold more than just player number
+	size_t faf_packet_min_size = 0;
 
 	std::array<PlayerObject, 2> net_player {};
 
