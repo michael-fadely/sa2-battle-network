@@ -24,7 +24,6 @@ const std::unordered_map<MessageID, const char*> nethax::MESSAGE_ID_STRING = {
 	{ MessageID::N_Settings, "N_Settings" },
 	{ MessageID::N_Connected, "N_Connected" },
 	{ MessageID::N_Ready, "N_Ready" },
-	{ MessageID::N_Disconnect, "N_Disconnect" },
 	{ MessageID::N_SetPlayerNumber, "N_SetPlayerNumber" },
 	{ MessageID::N_PlayerNumber, "N_PlayerNumber" },
 	{ MessageID::N_Node, "N_Node" },

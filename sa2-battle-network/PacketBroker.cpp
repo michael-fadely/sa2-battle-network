@@ -141,18 +141,13 @@ void PacketBroker::receive_loop()
 
 	connection_manager_->receive(false);
 
-	// FIXME: completely disgusting copy because disconnects will modify node_connections_ inside read()
-	static std::vector<std::pair<const signed char, std::shared_ptr<Connection>>> connections;
+	size_t timeouts = 0;
 
-	connections.clear();
-
-	for (auto& pair : node_connections_)
+	for (auto it = node_connections_.begin(); it != node_connections_.end();)
 	{
-		connections.push_back(pair);
-	}
+		const node_t node = it->first;
+		std::shared_ptr<Connection> connection = it->second;
 
-	for (auto& [node, connection] : connections)
-	{
 		connection->update_outbound();
 
 		sws::Packet received;
@@ -166,7 +161,7 @@ void PacketBroker::receive_loop()
 				continue;
 			}
 			
-			for (auto& [node_out, connection_out] : connections)
+			for (auto& [node_out, connection_out] : node_connections_)
 			{
 				if (connection_out == connection)
 				{
@@ -177,14 +172,23 @@ void PacketBroker::receive_loop()
 				connection_out->send(received);
 			}
 		}
+
+		if (!connection->is_connected())
+		{
+			it = node_connections_.erase(it);
+
+			if (connection->timed_out())
+			{
+				++timeouts;
+			}
+		}
+		else
+		{
+			++it;
+		}
 	}
 
-	const size_t connection_count = node_connections_.size();
-
-	// FIXME: timeouts
-	// ReSharper disable once CppLocalVariableMayBeConst
-	size_t timeouts = 0;
-	timed_out = timeouts >= connection_count;
+	timed_out = timeouts >= node_connections_.size();
 }
 
 void PacketBroker::read(sws::Packet& packet, node_t node)
@@ -215,17 +219,6 @@ void PacketBroker::read(sws::Packet& packet, node_t node)
 			case MessageID::Count:
 				PrintDebug(">> Received message count?! Malformed packet warning!");
 				packet.clear();
-				break;
-
-			case MessageID::N_Disconnect:
-				PrintDebug(">> Player %d disconnected.", real_node);
-
-				if (is_server_ || real_node == 0)
-				{
-					disconnect(node);
-					packet.clear();
-				}
-
 				break;
 
 			case MessageID::N_Ready:
@@ -548,7 +541,7 @@ bool PacketBroker::request(MessageID message_id, PacketEx& packet, const PacketE
 
 bool PacketBroker::request(MessageID message_id, PacketEx& packet, bool allow_dupes)
 {
-	if (message_id >= MessageID::N_Disconnect && packet.add_type(message_id, allow_dupes))
+	if (message_id >= MessageID::N_SetPlayerNumber && packet.add_type(message_id, allow_dupes))
 	{
 		return add_to_packet(message_id, packet);
 	}

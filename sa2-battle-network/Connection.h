@@ -53,6 +53,7 @@ private:
 	sws::Address remote_address_;
 
 	bool is_connected_ = false;
+	bool timed_out_ = false;
 
 	std::deque<sws::Packet> inbound_;
 
@@ -100,6 +101,7 @@ public:
 	bool pop(sws::Packet* out_packet);
 
 	[[nodiscard]] bool is_connected() const;
+	[[nodiscard]] bool timed_out() const;
 
 	[[nodiscard]] const sws::Address& remote_address() const;
 	void disconnect();

@@ -39,6 +39,7 @@ extern "C" __declspec(dllexport) void OnFrame()
 	{
 		PrintDebug("<> Connection timed out.");
 		globals::program->disconnect();
+		return;
 	}
 
 	globals::broker->send_system();

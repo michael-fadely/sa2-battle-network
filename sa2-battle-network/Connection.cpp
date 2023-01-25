@@ -609,7 +609,7 @@ void Connection::update_outbound()
 	if (time_since_last >= timeout_threshold)
 	{
 		disconnect();
-		disconnect_internal();
+		timed_out_ = true;
 		return;
 	}
 
@@ -688,6 +688,11 @@ bool Connection::pop(sws::Packet* out_packet)
 bool Connection::is_connected() const
 {
 	return is_connected_ && socket_;
+}
+
+bool Connection::timed_out() const
+{
+	return timed_out_;
 }
 
 const sws::Address& Connection::remote_address() const
