@@ -11,6 +11,7 @@
 #include "PacketBroker.h"
 
 #include <cmath> // for abs
+#include <ranges>
 #include <thread>
 
 #include <SA2ModLoader.h>
@@ -80,8 +81,8 @@ static const uint STATUS_MASK = ~(Status_HoldObject | Status_Unknown1 | Status_U
 
 PacketBroker::PacketBroker(uint timeout)
 	: connection_timeout(milliseconds(timeout)),
-	  tcp_packet(PacketChannel::reliable),
-	  udp_packet(PacketChannel::fire_and_forget)
+	  ack_packet(PacketChannel::reliable),
+	  faf_packet(PacketChannel::fire_and_forget)
 {
 	initialize();
 }
@@ -105,12 +106,12 @@ void PacketBroker::initialize()
 	node_connections_.clear();
 
 	// FIXME: since player_num is -1, the first packet sent has the wrong player number
-	reset_packet(tcp_packet);
-	tcp_packet_size = tcp_packet.work_size(); // HACK: attempting to reduce sent packets
+	reset_packet(ack_packet);
+	ack_packet_size = ack_packet.work_size(); // HACK: attempting to reduce sent packets
 
 	// FIXME: since player_num is -1, the first packet sent has the wrong player number
-	reset_packet(udp_packet);
-	udp_packet_size = udp_packet.work_size(); // HACK: attempting to reduce sent packets
+	reset_packet(faf_packet);
+	faf_packet_size = faf_packet.work_size(); // HACK: attempting to reduce sent packets
 }
 
 void PacketBroker::add_client(std::shared_ptr<Connection> connection)
@@ -161,7 +162,7 @@ void PacketBroker::receive_loop()
 				continue;
 			}
 			
-			for (auto& [node_out, connection_out] : node_connections_)
+			for (auto& connection_out : node_connections_ | std::views::values)
 			{
 				if (connection_out == connection)
 				{
@@ -376,7 +377,7 @@ void PacketBroker::send_ready(MessageID message_id)
 	sws::Packet packet = reliable::reserve(reliable::reliable_t::ack_ordered);
 	add_ready(message_id, packet);
 
-	for (auto& [node, connection] : node_connections_)
+	for (auto& connection : node_connections_ | std::views::values)
 	{
 		connection->send(packet);
 	}
@@ -464,14 +465,14 @@ std::shared_ptr<ConnectionManager> PacketBroker::connection_manager() const
 bool PacketBroker::request(MessageID message_id, PacketChannel protocol, bool allow_dupes)
 {
 	return request(message_id,
-	               protocol == PacketChannel::reliable ? tcp_packet : udp_packet,
-	               protocol != PacketChannel::reliable ? tcp_packet : udp_packet,
+	               protocol == PacketChannel::reliable ? ack_packet : faf_packet,
+	               protocol != PacketChannel::reliable ? ack_packet : faf_packet,
 	               allow_dupes);
 }
 
 bool PacketBroker::append(MessageID message_id, PacketChannel protocol, sws::Packet const* packet, bool allow_dupes)
 {
-	auto& dest = protocol == PacketChannel::reliable ? tcp_packet : udp_packet;
+	auto& dest = protocol == PacketChannel::reliable ? ack_packet : faf_packet;
 
 	if (!allow_dupes && dest.contains(message_id))
 	{
@@ -551,22 +552,22 @@ bool PacketBroker::request(MessageID message_id, PacketEx& packet, bool allow_du
 
 void PacketBroker::finalize()
 {
-	if (tcp_packet.work_size() != tcp_packet_size) // HACK: attempting to reduce sent packets
+	if (ack_packet.work_size() != ack_packet_size) // HACK: attempting to reduce sent packets
 	{
-		send(tcp_packet);
-		reset_packet(tcp_packet);
+		send(ack_packet);
+		reset_packet(ack_packet);
 	}
 
-	if (udp_packet.work_size() != udp_packet_size) // HACK: attempting to reduce sent packets
+	if (faf_packet.work_size() != faf_packet_size) // HACK: attempting to reduce sent packets
 	{
-		send(udp_packet);
-		reset_packet(udp_packet);
+		send(faf_packet);
+		reset_packet(faf_packet);
 	}
 }
 
 void PacketBroker::send(sws::Packet& packet, bool block)
 {
-	for (auto& [node, connection] : node_connections_)
+	for (auto& connection : node_connections_ | std::views::values)
 	{
 		connection->send(packet, block);
 	}
@@ -574,22 +575,22 @@ void PacketBroker::send(sws::Packet& packet, bool block)
 
 void PacketBroker::send_system()
 {
-	send_system(tcp_packet, udp_packet);
+	send_system(ack_packet, faf_packet);
 }
 
 void PacketBroker::send_player()
 {
-	send_player(tcp_packet, udp_packet);
+	send_player(ack_packet, faf_packet);
 }
 
 void PacketBroker::send_menu()
 {
-	send_menu(tcp_packet);
+	send_menu(ack_packet);
 }
 
 #pragma region Send
 
-void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
+void PacketBroker::send_system(PacketEx& ack, PacketEx& faf)
 {
 	// TODO: check if spectator
 	if (player_num > 1)
@@ -604,32 +605,32 @@ void PacketBroker::send_system(PacketEx& tcp, PacketEx& udp)
 
 	if (local.system.GameState != GameState)
 	{
-		request(MessageID::S_GameState, tcp, udp);
+		request(MessageID::S_GameState, ack, faf);
 	}
 
 	if (GameState == GameState::Pause && local.system.PauseSelection != PauseSelection)
 	{
-		request(MessageID::S_PauseSelection, tcp, udp);
+		request(MessageID::S_PauseSelection, ack, faf);
 	}
 
 	if (local.game.TimerSeconds != TimerSeconds && is_server_)
 	{
-		request(MessageID::S_Time, udp, tcp);
+		request(MessageID::S_Time, faf, ack);
 	}
 
 	if (local.game.TimeStopped != TimeStopped)
 	{
-		request(MessageID::S_TimeStop, tcp, udp);
+		request(MessageID::S_TimeStop, ack, faf);
 	}
 
 	if (memcmp(local.game.SpecialAttacks[player_num],
 	           player_num == 0 ? P1SpecialAttacks : P2SpecialAttacks, sizeof(char) * 3) != 0)
 	{
-		request(MessageID::S_2PSpecials, tcp, udp);
+		request(MessageID::S_2PSpecials, ack, faf);
 	}
 }
 
-void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
+void PacketBroker::send_player(PacketEx& ack, PacketEx& faf)
 {
 	// TODO: check if spectator
 	if (player_num > 1)
@@ -654,8 +655,8 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 			MainCharacter[player_num]->Data1.Entity->Rotation = net_player[n].data1.Rotation;
 			MainCharacter[player_num]->Data2.Character->Speed = {};
 
-			request(MessageID::P_Position, tcp, udp);
-			request(MessageID::P_Speed, tcp, udp);
+			request(MessageID::P_Position, ack, faf);
+			request(MessageID::P_Speed, ack, faf);
 		}
 	}
 
@@ -669,34 +670,34 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 
 	if (position_threshold(net_player[player_num].data1.Position, MainCharacter[player_num]->Data1.Entity->Position))
 	{
-		request(MessageID::P_Position, udp, tcp);
+		request(MessageID::P_Position, faf, ack);
 	}
 
 	// TODO: Make less spammy
 	if (have_spin_timer && net_player[player_num].sonic.SpindashCounter
 	    != static_cast<SonicCharObj2*>(MainCharacter[player_num]->Data2.Undefined)->SpindashCounter)
 	{
-		request(MessageID::P_SpinTimer, tcp, udp);
+		request(MessageID::P_SpinTimer, ack, faf);
 	}
 
 	if (MainCharacter[player_num]->Data1.Entity->Status & Status_DoNextAction && MainCharacter[player_num]->Data1.Entity->NextAction
 	    != net_player[player_num].data1.NextAction)
 	{
-		request(MessageID::P_NextAction, tcp, udp);
+		request(MessageID::P_NextAction, ack, faf);
 	}
 
 	if (net_player[player_num].data1.Action != MainCharacter[player_num]->Data1.Entity->Action ||
 	    (net_player[player_num].data1.Status & STATUS_MASK) != (MainCharacter[player_num]->Data1.Entity->Status & STATUS_MASK))
 	{
-		request(MessageID::P_Action, tcp, udp);
-		request(MessageID::P_Status, tcp, udp);
+		request(MessageID::P_Action, ack, faf);
+		request(MessageID::P_Status, ack, faf);
 
-		request(MessageID::P_Animation, tcp, udp);
-		request(MessageID::P_Position, tcp, udp);
+		request(MessageID::P_Animation, ack, faf);
+		request(MessageID::P_Position, ack, faf);
 
 		if (have_spin_timer)
 		{
-			request(MessageID::P_SpinTimer, tcp, udp);
+			request(MessageID::P_SpinTimer, ack, faf);
 		}
 	}
 
@@ -706,25 +707,25 @@ void PacketBroker::send_player(PacketEx& tcp, PacketEx& udp)
 		    speed_threshold(net_player[player_num].data2.Speed, MainCharacter[player_num]->Data2.Character->Speed) ||
 		    net_player[player_num].data2.PhysData.BaseSpeed != MainCharacter[player_num]->Data2.Character->PhysData.BaseSpeed)
 		{
-			request(MessageID::P_Rotation, udp, tcp);
-			request(MessageID::P_Position, udp, tcp);
-			request(MessageID::P_Speed, udp, tcp);
+			request(MessageID::P_Rotation, faf, ack);
+			request(MessageID::P_Position, faf, ack);
+			request(MessageID::P_Speed, faf, ack);
 		}
 	}
 
 	if (net_player[player_num].data1.Scale != MainCharacter[player_num]->Data1.Entity->Scale)
 	{
-		request(MessageID::P_Scale, tcp, udp);
+		request(MessageID::P_Scale, ack, faf);
 	}
 
 	if (net_player[player_num].data2.Powerups != MainCharacter[player_num]->Data2.Character->Powerups)
 	{
-		request(MessageID::P_Powerups, tcp, udp);
+		request(MessageID::P_Powerups, ack, faf);
 	}
 
 	if (net_player[player_num].data2.Upgrades != MainCharacter[player_num]->Data2.Character->Upgrades)
 	{
-		request(MessageID::P_Upgrades, tcp, udp);
+		request(MessageID::P_Upgrades, ack, faf);
 	}
 
 	net_player[player_num].copy(MainCharacter[player_num]);

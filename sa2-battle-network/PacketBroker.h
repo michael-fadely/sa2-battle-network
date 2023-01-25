@@ -132,9 +132,9 @@ private:
 	void read(sws::Packet& packet, node_t node);
 
 	// Read and send System variables
-	void send_system(PacketEx& tcp, PacketEx& udp);
+	void send_system(PacketEx& ack, PacketEx& faf);
 	// Read and send Player variables
-	void send_player(PacketEx& tcp, PacketEx& udp);
+	void send_player(PacketEx& ack, PacketEx& faf);
 	// Read and send Menu variables
 	void send_menu(PacketEx& packet);
 
@@ -146,13 +146,13 @@ private:
 
 	bool is_server_ = false;
 
-	PacketEx tcp_packet;
-	PacketEx udp_packet;
+	PacketEx ack_packet;
+	PacketEx faf_packet;
 
 	// HACK: attempting to reduce sent packets
-	size_t tcp_packet_size = 0;
+	size_t ack_packet_size = 0;
 	// HACK: attempting to reduce sent packets
-	size_t udp_packet_size = 0;
+	size_t faf_packet_size = 0;
 
 	std::array<PlayerObject, 2> net_player {};
 

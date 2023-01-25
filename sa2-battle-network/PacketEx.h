@@ -27,12 +27,10 @@ public:
 	bool add_type(nethax::MessageID type, bool allow_dupes = false);
 	void finalize();
 
-	// Determines whether or not the packet is "Safe" (TCP) or "Fast" (UDP)
-	// This can be changed at any time before it is sent.
-	nethax::PacketChannel channel;
-
 private:
 	void initialize();
+
+	nethax::PacketChannel channel;
 
 	bool empty_;
 	bool building;

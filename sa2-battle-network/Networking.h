@@ -113,8 +113,8 @@ namespace nethax
 
 	struct MessageStat
 	{
-		size_t tcp_count;
-		size_t udp_count;
+		size_t ack_count;
+		size_t faf_count;
 		ushort size;
 	};
 
