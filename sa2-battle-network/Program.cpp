@@ -125,7 +125,9 @@ bool Program::connect()
 		apply_settings();
 		P2Start = 2;
 
-		if (globals::broker->connection_count())
+		// FIXME: this is not the right place to initialize events
+		// this is a hack to fix trampolines on top of trampolines
+		if (globals::broker->connection_count() == 1)
 		{
 			events::Initialize();
 		}
