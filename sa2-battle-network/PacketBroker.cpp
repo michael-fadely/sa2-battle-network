@@ -553,7 +553,7 @@ void PacketBroker::finalize()
 {
 	if (tcp_packet.work_size() != tcp_packet_size) // HACK: attempting to reduce sent packets
 	{
-		send(tcp_packet, true);
+		send(tcp_packet);
 		reset_packet(tcp_packet);
 	}
 
