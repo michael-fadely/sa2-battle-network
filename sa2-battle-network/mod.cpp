@@ -242,11 +242,6 @@ static void fake_main(int argc, wchar_t** argv)
 			Hash hash;
 			settings.password = hash.compute_hash(password.c_str(), password.length(), CALG_SHA_256);
 		}
-		else if (!wcscmp(argv[i], L"--local") || !wcscmp(argv[i], L"-l"))
-		{
-			settings.local = true;
-			valid_args = true;
-		}
 		else if (!wcscmp(argv[i], L"--netstat"))
 		{
 			settings.netstat = true;

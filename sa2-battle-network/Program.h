@@ -17,7 +17,6 @@ public:
 
 		// Local settings
 		bool netstat;
-		bool local;
 	};
 
 	struct Version
